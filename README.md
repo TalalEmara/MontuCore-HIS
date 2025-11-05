@@ -73,4 +73,4 @@ We follow established conventional commit formats: `type: brief description`
 
 > **Backend Team**
 > <br>
-> [`Mohamed Hisham`](https://github.com/MohamedHisham20) &nbsp; • &nbsp; [`Abd El Rahman Sayed`](https://github.com/) &nbsp; • &nbsp; [`Omar Khaled`](https://github.com/)
+> [`Mohamed Hisham`](https://github.com/MohamedHisham20) &nbsp; • &nbsp; [`Abd El Rahman Sayed`](https://github.com/Abdelrahman0Sayed) &nbsp; • &nbsp; [`Omar Khaled`](https://github.com/omarkhaled235)
