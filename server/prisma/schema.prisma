@@ -4,11 +4,136 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// server/prisma/schema.prisma
+
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- 1. USERS & AUTH ---
+
+enum Role {
+  ADMIN
+  CLINICIAN
+  ATHLETE
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(ATHLETE)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  athleteProfile   AthleteProfile?
+  clinicianProfile ClinicianProfile?
+  
+  // Inverse Relations (Data linked to this user)
+  injuries       Injury[]       @relation("AthleteInjuries")
+  treatments     TreatmentPlan[] @relation("AthletePlans")
+  wellnessLogs   WellnessLog[]
+  appointments   Appointment[]  @relation("AthleteAppointments")
+  
+  // For Clinicians
+  authoredPlans  TreatmentPlan[] @relation("ClinicianAuthor")
+  conductedAppts Appointment[]   @relation("ClinicianAppt")
+  diagnosedInjuries Injury[]     @relation("ClinicianDiagnosis")
+}
+
+// --- 2. PROFILES ---
+
+model AthleteProfile {
+  id           Int    @id @default(autoincrement())
+  userId       Int    @unique
+  user         User   @relation(fields: [userId], references: [id])
+  fullName     String
+  position     String
+  jerseyNumber Int?
+  height       Float?
+  weight       Float?
+  dateOfBirth  DateTime?
+}
+
+model ClinicianProfile {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  user      User   @relation(fields: [userId], references: [id])
+  specialty String // e.g., 'Physiotherapist', 'Nutritionist'
+}
+
+// --- 3. MEDICAL CORE ---
+
+model Injury {
+  id            Int       @id @default(autoincrement())
+  athleteId     Int
+  clinicianId   Int
+  athlete       User      @relation("AthleteInjuries", fields: [athleteId], references: [id])
+  clinician     User      @relation("ClinicianDiagnosis", fields: [clinicianId], references: [id])
+  
+  diagnosisName String
+  icd10Code     String?   // Bonus Requirement
+  injuryDate    DateTime  @default(now())
+  status        String    // 'Active', 'Recovered'
+  severity      String    // 'Grade 1', 'Grade 2'
+  notes         String?
+
+  treatments    Treatment[]
+}
+
+model Treatment {
+  id          Int      @id @default(autoincrement())
+  injuryId    Int
+  injury      Injury   @relation(fields: [injuryId], references: [id])
+  
+  type        String   // 'Surgery', 'Physio', 'Medication'
+  description String
+  cost        Float    @default(0.0) // For Billing Report
+  date        DateTime @default(now())
+}
+
+// --- 4. PATIENT PORTAL & WELLNESS ---
+
+model WellnessLog {
+  id           Int      @id @default(autoincrement())
+  athleteId    Int
+  athlete      User     @relation(fields: [athleteId], references: [id])
+  
+  date         DateTime @default(now())
+  sleepHours   Float
+  fatigueLevel Int      // 1-5
+  sorenessLevel Int     // 1-5
+  moodLevel    Int      // 1-5
+}
+
+model TreatmentPlan {
+  id        Int      @id @default(autoincrement())
+  athleteId Int
+  authorId  Int
+  athlete   User     @relation("AthletePlans", fields: [athleteId], references: [id])
+  author    User     @relation("ClinicianAuthor", fields: [authorId], references: [id])
+  
+  title     String
+  content   String   // The exercises or diet plan
+  startDate DateTime
+  endDate   DateTime?
+}
+
+// --- 5. SCHEDULING ---
+
+model Appointment {
+  id          Int      @id @default(autoincrement())
+  athleteId   Int
+  clinicianId Int
+  athlete     User     @relation("AthleteAppointments", fields: [athleteId], references: [id])
+  clinician   User     @relation("ClinicianAppt", fields: [clinicianId], references: [id])
+  
+  startTime   DateTime
+  endTime     DateTime
+  status      String   // 'Scheduled', 'Completed', 'Cancelled'
 }
