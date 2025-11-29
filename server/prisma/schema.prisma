@@ -15,7 +15,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- 1. USERS & AUTH ---
+// --- ENUMS ---
 
 enum Role {
   ADMIN
@@ -23,117 +23,228 @@ enum Role {
   ATHLETE
 }
 
-model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  passwordHash  String
-  role          Role     @default(ATHLETE)
-  createdAt     DateTime @default(now())
-
-  // Relations
-  athleteProfile   AthleteProfile?
-  clinicianProfile ClinicianProfile?
-  
-  // Inverse Relations (Data linked to this user)
-  injuries       Injury[]       @relation("AthleteInjuries")
-  treatments     TreatmentPlan[] @relation("AthletePlans")
-  wellnessLogs   WellnessLog[]
-  appointments   Appointment[]  @relation("AthleteAppointments")
-  
-  // For Clinicians
-  authoredPlans  TreatmentPlan[] @relation("ClinicianAuthor")
-  conductedAppts Appointment[]   @relation("ClinicianAppt")
-  diagnosedInjuries Injury[]     @relation("ClinicianDiagnosis")
+enum Severity {
+  MILD
+  MODERATE
+  SEVERE
+  CRITICAL
 }
 
-// --- 2. PROFILES ---
+enum ApptStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum CaseStatus {
+  ACTIVE
+  RECOVERED
+}
+
+// Generic status for Exams/Labs if needed, or specific ones
+enum LabStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+// --- USERS & AUTH ---
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String    @map("full_name")
+  dateOfBirth   DateTime? @map("date_of_birth")
+  phoneNumber   String?   @map("phone_number")
+  gender        String?   // 'Male', 'Female'
+  role          Role      @default(ATHLETE)
+  createdAt     DateTime  @default(now())
+
+  // --- Relations ---
+  
+  // Profiles
+  athleteProfile   AthleteProfile?
+  clinicianProfile ClinicianProfile?
+
+  // As Athlete
+  athleteAppointments Appointment[] @relation("AthleteAppt")
+  athleteCases        Case[]        @relation("AthleteCase")
+  
+  // As Clinician
+  clinicianAppointments Appointment[] @relation("ClinicianAppt")
+  managedCases          Case[]        @relation("ManagingClinician")
+
+  @@map("users")
+}
+
+// --- PROFILES ---
 
 model AthleteProfile {
   id           Int    @id @default(autoincrement())
-  userId       Int    @unique
+  userId       Int    @unique @map("user_id")
   user         User   @relation(fields: [userId], references: [id])
-  fullName     String
-  position     String
-  jerseyNumber Int?
-  height       Float?
-  weight       Float?
-  dateOfBirth  DateTime?
+  position     String?
+  jerseyNumber Int? @map("jersey_number")
+
+  @@map("athlete_profiles")
 }
 
 model ClinicianProfile {
   id        Int    @id @default(autoincrement())
-  userId    Int    @unique
+  userId    Int    @unique @map("user_id")
   user      User   @relation(fields: [userId], references: [id])
-  specialty String // e.g., 'Physiotherapist', 'Nutritionist'
+  specialty String? // 'Physio', 'Ortho', 'Nutritionist'
+
+
+  @@map("clinician_profiles")
 }
 
-// --- 3. MEDICAL CORE ---
-
-model Injury {
-  id            Int       @id @default(autoincrement())
-  athleteId     Int
-  clinicianId   Int
-  athlete       User      @relation("AthleteInjuries", fields: [athleteId], references: [id])
-  clinician     User      @relation("ClinicianDiagnosis", fields: [clinicianId], references: [id])
-  
-  diagnosisName String
-  icd10Code     String?   // Bonus Requirement
-  injuryDate    DateTime  @default(now())
-  status        String    // 'Active', 'Recovered'
-  severity      String    // 'Grade 1', 'Grade 2'
-  notes         String?
-
-  treatments    Treatment[]
-}
-
-model Treatment {
-  id          Int      @id @default(autoincrement())
-  injuryId    Int
-  injury      Injury   @relation(fields: [injuryId], references: [id])
-  
-  type        String   // 'Surgery', 'Physio', 'Medication'
-  description String
-  cost        Float    @default(0.0) // For Billing Report
-  date        DateTime @default(now())
-}
-
-// --- 4. PATIENT PORTAL & WELLNESS ---
-
-model WellnessLog {
-  id           Int      @id @default(autoincrement())
-  athleteId    Int
-  athlete      User     @relation(fields: [athleteId], references: [id])
-  
-  date         DateTime @default(now())
-  sleepHours   Float
-  fatigueLevel Int      // 1-5
-  sorenessLevel Int     // 1-5
-  moodLevel    Int      // 1-5
-}
-
-model TreatmentPlan {
-  id        Int      @id @default(autoincrement())
-  athleteId Int
-  authorId  Int
-  athlete   User     @relation("AthletePlans", fields: [athleteId], references: [id])
-  author    User     @relation("ClinicianAuthor", fields: [authorId], references: [id])
-  
-  title     String
-  content   String   // The exercises or diet plan
-  startDate DateTime
-  endDate   DateTime?
-}
-
-// --- 5. SCHEDULING ---
+// --- CORE MEDICAL DATA ---
 
 model Appointment {
-  id          Int      @id @default(autoincrement())
-  athleteId   Int
-  clinicianId Int
-  athlete     User     @relation("AthleteAppointments", fields: [athleteId], references: [id])
-  clinician   User     @relation("ClinicianAppt", fields: [clinicianId], references: [id])
+  id             Int        @id @default(autoincrement())
+  athleteId      Int        @map("athlete_id")
+  clinicianId    Int        @map("clinician_id")
   
-  startTime   DateTime
-  endTime     DateTime
-  status      String   // 'Scheduled', 'Completed', 'Cancelled'
+  // Relations
+  athlete        User       @relation("AthleteAppt", fields: [athleteId], references: [id])
+  clinician      User       @relation("ClinicianAppt", fields: [clinicianId], references: [id])
+  
+  scheduledAt    DateTime   @map("scheduled_at")
+  height         Float?
+  weight         Float?
+  status         ApptStatus @default(SCHEDULED)
+  diagnosisNotes String?    @map("diagnosis_notes") // Initial notes
+
+  // The Case resulting from this appointment (Optional relation here)
+  generatedCase  Case?
+
+  @@map("appointments")
+}
+
+model Case {
+  id                  Int        @id @default(autoincrement())
+  athleteId           Int        @map("athlete_id")
+  managingClinicianId Int        @map("managing_clinician_id")
+  appointmentId       Int        @unique @map("appointment_id") // 1-to-1: A case comes from ONE specific appointment
+
+  // Relations
+  athlete             User       @relation("AthleteCase", fields: [athleteId], references: [id])
+  managingClinician   User       @relation("ManagingClinician", fields: [managingClinicianId], references: [id])
+  originAppointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  diagnosisName       String      @map("diagnosis_name") // "ACL Tear", "Concussion"
+  icd10Code           String?     @map("icd10_code")
+  injuryDate          DateTime   @default(now()) @map("injury_date")
+  status              CaseStatus @default(ACTIVE)
+  severity            Severity   @default(MILD)
+  medicalGrade        String?    @map("medical_grade") // "Grade 2", "Stage 1"
+
+  // Sub-Tables
+  exams          Exam[]
+  labTests       LabTest[]
+  treatments     Treatment[]
+  physioPrograms PhysioProgram[]
+
+  @@map("cases")
+}
+
+// --- PACS & IMAGING SYSTEM ---
+
+// 1. The Metadata (The Order)
+model Exam {
+  id               Int      @id @default(autoincrement())
+  caseId           Int      @map("case_id")
+  medicalCase      Case     @relation(fields: [caseId], references: [id])
+
+  modality         String   // 'MRI', 'CT', 'X-RAY'
+  bodyPart         String   @map("body_part") // 'Knee', 'Shoulder'
+  status           String   // 'ORDERED', 'IMAGING_COMPLETE'
+  
+  scheduledAt      DateTime? @map("scheduled_at")
+  performedAt      DateTime? @map("performed_at")
+  
+  radiologistNotes String?   @map("radiologist_notes")
+  conclusion       String?
+  cost             Float?
+
+  // 2. The Actual Files
+  images           PACSImage[]
+
+  @@map("exams")
+}
+
+model PACSImage {
+  id           Int      @id @default(autoincrement())
+  examId       Int      @map("exam_id")
+
+  fileName     String   @map("file_name") // Original file name
+  supabasePath String   @map("supabase_path") // Internal bucket path
+  publicUrl    String   @map("public_url") // The link for Cornerstone.js
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+
+  exam         Exam     @relation(fields: [examId], references: [id])
+
+@@map("pacs_images")
+}
+
+
+// --- LAB SYSTEM (Blood Tests) ---
+
+model LabTest {
+  id                Int       @id @default(autoincrement())
+  caseId            Int       @map("case_id")
+
+  testName          String    @map("test_name") // 'CBC', 'Lipid Profile'
+  category          String?   // 'Hematology'
+  status            LabStatus @default(PENDING)
+
+  // Results
+  resultPdfUrl      String?    @map("result_pdf_url") // For the PDF Report
+  resultValues      Json?      @map("result_values") // For specific values like {"RBC": 5.0}
+  labTechnicianNotes String?   @map("lab_technician_notes")
+
+  sampleDate        DateTime?  @map("sample_date")
+  cost              Float?
+
+  // Relations
+  medicalCase       Case      @relation(fields: [caseId], references: [id])
+
+@@map("lab_tests")
+}
+
+// --- TREATMENTS & PHYSIO ---
+
+model Treatment {
+  id           Int      @id @default(autoincrement())
+  caseId       Int      @map("case_id")
+
+  type         String   // 'Surgery', 'Medication'
+  description  String
+  providerName String?  @map("provider_name") // 'External Hospital'
+  cost         Float?
+  date         DateTime @default(now())
+
+  // Relations
+  medicalCase  Case     @relation(fields: [caseId], references: [id])
+
+  
+  @@map("treatments")
+}
+
+model PhysioProgram {
+  id                Int      @id @default(autoincrement())
+  caseId            Int      @map("case_id")
+
+  title             String
+  numberOfSessions  Int      @map("number_of_sessions")
+  sessionsCompleted Int      @default(0) @map("sessions_completed")
+  startDate         DateTime @map("start_date")
+  weeklyRepetition  Int      @map("weekly_repetition")
+  costPerSession    Float?   @map("cost_per_session")
+  // Relations
+  medicalCase       Case     @relation(fields: [caseId], references: [id])
+
+  @@map("physio_programs")
 }
