@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const appointmentController = require('./appointment.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as appointmentController from './appointment.controller.js';
+import { authenticateToken } from '../../middleware/auth.js';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/appointments
@@ -38,4 +39,4 @@ router.put('/:id', authenticateToken, appointmentController.updateAppointment);
  */
 router.post('/:id/cancel', authenticateToken, appointmentController.cancelAppointment);
 
-module.exports = router;
+export default router;

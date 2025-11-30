@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const billingController = require('./billing.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as billingController from './billing.controller';
+import { authenticateToken } from '../../middleware/auth';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/billing/invoices
@@ -45,4 +46,4 @@ router.post('/invoices/:id/payments', authenticateToken, billingController.recor
  */
 router.get('/patients/:patientId/summary', authenticateToken, billingController.getPatientBillingSummary);
 
-module.exports = router;
+export default router;

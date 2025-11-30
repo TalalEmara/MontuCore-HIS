@@ -1,12 +1,13 @@
-const sessionService = require('./session.service');
+import type { Request, Response } from 'express';
+import * as sessionService from './session.service.js';
 
 /**
  * Create a new session
  */
-const createSession = async (req, res) => {
+export const createSession = async (req: Request, res: Response): Promise<void> => {
   try {
     const sessionData = req.body;
-    const createdBy = req.user.id;
+    const createdBy = (req as any).user.id;
     
     const newSession = await sessionService.createSession({ ...sessionData, createdBy });
     
@@ -18,7 +19,7 @@ const createSession = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -26,11 +27,11 @@ const createSession = async (req, res) => {
 /**
  * Get all sessions
  */
-const getAllSessions = async (req, res) => {
+export const getAllSessions = async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 10, status, patientId, caseId } = req.query;
     
-    const sessions = await sessionService.getAllSessions({ page, limit, status, patientId, caseId });
+    const sessions = await sessionService.getAllSessions({ page: Number(page), limit: Number(limit), status: status as string, patientId: patientId as string, caseId: caseId as string });
     
     res.status(200).json({
       success: true,
@@ -39,7 +40,7 @@ const getAllSessions = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -47,9 +48,17 @@ const getAllSessions = async (req, res) => {
 /**
  * Get session by ID
  */
-const getSessionById = async (req, res) => {
+export const getSessionById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Session ID is required'
+      });
+      return;
+    }
     
     const session = await sessionService.getSessionById(id);
     
@@ -60,7 +69,7 @@ const getSessionById = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -68,10 +77,18 @@ const getSessionById = async (req, res) => {
 /**
  * Update session
  */
-const updateSession = async (req, res) => {
+export const updateSession = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updates = req.body;
+    
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Session ID is required'
+      });
+      return;
+    }
     
     const updatedSession = await sessionService.updateSession(id, updates);
     
@@ -83,7 +100,7 @@ const updateSession = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -91,10 +108,18 @@ const updateSession = async (req, res) => {
 /**
  * Complete session
  */
-const completeSession = async (req, res) => {
+export const completeSession = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { notes, prescriptions } = req.body;
+    
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Session ID is required'
+      });
+      return;
+    }
     
     const completedSession = await sessionService.completeSession(id, { notes, prescriptions });
     
@@ -106,15 +131,7 @@ const completeSession = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-};
-
-module.exports = {
-  createSession,
-  getAllSessions,
-  getSessionById,
-  updateSession,
-  completeSession
 };

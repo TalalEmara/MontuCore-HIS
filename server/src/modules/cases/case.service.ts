@@ -1,11 +1,27 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+interface CaseData {
+  patientId: string;
+  diagnosis?: string;
+  symptoms?: string;
+  status?: string;
+  priority?: string;
+  notes?: string;
+  createdBy: string;
+}
+
+interface GetAllCasesParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+}
 
 /**
  * Create a new case
  */
-const createCase = async (caseData) => {
+export const createCase = async (caseData: CaseData) => {
   const newCase = await prisma.case.create({
     data: {
       patientId: caseData.patientId,
@@ -33,7 +49,7 @@ const createCase = async (caseData) => {
 /**
  * Get all cases with pagination and filters
  */
-const getAllCases = async ({ page = 1, limit = 10, status }) => {
+export const getAllCases = async ({ page = 1, limit = 10, status }: GetAllCasesParams) => {
   const skip = (page - 1) * limit;
   const where = status ? { status } : {};
 
@@ -41,7 +57,7 @@ const getAllCases = async ({ page = 1, limit = 10, status }) => {
     prisma.case.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: limit,
       include: {
         patient: {
           select: {
@@ -61,8 +77,8 @@ const getAllCases = async ({ page = 1, limit = 10, status }) => {
   return {
     cases,
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
       total,
       totalPages: Math.ceil(total / limit)
     }
@@ -72,7 +88,7 @@ const getAllCases = async ({ page = 1, limit = 10, status }) => {
 /**
  * Get case by ID
  */
-const getCaseById = async (caseId) => {
+export const getCaseById = async (caseId: string) => {
   const caseData = await prisma.case.findUnique({
     where: { id: caseId },
     include: {
@@ -92,7 +108,7 @@ const getCaseById = async (caseId) => {
 /**
  * Update case
  */
-const updateCase = async (caseId, updates) => {
+export const updateCase = async (caseId: string, updates: Partial<CaseData>) => {
   const updatedCase = await prisma.case.update({
     where: { id: caseId },
     data: updates,
@@ -113,18 +129,10 @@ const updateCase = async (caseId, updates) => {
 /**
  * Delete case
  */
-const deleteCase = async (caseId) => {
+export const deleteCase = async (caseId: string) => {
   await prisma.case.delete({
     where: { id: caseId }
   });
 
   return { message: 'Case deleted successfully' };
-};
-
-module.exports = {
-  createCase,
-  getAllCases,
-  getCaseById,
-  updateCase,
-  deleteCase
 };

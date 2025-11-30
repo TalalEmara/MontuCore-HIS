@@ -25,7 +25,7 @@ Create a new file `server/src/routes/auth.js`. This is where you will handle Log
 
 ```javascript
 // server/src/routes/auth.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // GET /api/auth/test
@@ -43,11 +43,11 @@ Update your `server/src/index.js` to look like this. It now imports the routes a
 ```javascript
 // server/src/index.js
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
+import express from 'express';
+import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
 
-const authRoutes = require('./routes/auth'); // Import routes
+import authRoutes from './routes/auth'; // Import routes
 
 const app = express();
 const prisma = new PrismaClient();
@@ -187,7 +187,7 @@ We organize our code to keep it clean. Do not put everything in `index.js`.
 1.  **Create a file:** Create `server/src/routes/injuries.js`.
 2.  **Add logic:**
     ```javascript
-    const express = require('express');
+    import express from 'express';
     const router = express.Router();
 
     // GET /api/injuries
@@ -200,7 +200,7 @@ We organize our code to keep it clean. Do not put everything in `index.js`.
     ```
 3.  **Register it:** Open `server/src/index.js` and add:
     ```javascript
-    const injuryRoutes = require('./routes/injuries');
+    import injuryRoutes from './routes/injuries';
     app.use('/api/injuries', injuryRoutes);
     ```
 4.  **Test it:** Go to `http://localhost:3000/api/injuries`.

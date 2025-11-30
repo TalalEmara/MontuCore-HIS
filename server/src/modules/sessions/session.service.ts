@@ -1,11 +1,41 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+interface SessionData {
+  patientId: string;
+  doctorId: string;
+  caseId?: string;
+  appointmentId?: string;
+  sessionDate?: string;
+  chiefComplaint?: string;
+  vitalSigns?: any;
+  examination?: string;
+  diagnosis?: string;
+  treatment?: string;
+  prescriptions?: any;
+  notes?: string;
+  status?: string;
+  createdBy: string;
+}
+
+interface GetAllSessionsParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  patientId?: string;
+  caseId?: string;
+}
+
+interface CompleteSessionData {
+  notes?: string;
+  prescriptions?: any;
+}
 
 /**
  * Create a new session
  */
-const createSession = async (sessionData) => {
+export const createSession = async (sessionData: SessionData) => {
   const newSession = await prisma.session.create({
     data: {
       patientId: sessionData.patientId,
@@ -53,9 +83,9 @@ const createSession = async (sessionData) => {
 /**
  * Get all sessions with pagination and filters
  */
-const getAllSessions = async ({ page = 1, limit = 10, status, patientId, caseId }) => {
+export const getAllSessions = async ({ page = 1, limit = 10, status, patientId, caseId }: GetAllSessionsParams) => {
   const skip = (page - 1) * limit;
-  const where = {};
+  const where: any = {};
   
   if (status) where.status = status;
   if (patientId) where.patientId = patientId;
@@ -65,7 +95,7 @@ const getAllSessions = async ({ page = 1, limit = 10, status, patientId, caseId 
     prisma.session.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: limit,
       include: {
         patient: {
           select: {
@@ -98,8 +128,8 @@ const getAllSessions = async ({ page = 1, limit = 10, status, patientId, caseId 
   return {
     sessions,
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
       total,
       totalPages: Math.ceil(total / limit)
     }
@@ -109,7 +139,7 @@ const getAllSessions = async ({ page = 1, limit = 10, status, patientId, caseId 
 /**
  * Get session by ID
  */
-const getSessionById = async (sessionId) => {
+export const getSessionById = async (sessionId: string) => {
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
     include: {
@@ -130,9 +160,9 @@ const getSessionById = async (sessionId) => {
 /**
  * Update session
  */
-const updateSession = async (sessionId, updates) => {
+export const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
   if (updates.sessionDate) {
-    updates.sessionDate = new Date(updates.sessionDate);
+    (updates as any).sessionDate = new Date(updates.sessionDate);
   }
 
   const updatedSession = await prisma.session.update({
@@ -162,7 +192,7 @@ const updateSession = async (sessionId, updates) => {
 /**
  * Complete session
  */
-const completeSession = async (sessionId, { notes, prescriptions }) => {
+export const completeSession = async (sessionId: string, { notes, prescriptions }: CompleteSessionData) => {
   const completedSession = await prisma.session.update({
     where: { id: sessionId },
     data: {
@@ -190,12 +220,4 @@ const completeSession = async (sessionId, { notes, prescriptions }) => {
   });
 
   return completedSession;
-};
-
-module.exports = {
-  createSession,
-  getAllSessions,
-  getSessionById,
-  updateSession,
-  completeSession
 };

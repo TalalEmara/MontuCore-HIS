@@ -1,13 +1,38 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { PrismaClient, Role } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+interface RegisterInput {
+  email: string;
+  password: string;
+  fullName: string;
+  role?: Role;
+}
+
+interface LoginInput {
+  email: string;
+  password: string;
+}
+
+interface UserResponse {
+  id: number;
+  email: string;
+  fullName: string;
+  role: Role;
+  createdAt?: Date;
+}
+
+interface AuthResponse {
+  user: UserResponse;
+  token: string;
+}
 
 /**
  * Register a new user
  */
-const register = async ({ email, password, username, role }) => {
+export const register = async ({ email, password, fullName, role }: RegisterInput): Promise<AuthResponse> => {
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
     where: { email }
@@ -24,14 +49,14 @@ const register = async ({ email, password, username, role }) => {
   const user = await prisma.user.create({
     data: {
       email,
-      password: hashedPassword,
-      username,
-      role: role || 'USER'
+      passwordHash: hashedPassword,
+      fullName,
+      role: role || Role.ATHLETE
     },
     select: {
       id: true,
       email: true,
-      username: true,
+      fullName: true,
       role: true,
       createdAt: true
     }
@@ -50,7 +75,7 @@ const register = async ({ email, password, username, role }) => {
 /**
  * Login user
  */
-const login = async ({ email, password }) => {
+export const login = async ({ email, password }: LoginInput): Promise<AuthResponse> => {
   // Find user
   const user = await prisma.user.findUnique({
     where: { email }
@@ -61,7 +86,7 @@ const login = async ({ email, password }) => {
   }
 
   // Verify password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordValid) {
     throw new Error('Invalid credentials');
@@ -78,7 +103,7 @@ const login = async ({ email, password }) => {
     user: {
       id: user.id,
       email: user.email,
-      username: user.username,
+      fullName: user.fullName,
       role: user.role
     },
     token
@@ -88,7 +113,7 @@ const login = async ({ email, password }) => {
 /**
  * Logout user
  */
-const logout = async (userId) => {
+export const logout = async (userId: number): Promise<{ message: string }> => {
   // Implement logout logic (e.g., token blacklisting if needed)
   return { message: 'Logged out successfully' };
 };
@@ -96,16 +121,15 @@ const logout = async (userId) => {
 /**
  * Get user by ID
  */
-const getUserById = async (userId) => {
+export const getUserById = async (userId: number): Promise<UserResponse> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
       email: true,
-      username: true,
+      fullName: true,
       role: true,
-      createdAt: true,
-      updatedAt: true
+      createdAt: true
     }
   });
 
@@ -114,11 +138,4 @@ const getUserById = async (userId) => {
   }
 
   return user;
-};
-
-module.exports = {
-  register,
-  login,
-  logout,
-  getUserById
 };

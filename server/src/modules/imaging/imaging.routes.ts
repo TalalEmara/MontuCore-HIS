@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const imagingController = require('./imaging.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as imagingController from './imaging.controller.js';
+import { authenticateToken } from '../../middleware/auth.js';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/imaging
@@ -38,4 +39,4 @@ router.put('/:id', authenticateToken, imagingController.updateImagingOrder);
  */
 router.post('/:id/results', authenticateToken, imagingController.uploadImagingResults);
 
-module.exports = router;
+export default router;

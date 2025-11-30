@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('./auth.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as authController from './auth.controller.js';
+import { authenticateToken } from '../../middleware/auth.js';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/auth/register
@@ -31,4 +32,4 @@ router.post('/logout', authenticateToken, authController.logout);
  */
 router.get('/profile', authenticateToken, authController.getProfile);
 
-module.exports = router;
+export default router;

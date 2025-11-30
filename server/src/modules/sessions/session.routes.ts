@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const sessionController = require('./session.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as sessionController from './session.controller';
+import { authenticateToken } from '../../middleware/auth';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/sessions
@@ -38,4 +39,4 @@ router.put('/:id', authenticateToken, sessionController.updateSession);
  */
 router.post('/:id/complete', authenticateToken, sessionController.completeSession);
 
-module.exports = router;
+export default router;

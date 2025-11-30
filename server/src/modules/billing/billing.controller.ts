@@ -1,12 +1,13 @@
-const billingService = require('./billing.service');
+import { Request, Response } from 'express';
+import * as billingService from './billing.service';
 
 /**
  * Create a new invoice
  */
-const createInvoice = async (req, res) => {
+export const createInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const invoiceData = req.body;
-    const createdBy = req.user.id;
+    const createdBy = (req as any).user.id;
     
     const newInvoice = await billingService.createInvoice({ ...invoiceData, createdBy });
     
@@ -18,7 +19,7 @@ const createInvoice = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -26,11 +27,11 @@ const createInvoice = async (req, res) => {
 /**
  * Get all invoices
  */
-const getAllInvoices = async (req, res) => {
+export const getAllInvoices = async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 10, status, patientId } = req.query;
     
-    const invoices = await billingService.getAllInvoices({ page, limit, status, patientId });
+    const invoices = await billingService.getAllInvoices({ page: Number(page), limit: Number(limit), status: status as string, patientId: patientId as string });
     
     res.status(200).json({
       success: true,
@@ -39,7 +40,7 @@ const getAllInvoices = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -47,7 +48,7 @@ const getAllInvoices = async (req, res) => {
 /**
  * Get invoice by ID
  */
-const getInvoiceById = async (req, res) => {
+export const getInvoiceById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     
@@ -60,7 +61,7 @@ const getInvoiceById = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -68,7 +69,7 @@ const getInvoiceById = async (req, res) => {
 /**
  * Update invoice
  */
-const updateInvoice = async (req, res) => {
+export const updateInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -83,7 +84,7 @@ const updateInvoice = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -91,7 +92,7 @@ const updateInvoice = async (req, res) => {
 /**
  * Record payment
  */
-const recordPayment = async (req, res) => {
+export const recordPayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const paymentData = req.body;
@@ -106,7 +107,7 @@ const recordPayment = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -114,7 +115,7 @@ const recordPayment = async (req, res) => {
 /**
  * Get patient billing summary
  */
-const getPatientBillingSummary = async (req, res) => {
+export const getPatientBillingSummary = async (req: Request, res: Response): Promise<void> => {
   try {
     const { patientId } = req.params;
     
@@ -127,16 +128,9 @@ const getPatientBillingSummary = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
-
-module.exports = {
-  createInvoice,
-  getAllInvoices,
-  getInvoiceById,
-  updateInvoice,
-  recordPayment,
   getPatientBillingSummary
 };

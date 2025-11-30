@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const caseController = require('./case.controller');
-const { authenticateToken } = require('../../middleware/auth');
+import express, { Router } from 'express';
+import * as caseController from './case.controller';
+import { authenticateToken } from '../../middleware/auth';
+
+const router: Router = express.Router();
 
 /**
  * @route   POST /api/cases
@@ -38,4 +39,4 @@ router.put('/:id', authenticateToken, caseController.updateCase);
  */
 router.delete('/:id', authenticateToken, caseController.deleteCase);
 
-module.exports = router;
+export default router;

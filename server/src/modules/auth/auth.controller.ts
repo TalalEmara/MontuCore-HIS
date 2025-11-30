@@ -1,13 +1,14 @@
-const authService = require('./auth.service');
+import type { Request, Response } from 'express';
+import * as authService from './auth.service.js';
 
 /**
  * Register a new user
  */
-const register = async (req, res) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, username, role } = req.body;
+    const { email, password, fullName, role } = req.body;
     
-    const result = await authService.register({ email, password, username, role });
+    const result = await authService.register({ email, password, fullName, role });
     
     res.status(201).json({
       success: true,
@@ -17,7 +18,7 @@ const register = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -25,7 +26,7 @@ const register = async (req, res) => {
 /**
  * Login user
  */
-const login = async (req, res) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
     
@@ -39,7 +40,7 @@ const login = async (req, res) => {
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -47,9 +48,9 @@ const login = async (req, res) => {
 /**
  * Logout user
  */
-const logout = async (req, res) => {
+export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = (req as any).user.id;
     
     await authService.logout(userId);
     
@@ -60,7 +61,7 @@ const logout = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -68,9 +69,9 @@ const logout = async (req, res) => {
 /**
  * Get current user profile
  */
-const getProfile = async (req, res) => {
+export const getProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = (req as any).user.id;
     
     const user = await authService.getUserById(userId);
     
@@ -81,14 +82,7 @@ const getProfile = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-};
-
-module.exports = {
-  register,
-  login,
-  logout,
-  getProfile
 };

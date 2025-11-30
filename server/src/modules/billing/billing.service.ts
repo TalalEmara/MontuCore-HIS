@@ -1,11 +1,43 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+interface InvoiceItem {
+  quantity: number;
+  unitPrice: number;
+  [key: string]: any;
+}
+
+interface InvoiceData {
+  patientId: string;
+  caseId?: string;
+  sessionId?: string;
+  dueDate?: string;
+  items: InvoiceItem[];
+  tax?: number;
+  discount?: number;
+  notes?: string;
+  createdBy: string;
+}
+
+interface GetAllInvoicesParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  patientId?: string;
+}
+
+interface PaymentData {
+  amount: number;
+  paymentMethod: string;
+  transactionId?: string;
+  notes?: string;
+}
 
 /**
  * Create a new invoice
  */
-const createInvoice = async (invoiceData) => {
+export const createInvoice = async (invoiceData: InvoiceData) => {
   const totalAmount = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
   
   const newInvoice = await prisma.invoice.create({
@@ -43,9 +75,9 @@ const createInvoice = async (invoiceData) => {
 /**
  * Get all invoices with pagination and filters
  */
-const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }) => {
+export const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }: GetAllInvoicesParams) => {
   const skip = (page - 1) * limit;
-  const where = {};
+  const where: any = {};
   
   if (status) where.status = status;
   if (patientId) where.patientId = patientId;
@@ -54,7 +86,7 @@ const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }) => {
     prisma.invoice.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: limit,
       include: {
         patient: {
           select: {
@@ -74,8 +106,8 @@ const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }) => {
   return {
     invoices,
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
       total,
       totalPages: Math.ceil(total / limit)
     }
@@ -85,7 +117,7 @@ const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }) => {
 /**
  * Get invoice by ID
  */
-const getInvoiceById = async (invoiceId) => {
+export const getInvoiceById = async (invoiceId: string) => {
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
@@ -106,9 +138,9 @@ const getInvoiceById = async (invoiceId) => {
 /**
  * Update invoice
  */
-const updateInvoice = async (invoiceId, updates) => {
+export const updateInvoice = async (invoiceId: string, updates: Partial<InvoiceData>) => {
   if (updates.dueDate) {
-    updates.dueDate = new Date(updates.dueDate);
+    (updates as any).dueDate = new Date(updates.dueDate);
   }
 
   const updatedInvoice = await prisma.invoice.update({
@@ -131,7 +163,7 @@ const updateInvoice = async (invoiceId, updates) => {
 /**
  * Record payment
  */
-const recordPayment = async (invoiceId, paymentData) => {
+export const recordPayment = async (invoiceId: string, paymentData: PaymentData) => {
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId }
   });
@@ -176,7 +208,7 @@ const recordPayment = async (invoiceId, paymentData) => {
 /**
  * Get patient billing summary
  */
-const getPatientBillingSummary = async (patientId) => {
+export const getPatientBillingSummary = async (patientId: string) => {
   const invoices = await prisma.invoice.findMany({
     where: { patientId }
   });
@@ -203,7 +235,7 @@ const getPatientBillingSummary = async (patientId) => {
 /**
  * Generate unique invoice number
  */
-const generateInvoiceNumber = async () => {
+const generateInvoiceNumber = async (): Promise<string> => {
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -218,13 +250,4 @@ const generateInvoiceNumber = async () => {
   });
 
   return `INV-${year}${month}-${String(count + 1).padStart(4, '0')}`;
-};
-
-module.exports = {
-  createInvoice,
-  getAllInvoices,
-  getInvoiceById,
-  updateInvoice,
-  recordPayment,
-  getPatientBillingSummary
 };

@@ -1,12 +1,13 @@
-const caseService = require('./case.service');
+import { Request, Response } from 'express';
+import * as caseService from './case.service';
 
 /**
  * Create a new case
  */
-const createCase = async (req, res) => {
+export const createCase = async (req: Request, res: Response): Promise<void> => {
   try {
     const caseData = req.body;
-    const createdBy = req.user.id;
+    const createdBy = (req as any).user.id;
     
     const newCase = await caseService.createCase({ ...caseData, createdBy });
     
@@ -18,7 +19,7 @@ const createCase = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -26,20 +27,18 @@ const createCase = async (req, res) => {
 /**
  * Get all cases
  */
-const getAllCases = async (req, res) => {
+export const getAllCases = async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 10, status } = req.query;
-    
-    const cases = await caseService.getAllCases({ page, limit, status });
-    
-    res.status(200).json({
+
+    const cases = await caseService.getAllCases({ page: Number(page), limit: Number(limit), status: status as string });    res.status(200).json({
       success: true,
       data: cases
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -47,7 +46,7 @@ const getAllCases = async (req, res) => {
 /**
  * Get case by ID
  */
-const getCaseById = async (req, res) => {
+export const getCaseById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     
@@ -60,7 +59,7 @@ const getCaseById = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -68,7 +67,7 @@ const getCaseById = async (req, res) => {
 /**
  * Update case
  */
-const updateCase = async (req, res) => {
+export const updateCase = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -83,7 +82,7 @@ const updateCase = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -91,7 +90,7 @@ const updateCase = async (req, res) => {
 /**
  * Delete case
  */
-const deleteCase = async (req, res) => {
+export const deleteCase = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     
@@ -104,15 +103,7 @@ const deleteCase = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-};
-
-module.exports = {
-  createCase,
-  getAllCases,
-  getCaseById,
-  updateCase,
-  deleteCase
 };
