@@ -1,14 +1,13 @@
 .adjustable-card {
-  background-color: var(--background-color);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+     border:1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.06));
+     overflow: hidden;
   transition: box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
 }
 
 .adjustable-card-header {
-  background: var(--background-color);
   color: var(--primary-color);
   padding: 1rem 1.5rem;
   font-weight: bold;
