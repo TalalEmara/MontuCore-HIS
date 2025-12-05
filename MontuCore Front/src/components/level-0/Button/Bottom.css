@@ -1,0 +1,26 @@
+.shared-button { 
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.shared-button.primary {
+  background-color: var(--primary-color, #5465FF);
+  color: white;
+}
+
+.shared-button.secondary {
+  background-color: var(--secondary-color, #FB8500);
+  color: white;
+}
+
+.shared-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
