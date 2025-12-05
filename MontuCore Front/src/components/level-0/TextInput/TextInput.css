@@ -1,0 +1,23 @@
+.text-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-color);
+}
+
+.text-input-wrapper input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.text-input-wrapper input.error {
+  border-color: red;
+}
+
+.text-input-wrapper .error-message {
+  font-size: 0.8rem;
+  color: red;
+}
