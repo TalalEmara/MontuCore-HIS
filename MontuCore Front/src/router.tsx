@@ -9,8 +9,8 @@ import {
 
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import PhysicianView from "./pages/PhysicianView";
-import CaseView from "./pages/CaseView";
+import PhysicianView from "./pages/PhysicianView/PhysicianView";
+import CaseView from "./pages/CaseView/CaseView";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
