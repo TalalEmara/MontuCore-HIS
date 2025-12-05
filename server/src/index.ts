@@ -12,7 +12,7 @@ import sessionRoutes from './modules/sessions/session.routes.js';
 import billingRoutes from './modules/billing/billing.routes.js';
 
 const app = express();
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
