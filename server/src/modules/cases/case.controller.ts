@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import * as caseService from './case.service';
+import type { Request, Response } from 'express';
+import * as caseService from './case.service.js';
 
 /**
  * Create a new case

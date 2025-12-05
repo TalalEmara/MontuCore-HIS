@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 interface JwtPayload {
   id: string;
@@ -58,9 +58,4 @@ export const authorize = (...roles: string[]) => {
 
     next();
   };
-};
-
-module.exports = {
-  authenticateToken,
-  authorize
 };

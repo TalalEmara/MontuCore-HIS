@@ -1,0 +1,18 @@
+meta {
+  name: Login (Mock)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "admin@sportshis.com",
+    "password": "secure_password_123"
+  }
+}
