@@ -1,15 +1,18 @@
 :root {
-  --primary-color: light-dark(  #5465FF, #5465FF);
-  --secondary-color: #FB8500;
-  --text-color: light-dark(#06080E, #FAFDF6);
-  --background-color: light-dark( #f5f5f5, #06080E);
-  --gradient : linear-gradient(to right, #f88a0c, #ff0303);
+  --primary-color: light-dark(  #990000, #990000);
+  --secondary-color: light-dark(#5c0606,#5c0606);
+  --text-color: light-dark(#100a0a, #f5efef);
+  --accent: light-dark(#ffae00, #ffae00);
+  --background-color: light-dark( #f4f9fb, #03070a);
 }
+=
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  color-scheme: dark;
 }
 
 .logo {
