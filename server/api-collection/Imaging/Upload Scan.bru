@@ -1,0 +1,16 @@
+meta {
+  name: Upload Scan (Backend Parse)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/imaging/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  caseId: 1
+  file: @file(path/to/your/dummy.dcm)
+}

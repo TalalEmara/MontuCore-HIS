@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import * as billingService from './billing.service';
+import type { Request, Response } from 'express';
+import * as billingService from './billing.service.js';
 
 /**
  * Create a new invoice
@@ -131,6 +131,4 @@ export const getPatientBillingSummary = async (req: Request, res: Response): Pro
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-};
-  getPatientBillingSummary
 };

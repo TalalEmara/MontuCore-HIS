@@ -1,0 +1,16 @@
+meta {
+  name: Get Schedule
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/appointments
+  body: none
+  auth: none
+}
+
+params:query {
+  ~date: 2025-12-01
+  ~clinicianId: 2
+}
