@@ -67,6 +67,31 @@
 .tabButton:hover{
     background-color: hsl(from var(--primary-color) h calc(s*.8) calc(l*1.2)) !important;
 }
+.physioContent{
+    padding: 1vh 1vw;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    
+}
+.physioCards{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+
+    gap: 1vw;
+}
+.physiotherapy p:has(span)  {
+    font-size: 2rem;
+    font-weight: 600;
+}
+.physiotherapy p:has(span)  span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-secondary-color);
+}
 
 .buttons{
     display: flex;

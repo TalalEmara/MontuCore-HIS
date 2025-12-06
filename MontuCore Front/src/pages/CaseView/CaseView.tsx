@@ -4,6 +4,7 @@ import UsersList from '../../components/level-1/UserList/UsersList';
 import AdjustableCard from '../../components/level-1/AdjustableCard/AdjustableCard';
 import Button from '../../components/level-0/Button/Bottom';
 import { BodyComponent } from "reactjs-human-body";
+import InfoCard from '../../components/level-0/InfoCard/InfoCard';
 // should take specific case data
 function CaseView() {
   const [activeTab, setActiveTab] = useState<'overview' | 'images'>('overview');
@@ -81,7 +82,16 @@ function CaseView() {
           </AdjustableCard>
       </div>
       <div className={styles.physiotherapy}>
-        <p>physio</p>
+        <AdjustableCard title='Physiotherapy' height='100%' maxWidth='100%'>
+           <div className={styles.physioContent}>
+           <div  className={styles.physioCards}>
+           <InfoCard label='Sessions' value={20} />
+           <InfoCard  label='Completed' value={10}/>
+           <InfoCard label='per week' value={2}/>
+           </div>
+           <p>Name of program <span>physiotherapist name</span></p>
+          </div>
+          </AdjustableCard>
       </div>
       <div className={styles.buttons}>
         <Button variant="primary" width='100%' className= {styles.addbutton}  >Add report</Button>
