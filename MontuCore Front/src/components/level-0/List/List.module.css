@@ -17,7 +17,7 @@ background-color: var(--background-color);
 
    column-gap: 8px;
    padding: 20px 20px;
-   max-height: 36px;
+   max-height: 40px;
    overflow: hidden;
 
    border-bottom: 1px solid var(--accent);
@@ -43,9 +43,9 @@ background-color: var(--background-color);
 
 @media (min-width: 1024px)  {
   .row {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    max-height: 25px;  /* smaller max height on laptop */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    max-height: 30px;  /* smaller max height on laptop */
   }
 }
 /* testing */
