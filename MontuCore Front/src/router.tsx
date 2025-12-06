@@ -11,6 +11,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import PhysicianView from "./pages/PhysicianView/PhysicianView";
 import CaseView from "./pages/CaseView/CaseView";
+import AthleteView from "./pages/AthleteView/AthleteView";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -20,13 +21,14 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   return (
     <div>
-      <h1>My App</h1>
+   
 
       {/* nav bar should be here */}
       <nav style={{ display: "flex", gap: 8 }}>
         <Link to="/">Home</Link>
         <Link to="/physician">physician</Link>
         <Link to="/case">Case</Link>
+        <Link to="/athlete-viewer">Athlete Viewer</Link>
       </nav>
 
       <Outlet />
@@ -46,9 +48,16 @@ const CaseRoute = createRoute({
   component: CaseView,
 });
 
+const athleteViewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/athlete-viewer",
+  component: AthleteView,
+});
+
 const routeTree = rootRoute.addChildren([
   physicianViewRoute,
   CaseRoute,
+  athleteViewRoute
 ]);
 
 // eslint-disable-next-line react-refresh/only-export-components

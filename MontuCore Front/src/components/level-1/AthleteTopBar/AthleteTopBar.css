@@ -2,11 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.03));
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 6px 25px;
+  background: #1c1c1c52;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   margin-bottom: 20px;
   width: 100%;
@@ -54,7 +51,7 @@
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.3px;
-  color: var(--text-color);
+  color: var(--primary-color);
 }
 
 .athlete-role-jersey {
@@ -63,14 +60,19 @@
   gap: 8px;
   font-size: 12px;
   font-weight: 500;
+  
+  
 }
 
 .athlete-role,
 .athlete-jersey {
-  color: #bdbdbd;
   font-weight: 500;
 }
 
+.athlete-jersey{
+      color: var(--accent);
+
+}
 
 @media (max-width: 800px) {
   .athlete-topbar {

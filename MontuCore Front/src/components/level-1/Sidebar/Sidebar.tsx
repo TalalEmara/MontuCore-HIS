@@ -39,7 +39,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
   return (
     <div className={`sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}>
       <div className="sidebar-header">
-        {isOpen && <div className="sidebar-logo">Montu Core</div>}
+        
+        {isOpen && <div className="sidebar-logo">MontuCore</div>}
 
         <div
           className="sidebar-toggle"
