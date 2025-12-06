@@ -46,6 +46,7 @@ function ElementCard({ cells }: ElementCardProps) {
   return <Row cells={cells} />;
 }
 
+// needs validation to be same number of columns in header and data
 type ListProps = {
   header: React.ReactNode[];
   data: React.ReactNode[][];
@@ -53,12 +54,12 @@ type ListProps = {
 
 function List({ header, data }: ListProps) {
   return (
-    <>
+    <div className={styles.list}>
       <ListHeader headers={header} />
       {data.map((rowCells, index) => (
         <ElementCard key={index} cells={rowCells} />
       ))}
-    </>
+    </div>
   );
 }
 

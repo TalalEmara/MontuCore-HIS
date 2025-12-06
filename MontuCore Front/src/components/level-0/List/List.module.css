@@ -27,6 +27,9 @@ background-color: var(--background-color);
     overflow: hidden;
     
 }
+.list{
+    padding: 1vh 2vw;
+}
 /* testing */
 p{
     margin: 0;
