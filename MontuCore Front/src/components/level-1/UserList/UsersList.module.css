@@ -1,0 +1,37 @@
+.row, .listHeader {
+background-color: var(--background-color);
+  color: var(--text-color);
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: 1fr ;
+  grid-template-columns:
+   100px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
+
+   justify-items: start;
+   column-gap: 8px;
+   padding: clamp(10px, 1vw, 15px) 20px;
+
+   overflow-x: hidden;
+
+   border-bottom: 1px solid var(--accent);
+}
+.row:hover{
+      background-color:hsl(from var(--background-color) h calc(s*.2) calc(l * 5));
+}
+.listHeader{
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-weight: bold;
+    border: 0;
+    padding: clamp(10px, 0.5vw, 20px) 20px;
+    overflow: hidden;
+    
+}
+.list{
+    padding: 1vh 2vw;
+}
+/* testing */
+p{
+    margin: 0;
+    padding: 0;
+}
