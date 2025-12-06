@@ -20,10 +20,9 @@
 .athlete-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: minmax(250px, auto);
+  grid-auto-rows: minmax( auto);
   gap: 20px;
   padding: 20px 25px;
-  margin-bottom: 20px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -75,7 +74,6 @@
   font-size: clamp(18px, 3vw, 24px);
   line-height: 1.2;
   font-weight: 700;
-  color: #fff;
   text-shadow: 0 4px 20px rgba(0,0,0,0.6);
   word-wrap: break-word;
   max-width: 100%;
@@ -83,18 +81,13 @@
 
 .book-sub {
   font-size: clamp(12px, 2vw, 14px);
-  color: rgba(255,255,255,0.85);
   font-weight: 500;
-  word-wrap: break-word;
   max-width: 100%;
 }
 
 .appointments-container {
   padding: 24px;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
   background-color: var(--secondary-color);
 }
 
@@ -108,7 +101,6 @@
 .appointments-title {
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-color);
   margin: 0;
 }
 
