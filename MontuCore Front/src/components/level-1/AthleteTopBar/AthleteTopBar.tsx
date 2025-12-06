@@ -18,11 +18,11 @@ const AthleteTopBar: React.FC<AthleteTopBarProps> = ({
     <header className="athlete-topbar">
       <div className="topbar-left">
         <div className="athlete-summary">
-          <div className="athlete-profile">
+          {/* <div className="athlete-profile">
             <img src={athleteProfile} alt="Athlete Profile" />
-          </div>
+          </div> */}
           <div className="athlete-info">
-            <div className="athlete-name">{athleteName}</div>
+            <div >Welcome <span className="athlete-name">{athleteName} </span></div>
             <div className="athlete-role-jersey">
               <span className="athlete-role">{athleteRole}</span>
               <span className="athlete-jersey">#{jerseyNumber}</span>
