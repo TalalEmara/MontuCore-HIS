@@ -16,12 +16,12 @@ interface AdjustableCardProps {
 const AdjustableCard: React.FC<AdjustableCardProps> = ({
   children,
   title,
-  width = '400px',
+  width = '100%',
   height = 'auto',
   minWidth = '200px',
   minHeight = '150px',
-  maxWidth = '800px',
-  maxHeight = '600px',
+  maxWidth = 'none',
+  maxHeight = 'none',
   className = '',
 }) => {
   return (
@@ -37,7 +37,7 @@ const AdjustableCard: React.FC<AdjustableCardProps> = ({
       }}
     >
       {title && <div className="adjustable-card-header">{title}</div>}
-      <div className="adjustable-card-content">{children}</div>
+      {children}
     </div>
   );
 };
