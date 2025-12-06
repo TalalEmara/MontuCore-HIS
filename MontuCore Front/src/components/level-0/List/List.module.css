@@ -5,9 +5,10 @@ background-color: var(--background-color);
   grid-auto-flow: column;
   grid-template-rows: 1fr ;
   grid-template-columns:
-   100px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
+   50px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
 
    justify-items: start;
+   align-items: center;
    column-gap: 8px;
    padding: clamp(10px, 1vw, 15px) 20px;
 
@@ -17,7 +18,8 @@ background-color: var(--background-color);
 }
 .row:hover{
       background-color:hsl(from var(--background-color) h calc(s*.2) calc(l * 5));
-}
+      transform: scale(1.01);
+    }
 .listHeader{
     background-color: var(--primary-color);
     color: var(--text-color);

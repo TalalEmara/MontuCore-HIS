@@ -1,37 +1,22 @@
-.row, .listHeader {
-background-color: var(--background-color);
-  color: var(--text-color);
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: 1fr ;
-  grid-template-columns:
-   100px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
-
-   justify-items: start;
-   column-gap: 8px;
-   padding: clamp(10px, 1vw, 15px) 20px;
-
-   overflow-x: hidden;
-
-   border-bottom: 1px solid var(--accent);
+.name{
+    font-weight: 600;
+    font-size: 1.1em;
 }
-.row:hover{
-      background-color:hsl(from var(--background-color) h calc(s*.2) calc(l * 5));
+
+.actions{
+    display: flex;
+    gap: 8px;
+   
 }
-.listHeader{
+.actionButton{
+    padding: 6px 12px;
     background-color: var(--primary-color);
     color: var(--text-color);
-    font-weight: bold;
-    border: 0;
-    padding: clamp(10px, 0.5vw, 20px) 20px;
-    overflow: hidden;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9em;
+    height: 100%;
+    min-width: 50px;
+    aspect-ratio: 1;
     
-}
-.list{
-    padding: 1vh 2vw;
-}
-/* testing */
-p{
-    margin: 0;
-    padding: 0;
 }
