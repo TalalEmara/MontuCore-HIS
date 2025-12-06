@@ -60,6 +60,18 @@ function AthleteView() {
               </div>
             </div>
           </AdjustableCard>
+           <AdjustableCard 
+            className="appointments-card-wrapper"
+            height="166px"
+            minHeight="100px"
+            maxWidth="100px"
+          >
+            <div className="appointments-container" >
+              <div className="appointments-header">
+                <h2 className="appointments-title">Upcoming Appointments</h2>
+              </div>
+            </div>
+          </AdjustableCard>
         </div>
       </div>
     </div>
