@@ -1,6 +1,10 @@
 .row, .listHeader {
 background-color: var(--background-color);
   color: var(--text-color);
+
+    font-size: .7em;
+
+
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: 1fr ;
@@ -13,7 +17,7 @@ background-color: var(--background-color);
 
    column-gap: 8px;
    padding: 20px 20px;
-   max-height: 36px;
+   max-height: 40px;
    overflow: hidden;
 
    border-bottom: 1px solid var(--accent);
@@ -23,6 +27,7 @@ background-color: var(--background-color);
       transform: scale(1.01);
     }
 .listHeader{
+    position: sticky;
     background-color: var(--primary-color);
     color: var(--text-color);
     font-weight: bold;
@@ -33,13 +38,14 @@ background-color: var(--background-color);
 }
 .list{
     padding: 1vh 2vw;
+    overflow: auto;
 }
 
 @media (min-width: 1024px)  {
   .row {
     padding-top: 10px;
     padding-bottom: 10px;
-    max-height: 25px;  /* smaller max height on laptop */
+    max-height: 30px;  /* smaller max height on laptop */
   }
 }
 /* testing */

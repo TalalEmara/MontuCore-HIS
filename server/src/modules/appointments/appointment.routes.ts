@@ -1,42 +1,59 @@
 import express, { Router } from 'express';
-import * as appointmentController from './appointment.controller.js';
+import * as appointmentController from '../../controllers/appointment.controller.js';
 import { authenticateToken } from '../../middleware/auth.js';
 
 const router: Router = express.Router();
 
-/**
- * @route   POST /api/appointments
- * @desc    Create a new appointment
- * @access  Private
+/***
+ * @route POST /api/appointments
+ * @desc Create a new appointment
+ * @access Public
  */
-router.post('/', authenticateToken, appointmentController.createAppointment);
+router.post('/create-appointment', appointmentController.createAppointment);
 
-/**
- * @route   GET /api/appointments
- * @desc    Get all appointments
- * @access  Private
+/***
+ * @route PUT /api/appointments
+ * @desc Update Appointment Status
+ * @access Public
  */
-router.get('/', authenticateToken, appointmentController.getAllAppointments);
+router.put('/update-appointment-status/', appointmentController.updateAppointmentStatus);
 
-/**
- * @route   GET /api/appointments/:id
- * @desc    Get appointment by ID
- * @access  Private
+/***
+ * @route PUT /api/appointments
+ * @desc Update Appointment Status
+ * @access Public
  */
-router.get('/:id', authenticateToken, appointmentController.getAppointmentById);
+router.get('/:id', appointmentController.getAppointmentById);
 
-/**
- * @route   PUT /api/appointments/:id
- * @desc    Update appointment
- * @access  Private
+/***
+ * @route DELETE /api/appointments/
+ * @desc Delete appointment
+ * @access Public
  */
-router.put('/:id', authenticateToken, appointmentController.updateAppointment);
+router.delete('/delete-appointment/:id', appointmentController.deleteAppointment);
 
-/**
- * @route   POST /api/appointments/:id/cancel
- * @desc    Cancel appointment
- * @access  Private
+/***
+ * @route GET /api/appointments/
+ * @desc Get all appointments
+ * @access Public
  */
-router.post('/:id/cancel', authenticateToken, appointmentController.cancelAppointment);
+router.get('/', appointmentController.getAllAppointments);
+
+/***
+ * @route GET /api/appointments/
+ * @desc Get all appointments by clinician
+ * @access Public
+ */
+router.get('/clinician/:clinicianId', appointmentController.getAllAppointmentsByClinician);
+
+/***
+ * @route GET /api/appointments/
+ * @desc Get all appointments by athlete
+ * @access Public
+ */
+router.get('/athlete/:athleteId', appointmentController.getAllAppointmentsByAthelete);
+
+
+
 
 export default router;

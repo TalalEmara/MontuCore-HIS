@@ -1,0 +1,118 @@
+.caseView{
+    position: fixed;
+    z-index: 2;
+
+    top: 50vh;
+    left: 50vw;
+      transform: translate(-50%, -50%);
+
+    background-color: HSl(from var(--background-color) h s  calc(l*5));
+    width: 89vw;
+    height: 88vh;
+    padding: 2vh 1vw;
+
+
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows:  repeat(6, 1fr) .5fr;
+    grid-column-gap: .5vw;
+    grid-row-gap: .5vh;
+
+}
+.overview{ grid-area: 1 / 1 / 8 / 3; }
+.reports { grid-area: 1 / 3 / 4 / 7; }
+.treatments { grid-area: 4 / 3 / 8 / 5; }
+.physiotherapy { grid-area: 4 / 5 / 7 / 7; }
+.buttons { grid-area: 7 / 5 / 8 / 7; }
+
+.reports,
+.treatments,
+.physiotherapy{
+  background-color: var(--background-color);
+}
+
+.overview{
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content:space-around;
+    gap: 1vh;
+    padding: 1vh 1vw;
+    overflow: hidden;
+    height: 100%;
+}
+.bodyComponent{
+    height: fit-content;
+}
+.title{
+    justify-self: flex-end;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    margin-top: auto;
+    margin-bottom: 1vh;
+}
+.title span{
+    font-size: 1rem;
+    font-weight: normal;
+    margin-left: 1vw;
+    color: var(--text-secondary-color);
+}
+.tabButtons{
+    display: flex;
+    gap: 1vw;
+}
+.tabButton{
+    font-size: 1rem !important; 
+    padding: 1vh 2vw;
+    font-weight: normal;
+}
+.tabButton:hover{
+    background-color: hsl(from var(--primary-color) h calc(s*.8) calc(l*1.2)) !important;
+}
+.imagesList{
+    min-height: auto;
+    overflow: auto;
+}
+.physioContent{
+    padding: 1vh 1vw;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    
+}
+.physioCards{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+
+    gap: 1vw;
+}
+.physiotherapy p:has(span)  {
+    font-size: 1rem;
+    font-weight: 600;
+}
+.physiotherapy p:has(span)  span {
+    font-size: .7rem;
+    font-weight: 400;
+    color: var(--text-secondary-color);
+}
+
+.buttons{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1vh 1vw;
+    gap: 1vw;
+}
+.buttons button{
+    font-size: 1.1rem;
+    padding: 1vh 2vw;   
+     
+}   
+.addbutton{
+ width: 100%;
+}

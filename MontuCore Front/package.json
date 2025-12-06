@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@darshanpatel2608/human-body-react": "^1.2.9",
     "@tanstack/react-router": "^1.139.14",
     "@tanstack/react-router-devtools": "1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "reactjs-human-body": "^0.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
