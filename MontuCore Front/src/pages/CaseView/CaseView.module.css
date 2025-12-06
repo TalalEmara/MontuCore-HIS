@@ -1,0 +1,35 @@
+.caseView{
+    position: fixed;
+    z-index: 2;
+
+    top: 50vh;
+    left: 50vw;
+      transform: translate(-50%, -50%);
+
+    background-color: HSl(from var(--background-color) h s  calc(l*5));
+    width: 89vw;
+    height: 88vh;
+    padding: 2vh 1vw;
+
+
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-column-gap: .5vw;
+    grid-row-gap: .5vh;
+
+}
+.overview{ grid-area: 1 / 1 / 6 / 3; }
+.reports { grid-area: 1 / 3 / 3 / 7; }
+.treatments { grid-area: 3 / 3 / 6 / 5; }
+.physiotherapy { grid-area: 3 / 5 / 5 / 7; }
+.buttons { grid-area: 5 / 5 / 6 / 7; }
+
+.overview{
+}
+.reports,
+.treatments,
+.physiotherapy,
+.buttons {
+  background-color: var(--background-color);
+}
