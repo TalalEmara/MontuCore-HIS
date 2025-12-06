@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@darshanpatel2608/human-body-react':
+        specifier: ^1.2.9
+        version: 1.2.9(@babel/core@7.28.5)(react-dom@19.2.1(react@19.2.1))(react-is@16.13.1)(react@19.2.1)
       '@tanstack/react-router':
         specifier: ^1.139.14
         version: 1.139.14(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -158,6 +161,12 @@ packages:
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
+
+  '@darshanpatel2608/human-body-react@1.2.9':
+    resolution: {integrity: sha512-mFqwvfRksYYCdsIEE7DsO8q264vQMNHLyqJydcsmSTE7hm+qLCMKKggkKo1goZ7ItKPpjuR6oMgj9ao/HJcMPg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16'
 
   '@emotion/is-prop-valid@1.4.0':
     resolution: {integrity: sha512-QgD4fyscGcbbKwJmqNvUMSE02OsHUa+lAWKdEUIJKgqe5IwRSKd7+KhibEWdaKwgjLj0DRSHA9biAIqGBk05lw==}
@@ -1393,6 +1402,15 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@darshanpatel2608/human-body-react@1.2.9(@babel/core@7.28.5)(react-dom@19.2.1(react@19.2.1))(react-is@16.13.1)(react@19.2.1)':
+    dependencies:
+      react: 19.2.1
+      styled-components: 5.3.11(@babel/core@7.28.5)(react-dom@19.2.1(react@19.2.1))(react-is@16.13.1)(react@19.2.1)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - react-dom
+      - react-is
 
   '@emotion/is-prop-valid@1.4.0':
     dependencies:

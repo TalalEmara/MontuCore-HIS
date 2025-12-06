@@ -32,11 +32,17 @@
 }
 
 .overview{
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    /* justify-content: space-between; */
+    justify-content:space-around;
+    gap: 1vh;
     padding: 1vh 1vw;
+    overflow: hidden;
     height: 100%;
+}
+.bodyComponent{
+    height: fit-content;
 }
 .title{
     justify-self: flex-end;
@@ -56,8 +62,6 @@
 .tabButtons{
     display: flex;
     gap: 1vw;
-    margin-top: 1vh;
-    margin-bottom: a;
 }
 .tabButton{
     font-size: 1rem !important; 
@@ -66,6 +70,10 @@
 }
 .tabButton:hover{
     background-color: hsl(from var(--primary-color) h calc(s*.8) calc(l*1.2)) !important;
+}
+.imagesList{
+    min-height: auto;
+    overflow: auto;
 }
 .physioContent{
     padding: 1vh 1vw;
@@ -84,11 +92,11 @@
     gap: 1vw;
 }
 .physiotherapy p:has(span)  {
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: 600;
 }
 .physiotherapy p:has(span)  span {
-    font-size: 1rem;
+    font-size: .7rem;
     font-weight: 400;
     color: var(--text-secondary-color);
 }

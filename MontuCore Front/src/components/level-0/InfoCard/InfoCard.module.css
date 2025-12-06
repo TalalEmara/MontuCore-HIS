@@ -1,7 +1,8 @@
 .card{
     background-color: var(--primary-color);
-    height: 100%;
-    flex: 1 1 1;
+    /* height: 100%;     */
+    flex: 1 1 0;        /* three equal cards that can shrink */
+    min-width: 0;
     aspect-ratio: 2/3;
     
     padding: 1vh 1vw;

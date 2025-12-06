@@ -3,8 +3,9 @@ import styles from './CaseView.module.css';
 import UsersList from '../../components/level-1/UserList/UsersList';
 import AdjustableCard from '../../components/level-1/AdjustableCard/AdjustableCard';
 import Button from '../../components/level-0/Button/Bottom';
-import { BodyComponent } from "reactjs-human-body";
+
 import InfoCard from '../../components/level-0/InfoCard/InfoCard';
+import { BodyComponent } from '@darshanpatel2608/human-body-react';
 // should take specific case data
 function CaseView() {
   const [activeTab, setActiveTab] = useState<'overview' | 'images'>('overview');
@@ -16,8 +17,9 @@ function CaseView() {
           <Button variant="primary" onClick={() => setActiveTab('images')} className={styles.tabButton}>Images</Button>
         </div>
         {activeTab === 'overview' && (
-          <div className={styles.bodyComponent}>
             <BodyComponent
+              height='75%'
+              mode="pain"
               onClick={(id: string) => { console.log(id); }}
               partsInput={{
                 head: { show: true },
@@ -35,10 +37,10 @@ function CaseView() {
                 rightFoot: { show: true }
               }}
             />
-          </div>
         )}
 
         {activeTab === 'images' && (
+          <div className={styles.imagesList}>
             <UsersList data={[
               ['01', 'Lionel Messi',      'Forward',    'Pending', 'View'],
               ['02', 'Cristiano Ronaldo', 'Forward',    'Injured', 'Edit'],
@@ -56,6 +58,7 @@ function CaseView() {
               ['03', 'Kevin De Bruyne',   'Midfielder', 'Pending', 'View'],
               ['04', 'Virgil van Dijk',   'Defender',   'Fit',     'Disable'],
             ]} />
+            </div>
 
         )}
           <p className={styles.title}>Case number <span>Dr. Alphons</span></p>
