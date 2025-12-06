@@ -5,19 +5,23 @@ background-color: var(--background-color);
   grid-auto-flow: column;
   grid-template-rows: 1fr ;
   grid-template-columns:
-   100px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
+   50px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
 
    justify-items: start;
-   column-gap: 8px;
-   padding: clamp(10px, 1vw, 15px) 20px;
+   align-items: center;
+   align-content: center;
 
-   overflow-x: hidden;
+   column-gap: 8px;
+   padding: 20px 20px;
+   max-height: 36px;
+   overflow: hidden;
 
    border-bottom: 1px solid var(--accent);
 }
 .row:hover{
       background-color:hsl(from var(--background-color) h calc(s*.2) calc(l * 5));
-}
+      transform: scale(1.01);
+    }
 .listHeader{
     background-color: var(--primary-color);
     color: var(--text-color);
@@ -29,6 +33,14 @@ background-color: var(--background-color);
 }
 .list{
     padding: 1vh 2vw;
+}
+
+@media (min-width: 1024px)  {
+  .row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    max-height: 25px;  /* smaller max height on laptop */
+  }
 }
 /* testing */
 p{
