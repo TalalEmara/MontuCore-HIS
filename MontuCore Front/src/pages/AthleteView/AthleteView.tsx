@@ -1,13 +1,17 @@
-import { useState } from "react"; 
+import { useState } from "react";
 import Sidebar from "../../components/level-1/Sidebar/Sidebar";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import AthleteTopBar from "../../components/level-1/AthleteTopBar/AthleteTopBar";
 import Button from "../../components/level-0/Button/Bottom";
+import AthleteProfileCard from "../../components/level-1/AthleteProfileCard/AthleteProfileCard";
 import "./AthleteView.css";
+
 import bookAppointment from '../../assets/images/bookAppointment.jpeg';
+import athleteProfile from '../../assets/images/Cristiano Ronaldo.png';
 
 function AthleteView() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState("reports");
 
   return (
     <div className="athlete-viewer-container">
@@ -15,63 +19,82 @@ function AthleteView() {
 
       <div className="athlete-main-content">
         <AthleteTopBar
-          athleteName="Maya Mohamed"
+          athleteName="Ronaldo"
           athleteRole="Forward"
           jerseyNumber="10"
-          athleteProfile="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80&auto=format&fit=crop"
+          athleteProfile={athleteProfile}
         />
 
         <div className="athlete-dashboard-grid">
-          <AdjustableCard 
+          <AthleteProfileCard 
+            profileImage={athleteProfile}
+            stats={{
+              age: "40 years",
+              height: "185 cm",
+              weight: "72 kg",
+              status: "Fit",
+              role: "Forward",
+              jersey: "#10",
+            }}
+          />
+
+          <AdjustableCard
             className="booking-card-wrapper"
-            height="200px"
-            minHeight="200px"
+            height="190px"
+            minHeight="190px"
           >
             <div
               className="book-appointment"
               style={{
                 background: `linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${bookAppointment})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                backgroundSize: "cover",
+                backgroundPosition: "center",
               }}
             >
               <div className="book-content">
                 <div className="book-title">
-                  Book Your Next<br />Appointment
+                  Book Your Next <br /> Appointment
                 </div>
-                <div className="book-sub">
+                <div className="booking-description">
                   Schedule training sessions, medical checkups, or consultations
                 </div>
-                <Button variant="primary" height="40px">
+                <Button variant="primary" height="35px" >
                   SCHEDULE NOW ➜
                 </Button>
               </div>
             </div>
           </AdjustableCard>
 
-          <AdjustableCard 
-            className="appointments-card-wrapper"
-            height="200px"
-            minHeight="200px"
-          >
-            <div className="appointments-container">
-              <div className="appointments-header">
-                <h2 className="appointments-title">Upcoming Appointments</h2>
+          <AdjustableCard className="medical-records-card" height="190px" minHeight="190px">
+            <div className="medical-records-container">
+              <div className="medical-records-header">
+                <h2 className="medical-records-title">Medical Records</h2>
+              </div>
+
+              <div className="medical-records-tabs">
+                {["reports", "prescriptions", "imaging"].map((tab) => (
+                  <div
+                    key={tab}
+                    className={`medical-records-tab ${
+                      activeTab === tab ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </div>
+                ))}
               </div>
             </div>
           </AdjustableCard>
-           <AdjustableCard 
-            className="appointments-card-wrapper"
-            height="166px"
-            minHeight="100px"
-            maxWidth="100px"
-          >
-            <div className="appointments-container" >
-              <div className="appointments-header">
-                <h2 className="appointments-title">Upcoming Appointments</h2>
+
+          <AdjustableCard className="next-appointments-card" height="190px" minHeight="190px">
+            <div className="next-container">
+              <div className="next-header">
+                <h2 className="next-title">Next Appointments</h2>
               </div>
             </div>
           </AdjustableCard>
+
         </div>
       </div>
     </div>
