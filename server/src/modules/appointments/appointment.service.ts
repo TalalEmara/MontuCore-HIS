@@ -26,18 +26,67 @@ interface GetAllAppointmentsParams {
  */
 export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
-    // Check for conflicting appointments
+    /*
+      Some Important Checks
+        1-> scheduledAt should be in the future
+        2-> Clinician should not have another appointment at the same time
+        3-> Athlete should not have another appointment at the same time
+        4-> at least 30 min between each appointment for the same clinician
+    */
+    const now = new Date();
+    const scheduledDate = new Date(appointmentData.scheduledAt);
+    if (scheduledDate <= now){
+      throw new Error('Appointment must be scheduled for a future date and time');
+    }
+
+    // Check for clinician conflicts
     const appointmentConflicted = await prisma.appointment.findFirst(
       {
         where: {
           clinicianId: appointmentData.clinicianId,
-          scheduledAt: new Date(appointmentData.scheduledAt)
+          scheduledAt: new Date(appointmentData.scheduledAt),
+          status: ApptStatus.SCHEDULED
         }
       }
     )
-
     if (appointmentConflicted){
       throw new Error('Clinician already has an appointment at this time');
+    }
+
+    // Check for athlete conflicts
+    const athleteAppointmentConflicted = await prisma.appointment.findFirst(
+      {
+        where: {
+          athleteId: appointmentData.athleteId,
+          scheduledAt: new Date(appointmentData.scheduledAt),
+          status: ApptStatus.SCHEDULED
+        }
+      }
+    )
+    if (athleteAppointmentConflicted){
+      throw new Error('Athlete already has an appointment at this time');
+    }
+
+    // Check for at least 30 minutes gap between appointments for the same clinician
+    const thirtyMinutes = 30 * 60 * 1000; // in milliseconds
+    // Getting the time range to check
+    const startRange = new Date(scheduledDate.getTime() - thirtyMinutes);
+    const endRange = new Date(scheduledDate.getTime() + thirtyMinutes);
+    const overlappingAppointment = await prisma.appointment.findFirst({
+      where: {
+        clinicianId: appointmentData.clinicianId,
+        scheduledAt: {
+          // the scheduledAt falls within the range of startRange and endRange
+          gte: startRange,
+          lte: endRange
+        },
+        status: ApptStatus.SCHEDULED
+      }
+    });
+    // If there is an overlapping appointment, throw an error
+    if (overlappingAppointment){
+      const availableTime = new Date(overlappingAppointment.scheduledAt.getTime() + thirtyMinutes);
+      throw new Error('Booked appointments must have at least 30 minutes gap. Next available time is ' + availableTime.toISOString());
     }
 
     // Create the appointment
