@@ -31,7 +31,7 @@ function AthleteProfileCard({ profileImage, stats }: AthleteProfileCardProps) {
         }}
       >
         <div className="profile-card-header">
-          <h2 className="profile-card-title">Your Statistics</h2>
+          <h2 className="profile-card-title">Personal Information</h2>
         </div>
 
         <div className="profile-stats-card">

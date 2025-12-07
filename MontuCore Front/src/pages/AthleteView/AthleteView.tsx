@@ -1,22 +1,18 @@
 import { useState } from "react";
-import Sidebar from "../../components/level-1/Sidebar/Sidebar";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import AthleteTopBar from "../../components/level-1/AthleteTopBar/AthleteTopBar";
 import Button from "../../components/level-0/Button/Bottom";
 import AthleteProfileCard from "../../components/level-1/AthleteProfileCard/AthleteProfileCard";
-import "./AthleteView.css";
-
 import bookAppointment from '../../assets/images/bookAppointment.jpeg';
 import athleteProfile from '../../assets/images/Cristiano Ronaldo.png';
 
+import "./AthleteView.css";
+
 function AthleteView() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("reports");
 
   return (
     <div className="athlete-viewer-container">
-      <Sidebar onToggle={(open) => setSidebarOpen(open)} />
-
       <div className="athlete-main-content">
         <AthleteTopBar
           athleteName="Ronaldo"

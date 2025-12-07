@@ -7,11 +7,13 @@ import {
   RouterProvider
 } from "@tanstack/react-router";
 
+import { useState } from "react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import PhysicianView from "./pages/PhysicianView/PhysicianView";
 import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
+import Sidebar from "./components/level-1/Sidebar/Sidebar";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -19,19 +21,30 @@ const rootRoute = createRootRoute({
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
     <div>
-   
+     
+      <div className="layout-container">
+        <Sidebar onToggle={setIsSidebarOpen} />
 
-      {/* nav bar should be here */}
-      <nav style={{ display: "flex", gap: 8 }}>
+        <div
+          className={`main-content ${
+            isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+          }`}
+        >
+          <Outlet />
+
+            <nav style={{ display: "flex", gap: 8 , marginLeft: '1.5rem'}}>
         <Link to="/">Home</Link>
         <Link to="/physician">physician</Link>
         <Link to="/case">Case</Link>
         <Link to="/athlete-viewer">Athlete Viewer</Link>
       </nav>
-
-      <Outlet />
+      
+        </div>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@
   height: 100vh;
   overflow: hidden;
   transition: width var(--transition);
+  position: fixed;
 }
 
 .sidebar-open {
@@ -55,9 +56,7 @@
   color: var(--primary-color);
 }
 
-.sidebar-closed .sidebar-toggle {
-  margin: auto;
-}
+
 
 .sidebar-tabs,
 .sidebar-footer {
@@ -115,7 +114,7 @@
 
 .sidebar-footer {
   margin-top: auto;
-  margin-bottom: 0.75rem;
+  margin-bottom: 2.3rem;
 }
 
 @media (max-width: 1024px) {

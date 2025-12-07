@@ -134,16 +134,12 @@
   color: var(--text-color);
   cursor: pointer;
   transition: all 0.3s ease;
-  opacity: 0.6;
+  opacity: 0.8;
   white-space: nowrap;
 }
 
-.medical-records-tab:last-child {
-  border-right: none;
-}
-
 .medical-records-tab:hover {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .medical-records-tab.active {
@@ -202,5 +198,22 @@ background-color: var(--secondary-color);
 
   .medical-records-title {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .athlete-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: auto;
+    gap: 20px;
+    padding: 0 20px 20px 20px;
+  }
+
+  .athlete-profile-card,
+  .booking-card-wrapper,
+  .medical-records-card,
+  .next-appointments-card {
+    grid-column: auto !important;
+    grid-row: auto !important;
   }
 }
