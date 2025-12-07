@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
-import * as billingController from './billing.controller';
-import { authenticateToken } from '../../middleware/auth';
+import * as billingController from './billing.controller.js';
+import { authenticateToken } from '../../middleware/auth.js';
 
 const router: Router = express.Router();
 

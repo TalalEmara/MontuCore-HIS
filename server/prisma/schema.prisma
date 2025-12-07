@@ -24,6 +24,8 @@ model User {
   managedCases          Case[]            @relation("ManagingClinician")
   clinicianProfile      ClinicianProfile?
 
+  invoices Invoice[] @relation("PatientInvoices") 
+
   @@map("users")
 }
 
@@ -59,6 +61,8 @@ model Appointment {
   clinician      User       @relation("ClinicianAppt", fields: [clinicianId], references: [id])
   generatedCase  Case?
 
+  invoices Invoice[] @relation("InvoiceSession")
+
   @@map("appointments")
 }
 
@@ -80,6 +84,7 @@ model Case {
   labTests            LabTest[]
   physioPrograms      PhysioProgram[]
   treatments          Treatment[]
+  invoices            Invoice[]       @relation("InvoiceCase")
 
   @@map("cases")
 }
@@ -154,6 +159,41 @@ model PhysioProgram {
   medicalCase       Case     @relation(fields: [caseId], references: [id])
 
   @@map("physio_programs")
+}
+
+model Invoice {
+  id            Int       @id @default(autoincrement())
+  patientId     Int
+  caseId        Int?
+  sessionId     Int?
+  invoiceNumber String    @unique
+  invoiceDate   DateTime  @default(now())
+  dueDate       DateTime
+  items         Json
+  subtotal      Float
+  tax           Float
+  discount      Float
+  totalAmount   Float
+  paidAmount    Float     @default(0)
+  status        String    @default("PENDING")
+  notes         String?
+  createdBy     Int
+  payments      Payment[]
+
+  patient User         @relation("PatientInvoices", fields: [patientId], references: [id])
+  case    Case?        @relation("InvoiceCase", fields: [caseId], references: [id])
+  session Appointment? @relation("InvoiceSession", fields: [sessionId], references: [id])
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  invoiceId     Int
+  amount        Float
+  paymentMethod String
+  transactionId String?
+  paymentDate   DateTime @default(now())
+  notes         String?
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
 }
 
 enum Role {
