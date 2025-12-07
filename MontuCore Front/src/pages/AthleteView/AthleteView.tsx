@@ -3,8 +3,8 @@ import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCa
 import AthleteTopBar from "../../components/level-1/AthleteTopBar/AthleteTopBar";
 import Button from "../../components/level-0/Button/Bottom";
 import AthleteProfileCard from "../../components/level-1/AthleteProfileCard/AthleteProfileCard";
-import bookAppointment from '../../assets/images/bookAppointment.jpeg';
-import athleteProfile from '../../assets/images/Cristiano Ronaldo.png';
+import bookAppointment from '../../assets/images/bookAppointment.webp';
+import athleteProfile from '../../assets/images/Cristiano Ronaldo.webp';
 
 import "./AthleteView.css";
 
