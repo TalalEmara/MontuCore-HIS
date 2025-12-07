@@ -21,7 +21,7 @@
 }
 
 .success{
-    background-color: var(--text-color);
+    background-color: var(--success);
 }
 .warning{
     background-color: var(--primary-color);
