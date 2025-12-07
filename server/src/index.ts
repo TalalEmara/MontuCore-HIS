@@ -10,6 +10,7 @@ import imagingRoutes from './modules/imaging/imaging.routes.js';
 import appointmentRoutes from './modules/appointments/appointment.routes.js';
 import sessionRoutes from './modules/sessions/session.routes.js';
 import billingRoutes from './modules/billing/billing.routes.js';
+import userRoutes from './modules/users/user.routes.js';
 
 const app = express();
 export const prisma = new PrismaClient();
@@ -26,6 +27,7 @@ app.use('/api/imaging', imagingRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/users',userRoutes);
 
 // Health Check
 app.get('/', (req, res) => {
