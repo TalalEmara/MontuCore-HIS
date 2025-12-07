@@ -1,8 +1,22 @@
-import express, { Router } from 'express';
 import * as imagingController from './imaging.controller.js';
 import { authenticateToken } from '../../middleware/auth.js';
+import { Router, type Router as RouterType } from 'express';
+import multer from 'multer';
+import { uploadAndProcessScan } from './pacs.controller.js';
 
-const router: Router = express.Router();
+const router: RouterType = Router();
+
+// Store file in memory (RAM) temporarily
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
+
+// POST /api/imaging/upload
+// Frontend sends FormData: key="file" (the .dcm), key="caseId"
+router.post('/upload', upload.single('file'), uploadAndProcessScan);
+
 
 /**
  * @route   POST /api/imaging
