@@ -1,9 +1,9 @@
 :root {
-  --primary-color: light-dark(  #990000, #990000);
-  --secondary-color: light-dark(#5c0606,#5c0606);
+  --primary-color: light-dark(  #990000, #c91633);
+  --secondary-color: light-dark(#5c0606,#990000);
   --text-color: light-dark(#100a0a, #f5efef);
   --accent: light-dark(#ffae00, #ffae00);
-  --background-color: light-dark( #f4f9fb, #03070a);
+  --background-color: light-dark( #f4f9fb, #17121a);
   --hover-bg: light-dark(#9900003b, #9900003b);
 
 }
