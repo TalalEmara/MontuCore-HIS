@@ -1,6 +1,6 @@
 :root {
   --primary-color: light-dark(  #990000, #c91633);
-  --secondary-color: light-dark(#5c0606,#990000);
+  --secondary-color: light-dark(#5c0606,#a50a24);
   --text-color: light-dark(#100a0a, #f5efef);
   --accent: light-dark(#ffae00, #ffae00);
   --background-color: light-dark( #f4f9fb, #17121a);

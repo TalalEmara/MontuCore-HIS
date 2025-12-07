@@ -23,7 +23,7 @@ background-color: var(--background-color);
    border-bottom: 1px solid var(--accent);
 }
 .row:hover{
-      background-color:hsl(from var(--background-color) h calc(s*.2) calc(l * 5));
+      background-color:hsl(from var(--background-color) h s calc(l * 2));
       transform: scale(1.01);
     }
 .listHeader{
