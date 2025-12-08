@@ -4,7 +4,7 @@ import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewe
 import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
 import { Upload, Box, Grid3X3 } from "lucide-react"; 
 import styles from "./DicomViewPage.module.css";
-import VolumeViewer from "../../components/level-1/MPRViewer/MPRViewer";
+import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
 
 interface ViewportData {
   id: string;
@@ -104,14 +104,7 @@ function DicomViewPage() {
           Upload ({activeViewportId})
         </button>
 
-        {/* MPR Toggle Button */}
-        <button 
-            onClick={() => setIsMPR(!isMPR)}
-            style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: isMPR ? '#7c3aed' : '#4b5563', color: 'white', cursor: 'pointer', alignItems: 'center' }}
-        >
-            {isMPR ? <Grid3X3 size={16}/> : <Box size={16}/>}
-            {isMPR ? "Switch to Stack" : "Switch to MPR"}
-        </button>
+        
       </div>
 
       {/* RENDER AREA */}
@@ -130,10 +123,7 @@ function DicomViewPage() {
                 activeTool={activeTool}
                 activePreset={vp.preset}
               />
-              <span style={{ position: "absolute", top: 5, left: 5, color: "#3b82f6", fontSize: "12px", pointerEvents: "none", fontWeight: "bold", zIndex: 10 }}>
-                Series {index + 1} {activeViewportId === vp.id && "●"}
-                {vp.preset && ` [${vp.preset.label}]`}
-              </span>
+              
             </div>
           ))}
         </div>
@@ -142,25 +132,11 @@ function DicomViewPage() {
         <div style={{ width: '100%', height: 'calc(100vh - 60px)', padding: '10px' }}>
              {/* CHECK IF WE HAVE IMAGES BEFORE RENDERING MPR */}
              {hasImages ? (
-                 <VolumeViewer
+                 <MPRViewer
                     imageIds={activeViewportData.imageIds}
                     activeTool={activeTool}
                  />
-             ) : (
-                 <div style={{ 
-                     height: '100%', 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     color: '#9ca3af', 
-                     flexDirection: 'column',
-                     gap: '10px'
-                 }}>
-                     <Box size={48} />
-                     <h3>No Images Loaded</h3>
-                     <p>Please switch back to Stack View and upload DICOM files first.</p>
-                 </div>
-             )}
+             ) : <></>}
         </div>
       )}
     </div>

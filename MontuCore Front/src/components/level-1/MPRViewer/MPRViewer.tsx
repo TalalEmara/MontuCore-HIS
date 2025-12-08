@@ -29,7 +29,7 @@ const { ViewportType } = Enums;
 const { MouseBindings } = csToolsEnums;
 
 // 1. Add activeTool to props
-type VolumeViewerProps = {
+type MPRViewerProps = {
   imageIds: string[];
   activeTool: string;
 };
@@ -40,12 +40,12 @@ const VOLUME_ID = 'myVolume';
 const SYNC_ID_VOI = 'myVOISynchronizer';
 
 const VIEWPORT_IDS = {
-  AXIAL: 'CT_AXIAL',
-  SAGITTAL: 'CT_SAGITTAL',
-  CORONAL: 'CT_CORONAL',
+  AXIAL: 'AXIAL',
+  SAGITTAL: 'SAGITTAL',
+  CORONAL: 'ORONAL',
 };
 
-export const VolumeViewer: React.FC<VolumeViewerProps> = ({ imageIds, activeTool }) => {
+export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) => {
   const axialRef = useRef<HTMLDivElement | null>(null);
   const sagittalRef = useRef<HTMLDivElement | null>(null);
   const coronalRef = useRef<HTMLDivElement | null>(null);
@@ -54,7 +54,6 @@ export const VolumeViewer: React.FC<VolumeViewerProps> = ({ imageIds, activeTool
   const toolGroupRef = useRef<any>(null); 
   const voiSyncRef = useRef<any>(null);
 
-  // 2. Removed internal state for tools/toolbar
   
   // --- Effect 1: Initialization ---
   useEffect(() => {
@@ -204,11 +203,10 @@ export const VolumeViewer: React.FC<VolumeViewerProps> = ({ imageIds, activeTool
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {/* 3. Toolbar removed, only Grid remains */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-        <ViewportContainer title="Axial" refProp={axialRef} color="#ff4d4d" />
-        <ViewportContainer title="Sagittal" refProp={sagittalRef} color="#ffff4d" />
-        <ViewportContainer title="Coronal" refProp={coronalRef} color="#4dff4d" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
+        <ViewportContainer title="Axial" refProp={axialRef} color="#c91633" />
+        <ViewportContainer title="Sagittal" refProp={sagittalRef} color="#ffae00" />
+        <ViewportContainer title="Coronal" refProp={coronalRef} color="#5FDD9D" />
       </div>
     </div>
   );
@@ -237,4 +235,4 @@ const ViewportContainer = ({ title, refProp, color }: any) => (
     </div>
 );
 
-export default VolumeViewer;
+export default MPRViewer;
