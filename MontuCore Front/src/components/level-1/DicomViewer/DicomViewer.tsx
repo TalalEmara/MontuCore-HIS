@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   RenderingEngine, 
   Enums, 
@@ -9,7 +9,6 @@ import {
   init as dicomImageLoaderInit, 
   wadouri 
 } from '@cornerstonejs/dicom-image-loader';
-// 1. Import Tools Library
 import * as cornerstoneTools from '@cornerstonejs/tools';
 
 const {
@@ -28,54 +27,43 @@ const DicomLocalViewer: React.FC = () => {
   const toolGroupId = 'MY_TOOLGROUP_ID';
   const viewportId = 'CT_AXIAL_STACK';
 
+  // 1. STATE: Track which tool is currently on the Left Mouse Button
+  const [activeLeftTool, setActiveLeftTool] = useState<string>(WindowLevelTool.toolName);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initial Setup (Mount only)
   useEffect(() => {
     const setup = async () => {
-      // Initialize Core, Loader, AND Tools
       await coreInit();
       await dicomImageLoaderInit();
-      await cornerstoneTools.init(); // <--- Initialize Tools
+      await cornerstoneTools.init();
 
-      // 2. Add Tools to the Cornerstone engine
       cornerstoneTools.addTool(WindowLevelTool);
       cornerstoneTools.addTool(PanTool);
       cornerstoneTools.addTool(ZoomTool);
       cornerstoneTools.addTool(PlanarRotateTool);
       cornerstoneTools.addTool(StackScrollTool);
 
-      // 3. Define a Tool Group (a set of tools for our viewport)
       const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
       if (toolGroup) {
-        // Add tools to the group
         toolGroup.addTool(WindowLevelTool.toolName);
         toolGroup.addTool(PanTool.toolName);
         toolGroup.addTool(ZoomTool.toolName);
         toolGroup.addTool(PlanarRotateTool.toolName);
         toolGroup.addTool(StackScrollTool.toolName);
 
-        // 4. Set Active Tools (Bind them to Mouse Buttons)
-        toolGroup.setToolActive(WindowLevelTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Primary }, // Left Click = Contrast
-          ],
-        });
+        // Set initial "Permanent" tools (Right Click & Middle Click)
         toolGroup.setToolActive(PanTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Auxiliary }, // Middle Click = Pan
-          ],
+          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Auxiliary }],
         });
         toolGroup.setToolActive(ZoomTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Secondary }, // Right Click = Zoom
-          ],
+          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Secondary }],
         });
-        toolGroup.setToolActive(StackScrollTool.toolName,{
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Wheel }, // Right Click = Zoom
-          ],
-        }); // Scroll Wheel = Next/Prev Image
+        toolGroup.setToolActive(StackScrollTool.toolName, {
+          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Wheel }],
+        });
       }
 
-      // Create Rendering Engine
       const renderingEngineId = 'myRenderingEngine';
       const renderingEngine = new RenderingEngine(renderingEngineId);
       renderingEngineRef.current = renderingEngine;
@@ -87,84 +75,92 @@ const DicomLocalViewer: React.FC = () => {
           type: Enums.ViewportType.STACK,
         };
         renderingEngine.enableElement(viewportInput);
-        
-        // 5. Connect the Tool Group to the Viewport
-        // This makes the tools work specifically on this HTML element
         toolGroup?.addViewport(viewportId, renderingEngineId);
       }
+
+      // Mark as ready so our other effect can run
+      setIsInitialized(true);
     };
 
     setup();
 
     return () => {
-      // Cleanup tools and engine
       ToolGroupManager.destroyToolGroup(toolGroupId);
-      if (renderingEngineRef.current) {
-        renderingEngineRef.current.destroy();
-      }
+      renderingEngineRef.current?.destroy();
     };
   }, []);
 
+
+  // 2. EFFECT: The "Switcher" Logic
+  // This runs whenever `activeLeftTool` changes.
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    if (!toolGroup) return;
+
+    // A. Disable all potential "Left Click" tools first
+    // This ensures we don't have two tools trying to use the Left Button
+    const leftClickTools = [WindowLevelTool.toolName, PlanarRotateTool.toolName];
+    
+    leftClickTools.forEach(toolName => {
+        toolGroup.setToolPassive(toolName);
+    });
+
+    // B. Enable the one selected in State
+    toolGroup.setToolActive(activeLeftTool, {
+      bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
+    });
+
+    // C. Update the viewport to reflect changes immediately
+    const renderingEngine = renderingEngineRef.current;
+    const viewport = renderingEngine?.getViewport(viewportId);
+    viewport?.render();
+
+  }, [activeLeftTool, isInitialized]); // <--- Dependencies
+
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0 || !renderingEngineRef.current) return;
-
-    const fileArray = Array.from(files);
-    const imageIds = fileArray.map((file) => wadouri.fileManager.add(file));
-
+    if (!files || !renderingEngineRef.current) return;
+    const imageIds = Array.from(files).map((file) => wadouri.fileManager.add(file));
     const viewport = renderingEngineRef.current.getViewport(viewportId) as Types.IStackViewport;
-    
-    // Load images
     await viewport.setStack(imageIds, 0);
     viewport.render();
   };
 
-  // Helper function to activate Rotate tool manually (optional button)
-  const toggleRotate = () => {
-    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    if (!toolGroup) return;
-
-    // Switch Left Click to Rotate instead of WindowLevel
-    toolGroup.setToolActive(PlanarRotateTool.toolName, {
-        bindings: [ { mouseButton: csToolsEnums.MouseBindings.Primary } ],
-    });
-    // Set WindowLevel to passive so it doesn't conflict
-    toolGroup.setToolPassive(WindowLevelTool.toolName);
-  };
-
-  const resetTools = () => {
-    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    if (!toolGroup) return;
-    
-    // Restore WindowLevel to Left Click
-    toolGroup.setToolActive(WindowLevelTool.toolName, {
-        bindings: [ { mouseButton: csToolsEnums.MouseBindings.Primary } ],
-    });
-    toolGroup.setToolPassive(PlanarRotateTool.toolName);
-  };
-
   return (
     <div>
-      <div style={{ marginBottom: '10px', display:'flex', gap:'10px' }}>
+      <div style={{ marginBottom: '15px', padding: '10px', background: '#f0f0f0' }}>
+        <h3>Toolbar</h3>
+        
+        {/* File Upload */}
         <input type="file" onChange={handleFileChange} multiple accept=".dcm" />
         
-        {/* Simple buttons to switch modes if needed */}
-        <button onClick={toggleRotate}>Enable Rotate (Left Click)</button>
-        <button onClick={resetTools}>Reset to Contrast (Left Click)</button>
+        <hr />
+
+        {/* 3. UI: Controlled Inputs */}
+        <label style={{ marginRight: '10px' }}><strong>Left Mouse Mode:</strong></label>
+        
+        <select 
+            value={activeLeftTool} 
+            onChange={(e) => setActiveLeftTool(e.target.value)}
+            style={{ padding: '5px' }}
+        >
+            <option value={WindowLevelTool.toolName}>Contrast (Window/Level)</option>
+            <option value={PlanarRotateTool.toolName}>Rotate</option>
+        </select>
+
+        <p style={{fontSize: '0.9em', color: '#666'}}>
+           Current Mode: {activeLeftTool === WindowLevelTool.toolName ? "Contrast Adjustment" : "Rotation"}
+        </p>
       </div>
 
       <div 
         ref={elementRef} 
-        style={{ 
-          width: '100%', 
-          height: '60vh',
-          backgroundColor: '#000',
-          border: '1px solid #444' 
-        }} 
-        // Prevent right-click context menu so Zoom works
+        style={{ width: '100%', height: '60vh', backgroundColor: '#000' }} 
         onContextMenu={(e) => e.preventDefault()}
-      >
-      </div>
+      ></div>
     </div>
   );
 };
