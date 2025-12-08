@@ -1,30 +1,28 @@
+
 import React, { useState, useEffect, useRef } from "react";
-import DicomTopBar, {
-  type ToolMode,
-} from "../../components/DicomView/DicomTopBar/DicomTopBar";
-import DicomViewer from "../../components/level-1/DicomViewer/DicomViewer";
+import DicomTopBar, { type ToolMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
+import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer"; // Import Type
 import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
 import { Upload } from "lucide-react";
 import styles from "./DicomViewPage.module.css";
 
-// 1. Define the shape of a viewport
 interface ViewportData {
   id: string;
   imageIds: string[];
+  // --- NEW: Track preset per viewport ---
+  preset?: VoiPreset | null;
 }
 
 function DicomViewPage() {
-  // --- STATE ---
   const [activeTool, setActiveTool] = useState<ToolMode>("WindowLevel");
 
-  // 2. Dynamic Viewports State (Array instead of Object)
   const [viewports, setViewports] = useState<ViewportData[]>([
-    { id: "viewport-0", imageIds: [] }, // Start with 1 viewport
+    { id: "viewport-0", imageIds: [], preset: null }, 
   ]);
 
   const [activeViewportId, setActiveViewportId] = useState<string>("viewport-0");
 
-  // --- HANDLER: File Upload ---
+  // --- HANDLER: Upload ---
   const handleNewDicomFiles = (newImageIds: string[]) => {
     setViewports((prev) =>
       prev.map((vp) => {
@@ -39,53 +37,52 @@ function DicomViewPage() {
   const { handleFileChange } = useDicomFileHandler(handleNewDicomFiles);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- DYNAMIC VIEWPORT ACTIONS ---
+  // --- ACTIONS ---
   const handleAddViewport = () => {
-    if(viewports.length==12) return
+    if(viewports.length === 12) return;
     const newId = `viewport-${Date.now()}`;
-    setViewports((prev) => [...prev, { id: newId, imageIds: [] }]);
-   
+    // Copy imageIds from active to new (optional convenience) or start empty
+    setViewports((prev) => [...prev, { id: newId, imageIds: [], preset: null }]);
     setActiveViewportId(newId);
   };
 
   const handleRemoveViewport = () => {
-    if (viewports.length <= 1) return; // Prevent removing the last one
-
+    if (viewports.length <= 1) return;
     setViewports((prev) => {
       const newList = [...prev];
       newList.pop(); 
       return newList;
     });
-
-    // Safety: If active viewport was deleted, reset to the first one
-    setActiveViewportId((prevId) => {
-        
-        return viewports[0].id; 
-    });
+    setActiveViewportId((prevId) => viewports[0].id);
   };
 
-  // --- TOP BAR HANDLERS ---
   const handleToolChange = (toolName: ToolMode) => setActiveTool(toolName);
-
-
   const triggerUpload = () => fileInputRef.current?.click();
 
- 
+  // --- NEW: Handle Preset Change ---
+  const handlePresetChange = (preset: VoiPreset) => {
+    // Update ONLY the active viewport's preset
+    setViewports(prev => prev.map(vp => {
+      if (vp.id === activeViewportId) {
+        return { ...vp, preset: preset };
+      }
+      return vp;
+    }));
+  };
+
   return (
     <div className={styles.dicomViewPage}>
-      {/* 1. TOP BAR */}
       <DicomTopBar
         activeTool={activeTool}
         onToolChange={handleToolChange}
         isSyncActive={false}
-    
         onAddViewport={handleAddViewport}
-
         onRemoveViewport={handleRemoveViewport}
-      
+        // --- Connect handler ---
+        onPresetChange={handlePresetChange}
       />
 
-      {/* 2. UPLOAD SECTION (Hidden Input + Button) */}
+      {/* Upload Button Section (Kept Same) */}
       <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
         <input
           ref={fileInputRef}
@@ -95,63 +92,36 @@ function DicomViewPage() {
           onChange={handleFileChange}
           style={{ display: "none" }}
         />
-        <button
-          onClick={triggerUpload}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            padding: "8px 16px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "0.85rem",
-          }}
-        >
+        <button onClick={triggerUpload} style={{ /* ... styles ... */ display:'flex', gap:6, padding:'8px 16px', borderRadius:4, border:'none', background:'#2563eb', color:'white', cursor:'pointer' }}>
           <Upload size={16} />
-          Upload to Selected ({activeViewportId})
+          Upload ({activeViewportId})
         </button>
       </div>
 
-      {/* 3. VIEWPORT GRID */}
-      <div className={styles.viewportGrid}>
-        
+      <div className={styles.viewportGrid} style={{ '--cols': viewports.length } as React.CSSProperties}>
         {viewports.map((vp, index) => (
           <div
             key={vp.id}
             onClick={() => setActiveViewportId(vp.id)}
             className={
-              activeViewportId === vp.id
-                ? styles.activeViewport
-                : styles.inactiveViewport
+              activeViewportId === vp.id ? styles.activeViewport : styles.inactiveViewport
             }
           >
             <DicomViewer
               viewportId={vp.id}
               imageIds={vp.imageIds}
               activeTool={activeTool}
+              // --- Pass the preset down ---
+              activePreset={vp.preset}
             />
             
-            {/* Overlay Label */}
-            <span
-              style={{
-                position: "absolute",
-                top: 5,
-                left: 5,
-                color: "#3b82f6",
-                fontSize: "12px",
-                pointerEvents: "none",
-                fontWeight: "bold",
-                zIndex: 10,
-              }}
-            >
+            <span style={{ position: "absolute", top: 5, left: 5, color: "#3b82f6", fontSize: "12px", pointerEvents: "none", fontWeight: "bold", zIndex: 10 }}>
               Series {index + 1} {activeViewportId === vp.id && "●"}
+              {/* Optional: Show active filter name */}
+              {vp.preset && ` [${vp.preset.label}]`}
             </span>
           </div>
         ))}
-
       </div>
     </div>
   );
