@@ -1,52 +1,68 @@
 :root {
-  --primary-color: light-dark(  #990000, #990000);
-  --secondary-color: light-dark(#5c0606,#5c0606);
+  --primary-color: light-dark(  #990000, #c91633);
+  --secondary-color: light-dark(#5c0606,#a50a24);
   --text-color: light-dark(#100a0a, #f5efef);
   --accent: light-dark(#ffae00, #ffae00);
-  --background-color: light-dark( #f4f9fb, #03070a);
+  --background-color: light-dark( #f4f9fb, #17121a);
+  --success: light-dark( #5FDD9D, #5FDD9D);
+
+  --hover-bg: light-dark(#9900003b, #9900003b);
+
 }
-=
+
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
   color-scheme: dark;
+  background-color: var(--background-color);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.main-content {
+  flex: 1;
+  transition: margin-left var(--transition);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+
+.main-content.sidebar-open {
+  margin-left: 180px;
 }
 
-.card {
-  padding: 2em;
+.main-content.sidebar-closed {
+  margin-left: 50px;
 }
 
-.read-the-docs {
-  color: #888;
+
+.test{
+  background-color: blue;
+  overflow: auto;
+  /* width: 60%; */
+  /* height: 20vh; */
+}
+@media (max-width: 1024px) {
+  .main-content.sidebar-open { margin-left: 180px; }
+  .main-content.sidebar-closed { margin-left: 50px; }
+}
+
+@media (max-width: 768px) {
+  .main-content.sidebar-open { margin-left: 160px; }
+  .main-content.sidebar-closed { margin-left: 48px; }
+}
+@media (max-height: 700px) {
+  .main-content.sidebar-open { margin-left: 185px; }
+  .main-content.sidebar-closed { margin-left: 48px; }
+}
+
+@media (max-height: 550px) {
+  .main-content.sidebar-open { margin-left: 170px; }
+  .main-content.sidebar-closed { margin-left: 40px; }
+}
+
+@media (max-height: 450px) {
+  .main-content.sidebar-open { margin-left: 120px; }
+  .main-content.sidebar-closed { margin-left: 36px; }
 }

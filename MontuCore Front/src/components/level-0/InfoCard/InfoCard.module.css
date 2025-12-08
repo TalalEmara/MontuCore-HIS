@@ -1,0 +1,24 @@
+.card{
+    background-color: var(--primary-color);
+    /* height: 100%;     */
+    flex: 1 1 0;        /* three equal cards that can shrink */
+    min-width: 0;
+    aspect-ratio: 2/3;
+    
+    padding: 1vh 1vw;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    gap: 1vh;
+}
+.label{
+    font-size: 1rem;
+    color: var(--text-color);
+}
+.value{
+    font-size: 5rem;
+    font-weight: 800;
+    color: var(--text-color);
+}
