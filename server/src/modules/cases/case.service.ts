@@ -1,21 +1,24 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Severity, CaseStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 interface CaseData {
-  patientId: string;
-  diagnosis?: string;
-  symptoms?: string;
-  status?: string;
-  priority?: string;
-  notes?: string;
-  createdBy: string;
+  athleteId:           number;
+  managingClinicianId: number;
+  appointmentId:       number;
+  diagnosisName:       string;
+  icd10Code:           string | null;
+  injuryDate:          Date;
+  status:              CaseStatus;
+  severity:            Severity;
+  medicalGrade:        string | null;
 }
 
 interface GetAllCasesParams {
   page?: number;
   limit?: number;
-  status?: string;
+  status?: CaseStatus;
+  athleteId?: number | undefined;
 }
 
 /**
@@ -24,19 +27,21 @@ interface GetAllCasesParams {
 export const createCase = async (caseData: CaseData) => {
   const newCase = await prisma.case.create({
     data: {
-      patientId: caseData.patientId,
-      diagnosis: caseData.diagnosis,
-      symptoms: caseData.symptoms,
-      status: caseData.status || 'OPEN',
-      priority: caseData.priority || 'MEDIUM',
-      notes: caseData.notes,
-      createdBy: caseData.createdBy
+      athleteId: caseData.athleteId,
+      managingClinicianId: caseData.managingClinicianId,
+      appointmentId: caseData.appointmentId,
+      diagnosisName: caseData.diagnosisName,
+      icd10Code: caseData.icd10Code,
+      injuryDate: caseData.injuryDate,
+      status: caseData.status,
+      severity: caseData.severity,
+      medicalGrade: caseData.medicalGrade
     },
     include: {
-      patient: {
+      athlete: {
         select: {
           id: true,
-          name: true,
+          fullName: true,
           email: true
         }
       }
@@ -49,9 +54,12 @@ export const createCase = async (caseData: CaseData) => {
 /**
  * Get all cases with pagination and filters
  */
-export const getAllCases = async ({ page = 1, limit = 10, status }: GetAllCasesParams) => {
+export const getAllCases = async ({ page = 1, limit = 10, status, athleteId }: GetAllCasesParams) => {
   const skip = (page - 1) * limit;
-  const where = status ? { status } : {};
+  const where: any = {};
+  
+  if (status) where.status = status;
+  if (athleteId) where.athleteId = athleteId;
 
   const [cases, total] = await Promise.all([
     prisma.case.findMany({
@@ -59,16 +67,23 @@ export const getAllCases = async ({ page = 1, limit = 10, status }: GetAllCasesP
       skip,
       take: limit,
       include: {
-        patient: {
+        athlete: {
           select: {
             id: true,
-            name: true,
+            fullName: true,
+            email: true
+          }
+        },
+        managingClinician: {
+          select: {
+            id: true,
+            fullName: true,
             email: true
           }
         }
       },
       orderBy: {
-        createdAt: 'desc'
+        injuryDate: 'desc'
       }
     }),
     prisma.case.count({ where })
@@ -88,13 +103,21 @@ export const getAllCases = async ({ page = 1, limit = 10, status }: GetAllCasesP
 /**
  * Get case by ID
  */
-export const getCaseById = async (caseId: string) => {
+export const getCaseById = async (caseId: number) => {
   const caseData = await prisma.case.findUnique({
     where: { id: caseId },
     include: {
-      patient: true,
-      appointments: true,
-      sessions: true
+      athlete: true,
+      managingClinician: true,
+      originAppointment: true,
+      exams: {
+        include: {
+          images: true
+        }
+      },
+      labTests: true,
+      treatments: true,
+      physioPrograms: true
     }
   });
 
@@ -106,17 +129,43 @@ export const getCaseById = async (caseId: string) => {
 };
 
 /**
- * Update case
+ * Update case (partial update - only provided fields are updated)
  */
-export const updateCase = async (caseId: string, updates: Partial<CaseData>) => {
+export const updateCase = async (caseId: number, updates: Partial<CaseData>) => {
+  // Check if case exists
+  const existingCase = await prisma.case.findUnique({
+    where: { id: caseId }
+  });
+
+  if (!existingCase) {
+    throw new Error('Case not found');
+  }
+
+  // Filter out undefined fields to only update provided fields
+  const filteredUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]) => value !== undefined)
+  );
+
+  // Ensure we don't have an empty update
+  if (Object.keys(filteredUpdates).length === 0) {
+    throw new Error('No fields to update');
+  }
+
   const updatedCase = await prisma.case.update({
     where: { id: caseId },
-    data: updates,
+    data: filteredUpdates as any,
     include: {
-      patient: {
+      athlete: {
         select: {
           id: true,
-          name: true,
+          fullName: true,
+          email: true
+        }
+      },
+      managingClinician: {
+        select: {
+          id: true,
+          fullName: true,
           email: true
         }
       }
@@ -129,7 +178,7 @@ export const updateCase = async (caseId: string, updates: Partial<CaseData>) => 
 /**
  * Delete case
  */
-export const deleteCase = async (caseId: string) => {
+export const deleteCase = async (caseId: number) => {
   await prisma.case.delete({
     where: { id: caseId }
   });

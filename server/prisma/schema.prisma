@@ -117,8 +117,8 @@ model Appointment {
   status         ApptStatus @default(SCHEDULED)
   diagnosisNotes String?    @map("diagnosis_notes") // Initial notes
 
-  // The Case resulting from this appointment (Optional relation here)
-  generatedCase  Case?
+  // The Cases resulting from this appointment
+  cases          Case[]
 
   @@map("appointments")
 }
@@ -127,7 +127,7 @@ model Case {
   id                  Int        @id @default(autoincrement())
   athleteId           Int        @map("athlete_id")
   managingClinicianId Int        @map("managing_clinician_id")
-  appointmentId       Int        @unique @map("appointment_id") // 1-to-1: A case comes from ONE specific appointment
+  appointmentId       Int        @map("appointment_id") // Many cases can come from ONE appointment
 
   // Relations
   athlete             User       @relation("AthleteCase", fields: [athleteId], references: [id])
