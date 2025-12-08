@@ -1,26 +1,39 @@
 import AdjustableCard from "../AdjustableCard/AdjustableCard";
-import "./AthleteProfileCard.css";
+import "./userProfileCard.css";
 
-interface AthleteStats {
-  age: string;
-  height: string;
-  weight: string;
-  status: string;
-  role: string;
-  jersey: string;
+interface UserStats {
+  age?: string;
+  height?: string;
+  weight?: string;
+  status?: string;
+  role?: string;
+  jersey?: string;
 }
 
-interface AthleteProfileCardProps {
+interface UserProfileCardProps {
   profileImage: string;
-  stats: AthleteStats;
+  stats: UserStats;
+  width?: string;      
+  minWidth?: string;  
+  height?: string;    
+  minHeight?: string;  
 }
 
-function AthleteProfileCard({ profileImage, stats }: AthleteProfileCardProps) {
+function UserProfileCard({
+  profileImage,
+  stats,
+  width = "100%",      
+  minWidth = "0",      
+  height = "400px",    
+  minHeight = "400px",
+}: UserProfileCardProps) {
   return (
     <AdjustableCard
-      className="athlete-profile-card"
-      height="400px"
-      minHeight="400px"
+      className="user-profile-card"
+      width={width}
+      minWidth={minWidth}
+      height={height}
+      minHeight={minHeight}
     >
       <div
         className="profile-card-container"
@@ -55,4 +68,4 @@ function AthleteProfileCard({ profileImage, stats }: AthleteProfileCardProps) {
   );
 }
 
-export default AthleteProfileCard;
+export default UserProfileCard;
