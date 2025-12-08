@@ -191,7 +191,7 @@ const DicomViewer: React.FC<DicomViewerProps> = ({ imageIds, activeTool, viewpor
     <p>{activeTool}</p>
     <div 
       ref={elementRef} 
-      style={{ width: '100%', height: '100%', background: '#000' }}
+      style={{ width: '100%', height: '100%'}}
       // Prevent browser menu on Right Click (so Zoom works)
       onContextMenu={(e) => e.preventDefault()} 
     /></>
