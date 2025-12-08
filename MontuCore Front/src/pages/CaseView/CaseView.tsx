@@ -15,14 +15,14 @@ function CaseView() {
       <div className={styles.overview}>
         <div className={styles.tabButtons}>
           <Button
-            variant="primary"
+            variant="secondary"
             onClick={() => setActiveTab("overview")}
             className={styles.tabButton}
           >
             overview
           </Button>
           <Button
-            variant="primary"
+            variant="secondary"
             onClick={() => setActiveTab("images")}
             className={styles.tabButton}
           >
@@ -122,7 +122,7 @@ function CaseView() {
         </AdjustableCard>
       </div>
       <div className={styles.buttons}>
-        <Button variant="primary" width="100%" className={styles.addbutton}>
+        <Button variant="secondary" width="100%" className={styles.addbutton}>
           Add report
         </Button>
         <Button variant="secondary">delete</Button>

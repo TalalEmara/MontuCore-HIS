@@ -7,6 +7,7 @@
       transform: translate(-50%, -50%);
 
     /* background-color: HSl(from var(--background-color) h s  calc(l*5)); */
+    background-color: var(--primary-color);
     width: 89vw;
     height: 88vh;
     padding: 2vh 1vw;
