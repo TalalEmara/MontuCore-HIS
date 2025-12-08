@@ -9,9 +9,10 @@
   border-radius: 8px;
   border: 1px solid var(--primary-color);
   color: var(--text-color);
+  background-color: var(--background-color);
+
 }
 
 .combo-container select option {
-  background: var(--background-color);
   color: var(--text-color);
 }
