@@ -1,26 +1,30 @@
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import DicomTopBar, { type ToolMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
-import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer"; // Import Type
+import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer"; 
 import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
-import { Upload } from "lucide-react";
+import { Upload, Box, Grid3X3 } from "lucide-react"; 
 import styles from "./DicomViewPage.module.css";
+import VolumeViewer from "../../components/level-1/MPRViewer/MPRViewer";
 
 interface ViewportData {
   id: string;
   imageIds: string[];
-  // --- NEW: Track preset per viewport ---
   preset?: VoiPreset | null;
 }
 
 function DicomViewPage() {
   const [activeTool, setActiveTool] = useState<ToolMode>("WindowLevel");
-
+  const [isMPR, setIsMPR] = useState<boolean>(false);
+  
   const [viewports, setViewports] = useState<ViewportData[]>([
-    { id: "viewport-0", imageIds: [], preset: null }, 
+    { id: "viewport-0", imageIds: [], preset: null },
   ]);
 
   const [activeViewportId, setActiveViewportId] = useState<string>("viewport-0");
+
+  const activeViewportData = viewports.find(vp => vp.id === activeViewportId) || viewports[0];
+  
+  const hasImages = activeViewportData.imageIds && activeViewportData.imageIds.length > 0;
 
   // --- HANDLER: Upload ---
   const handleNewDicomFiles = (newImageIds: string[]) => {
@@ -39,9 +43,8 @@ function DicomViewPage() {
 
   // --- ACTIONS ---
   const handleAddViewport = () => {
-    if(viewports.length === 12) return;
+    if (viewports.length === 12) return;
     const newId = `viewport-${Date.now()}`;
-    // Copy imageIds from active to new (optional convenience) or start empty
     setViewports((prev) => [...prev, { id: newId, imageIds: [], preset: null }]);
     setActiveViewportId(newId);
   };
@@ -50,7 +53,7 @@ function DicomViewPage() {
     if (viewports.length <= 1) return;
     setViewports((prev) => {
       const newList = [...prev];
-      newList.pop(); 
+      newList.pop();
       return newList;
     });
     setActiveViewportId((prevId) => viewports[0].id);
@@ -59,9 +62,8 @@ function DicomViewPage() {
   const handleToolChange = (toolName: ToolMode) => setActiveTool(toolName);
   const triggerUpload = () => fileInputRef.current?.click();
 
-  // --- NEW: Handle Preset Change ---
+  // --- Handle Preset Change ---
   const handlePresetChange = (preset: VoiPreset) => {
-    // Update ONLY the active viewport's preset
     setViewports(prev => prev.map(vp => {
       if (vp.id === activeViewportId) {
         return { ...vp, preset: preset };
@@ -78,12 +80,11 @@ function DicomViewPage() {
         isSyncActive={false}
         onAddViewport={handleAddViewport}
         onRemoveViewport={handleRemoveViewport}
-        // --- Connect handler ---
         onPresetChange={handlePresetChange}
       />
 
-      {/* Upload Button Section (Kept Same) */}
-      <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
+      {/* Floating Controls: Upload & MPR Toggle */}
+      <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
         <input
           ref={fileInputRef}
           type="file"
@@ -92,37 +93,75 @@ function DicomViewPage() {
           onChange={handleFileChange}
           style={{ display: "none" }}
         />
-        <button onClick={triggerUpload} style={{ /* ... styles ... */ display:'flex', gap:6, padding:'8px 16px', borderRadius:4, border:'none', background:'#2563eb', color:'white', cursor:'pointer' }}>
+        
+        {/* Upload Button */}
+        <button 
+            onClick={triggerUpload} 
+            style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
+        >
           <Upload size={16} />
           Upload ({activeViewportId})
         </button>
+
+        {/* MPR Toggle Button */}
+        <button 
+            onClick={() => setIsMPR(!isMPR)}
+            style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: isMPR ? '#7c3aed' : '#4b5563', color: 'white', cursor: 'pointer', alignItems: 'center' }}
+        >
+            {isMPR ? <Grid3X3 size={16}/> : <Box size={16}/>}
+            {isMPR ? "Switch to Stack" : "Switch to MPR"}
+        </button>
       </div>
 
-      <div className={styles.viewportGrid} style={{ '--cols': viewports.length } as React.CSSProperties}>
-        {viewports.map((vp, index) => (
-          <div
-            key={vp.id}
-            onClick={() => setActiveViewportId(vp.id)}
-            className={
-              activeViewportId === vp.id ? styles.activeViewport : styles.inactiveViewport
-            }
-          >
-            <DicomViewer
-              viewportId={vp.id}
-              imageIds={vp.imageIds}
-              activeTool={activeTool}
-              // --- Pass the preset down ---
-              activePreset={vp.preset}
-            />
-            
-            <span style={{ position: "absolute", top: 5, left: 5, color: "#3b82f6", fontSize: "12px", pointerEvents: "none", fontWeight: "bold", zIndex: 10 }}>
-              Series {index + 1} {activeViewportId === vp.id && "●"}
-              {/* Optional: Show active filter name */}
-              {vp.preset && ` [${vp.preset.label}]`}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* RENDER AREA */}
+      {!isMPR ? (
+        // STACK VIEW (2D)
+        <div className={styles.viewportGrid} style={{ '--cols': viewports.length } as React.CSSProperties}>
+          {viewports.map((vp, index) => (
+            <div
+              key={vp.id}
+              onClick={() => setActiveViewportId(vp.id)}
+              className={activeViewportId === vp.id ? styles.activeViewport : styles.inactiveViewport}
+            >
+              <DicomViewer
+                viewportId={vp.id}
+                imageIds={vp.imageIds}
+                activeTool={activeTool}
+                activePreset={vp.preset}
+              />
+              <span style={{ position: "absolute", top: 5, left: 5, color: "#3b82f6", fontSize: "12px", pointerEvents: "none", fontWeight: "bold", zIndex: 10 }}>
+                Series {index + 1} {activeViewportId === vp.id && "●"}
+                {vp.preset && ` [${vp.preset.label}]`}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // MPR VIEW (3D)
+        <div style={{ width: '100%', height: 'calc(100vh - 60px)', padding: '10px' }}>
+             {/* CHECK IF WE HAVE IMAGES BEFORE RENDERING MPR */}
+             {hasImages ? (
+                 <VolumeViewer
+                    imageIds={activeViewportData.imageIds}
+                    activeTool={activeTool}
+                 />
+             ) : (
+                 <div style={{ 
+                     height: '100%', 
+                     display: 'flex', 
+                     alignItems: 'center', 
+                     justifyContent: 'center', 
+                     color: '#9ca3af', 
+                     flexDirection: 'column',
+                     gap: '10px'
+                 }}>
+                     <Box size={48} />
+                     <h3>No Images Loaded</h3>
+                     <p>Please switch back to Stack View and upload DICOM files first.</p>
+                 </div>
+             )}
+        </div>
+      )}
     </div>
   );
 }
