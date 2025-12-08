@@ -76,7 +76,7 @@
   font-size: 18px;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, var(--text-color) 0%, rgba(255, 255, 255, 0.7) 100%);
+  background:  var(--text-color);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -110,10 +110,10 @@
 .booking-description {
   font-size: clamp(13px, 2.5vw, 1px);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
   line-height: 1.4;
   margin-top: 10px;
   margin-bottom: 15px;
+  opacity: 0.8;
 }
 
 .medical-records-tabs {
