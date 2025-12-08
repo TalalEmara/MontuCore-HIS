@@ -81,6 +81,7 @@ function DicomViewPage() {
         onAddViewport={handleAddViewport}
         onRemoveViewport={handleRemoveViewport}
         onPresetChange={handlePresetChange}
+        onViewSwitch={()=>setIsMPR(!isMPR)}
       />
 
       {/* Floating Controls: Upload & MPR Toggle */}

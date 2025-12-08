@@ -2,7 +2,8 @@
 import React from "react";
 import {
   Move, Search, Sun, Ruler, Layers, Triangle, Plus, Minus,
-  Activity, 
+  Activity,
+  SwitchCamera, 
 } from "lucide-react";
 import DicomButton from "../DicomButton/DicomButton";
 import styles from "./DicomTopBar.module.css";
@@ -27,6 +28,7 @@ interface DicomTopBarProps {
   isSyncActive: boolean;
   onAddViewport?: () => void;
   onRemoveViewport?: () => void;
+  onViewSwitch?:()=>void;
   
   // --- NEW: Preset Handler ---
   onPresetChange: (preset: VoiPreset) => void;
@@ -39,12 +41,19 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
   onToolChange,
   onAddViewport,    
   onRemoveViewport,
-  onPresetChange // New Prop
+  onPresetChange,
+  onViewSwitch 
 }) => {
   const iconSize = 20;
 
   return (
     <div className={styles.dicomTopBar}>
+      <DicomButton
+        label="Switch"
+        icon={<SwitchCamera size={iconSize} />}
+        onClick={() => onViewSwitch()}
+      />
+      
       {/* GROUP 1: ADJUSTMENT & FILTERS */}
       <DicomButton
         label="Contrast"
