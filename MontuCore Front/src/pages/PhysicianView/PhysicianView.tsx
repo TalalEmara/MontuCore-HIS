@@ -24,20 +24,27 @@ const PhysicianView: React.FC = () => {
     { athleteName: "Famous", type: "Treatment", status: "upcoming" },
   ]);
 
+  const [physioNotes] = useState([
+    { athleteName: "Cristiano Ronaldo", note: "Mild fatigue, monitor next session" },
+    { athleteName: "Mohamed Salah", note: "Slight hamstring tightness" },
+    { athleteName: "Neymar", note: "Knee warm-up needed before training" },
+    { athleteName: "Leo", note: "Reported minor ankle discomfort" },
+  ]);
 
-  const profileStats = {
-    age: "30 years",
-    role: "Physician",
-  };
+  const [athleteComplaints] = useState([
+    { athleteName: "Cristiano Ronaldo", complaint: "Knee pain before training", caseLink: "#" },
+    { athleteName: "Mohamed Salah", complaint: "Muscle tightness after match", caseLink: "#" },
+    { athleteName: "Neymar", complaint: "Ankle discomfort", caseLink: "#" },
+    { athleteName: "Leo", complaint: "Back soreness", caseLink: "#" },
+  ]);
+
+  const profileStats = { age: "30 years", role: "Physician" };
   const profileImage = physicianProfile;
 
   return (
     <div className={styles.physicianViewerContainer}>
       <div className={styles.physicianMainContent}>
-        <TopBar 
-          Name="Dr. Sarah"
-          Role="Sports Physician"
-        />
+        <TopBar Name="Dr. Sarah" Role="Sports Physician" />
 
         <div className={styles.physicianDashboardGrid}>
           <ProfileCard 
@@ -72,11 +79,42 @@ const PhysicianView: React.FC = () => {
                 {todaySchedule.map(({ athleteName, type, status }, idx) => (
                   <div key={idx} className={styles.scheduleRow}>
                     <div className={styles.scheduleInfo}>
-                      <span className={styles.athleteName}>{athleteName}</span>  -  <span >{type}</span>
+                      <span className={styles.athleteName}>{athleteName}</span> - <span>{type}</span>
                     </div>
-                    <div className={`${styles.status} ${styles[status]}`}>
-                      {status}
-                    </div>
+                    <div className={`${styles.status} ${styles[status]}`}>{status}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AdjustableCard>
+
+          <AdjustableCard className={styles.physioNotesCard} height="280px" minHeight="280px">
+            <div className={styles.physioNotesContainer}>
+              <div className={styles.physioNotesHeader}>
+                <h2 className={styles.physioNotesTitle}>Physio Risk Notes</h2>
+              </div>
+              <div className={styles.physioNotesList}>
+                {physioNotes.map(({ athleteName, note }, idx) => (
+                  <div key={idx} className={styles.physioNoteRow}>
+                    <div className={styles.athleteName}>{athleteName}</div>
+                    <div className={styles.physioNote}>{note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AdjustableCard>
+
+          <AdjustableCard className={styles.athleteHandlingCard} height="280px" minHeight="280px">
+            <div className={styles.athleteHandlingContainer}>
+              <div className={styles.athleteHandlingHeader}>
+                <h2 className={styles.athleteHandlingTitle}>Athlete Complaints</h2>
+              </div>
+              <div className={styles.athleteHandlingList}>
+                {athleteComplaints.map(({ athleteName, complaint, caseLink }, idx) => (
+                  <div key={idx} className={styles.athleteHandlingRow}>
+                    <div className={styles.athleteName}>{athleteName}</div>
+                    <div className={styles.athleteComplaint}>{complaint}</div>
+                    <a href={caseLink} className={styles.caseButton}>View Case</a>
                   </div>
                 ))}
               </div>
