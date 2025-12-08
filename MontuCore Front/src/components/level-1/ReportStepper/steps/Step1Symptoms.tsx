@@ -13,7 +13,7 @@ export default function Step1Symptoms({ form }: Step1SymptomsProps) {
   const { watch, setValue, formState: { errors } } = form;
 
   const selectedSymptoms: string[] = watch("symptoms") || [];
-  const painLevel: number = Number(watch("painLevel") ?? 5);
+  const painLevel: number = Number(watch("painLevel") ?? 0);
 
   const handleCheckboxChange = (symptom: string, checked: boolean) => {
     const updated = checked

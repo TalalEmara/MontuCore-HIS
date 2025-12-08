@@ -14,15 +14,20 @@
     "@cornerstonejs/dicom-image-loader": "^4.13.5",
     "@cornerstonejs/tools": "^4.13.5",
     "@darshanpatel2608/human-body-react": "^1.2.9",
+    "@hookform/resolvers": "^5.2.2",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@tanstack/react-router": "^1.139.14",
     "@tanstack/react-router-devtools": "1",
     "dicom-parser": "^1.8.21",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.68.0",
     "react-icons": "^5.5.0",
-    "reactjs-human-body": "^0.0.8"
+    "reactjs-human-body": "^0.0.8",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

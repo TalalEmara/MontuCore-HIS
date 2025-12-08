@@ -21,7 +21,7 @@ const MedicalReport = forwardRef<HTMLDivElement, MedicalReportProps>(({ data }, 
       <section className={styles.section}>
         <h2>Symptoms</h2>
         {data.symptoms?.length ? (
-          data.symptoms.map((s, i) => <div key={i} className={styles.row}><span>Symptom {i + 1}:</span> <span>{s}</span></div>)
+          data.symptoms.map((s: string, i: number) => <div key={i} className={styles.row}><span>Symptom {i + 1}:</span> <span>{s}</span></div>)
         ) : (
           <div className={styles.row}>No symptoms reported</div>
         )}
