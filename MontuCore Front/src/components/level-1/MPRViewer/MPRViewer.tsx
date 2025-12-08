@@ -63,18 +63,15 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
     const run = async () => {
       if (!imageIds || imageIds.length === 0) return;
 
-      // 1. Init Libraries
       try {
         await coreInit();
         await dicomImageLoaderInit();
         await cornerstoneTools.init();
-      } catch (e) {
-        // Ignore if already initialized
-      }
+      } catch (e) {}
 
       if (cancelled) return;
 
-      // 2. Register Tools
+      // Register Tools
       const addToolSafe = (toolClass: any) => {
           try { cornerstoneTools.addTool(toolClass); } catch(e) {}
       };
@@ -85,7 +82,7 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
       addToolSafe(CrosshairsTool);
       addToolSafe(TrackballRotateTool);
 
-      // 3. Load Images
+      // Load Images
       const loadPromises = imageIds.map((imageId) =>
         imageLoader.loadAndCacheImage(imageId)
       );
@@ -93,18 +90,18 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
 
       if (cancelled) return;
 
-      
+      // --- Cleanup Old State ---
       const existingEngine = getRenderingEngine(RENDERING_ENGINE_ID);
       if (existingEngine) existingEngine.destroy();
 
-      // Destroy ToolGroups
       try { ToolGroupManager.destroyToolGroup(TOOL_GROUP_MPR); } catch(e){}
       try { ToolGroupManager.destroyToolGroup(TOOL_GROUP_3D); } catch(e){}
       
-      // 5. Create Engine & Viewports
+      // Create Engine
       const renderingEngine = new RenderingEngine(RENDERING_ENGINE_ID);
       renderingEngineRef.current = renderingEngine;
 
+      // Define Viewports
       const viewportInput: Types.PublicViewportInput[] = [
         {
           viewportId: VIEWPORT_IDS.AXIAL,
@@ -134,20 +131,20 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
 
       renderingEngine.setViewports(viewportInput);
 
-      // 6. Define Tool Groups
-      
-      // --- Group A: MPR (2D) ---
+      // --- TOOL GROUP A: MPR (2D) ---
       const mprGroup = ToolGroupManager.createToolGroup(TOOL_GROUP_MPR);
       if (mprGroup) {
           mprGroup.addTool(WindowLevelTool.toolName);
           mprGroup.addTool(ZoomTool.toolName);
           mprGroup.addTool(PanTool.toolName);
           mprGroup.addTool(StackScrollTool.toolName);
+          
+          // IMPORTANT: Configure Crosshairs with the Viewports it controls
           mprGroup.addTool(CrosshairsTool.toolName, {
             viewportIdentifiers: [VIEWPORT_IDS.AXIAL, VIEWPORT_IDS.SAGITTAL, VIEWPORT_IDS.CORONAL]
           });
 
-          // Defaults
+          // Default Active Tool
           mprGroup.setToolActive(WindowLevelTool.toolName, { bindings: [{ mouseButton: MouseBindings.Primary }] });
           mprGroup.setToolActive(ZoomTool.toolName, { bindings: [{ mouseButton: MouseBindings.Secondary }] });
           mprGroup.setToolActive(StackScrollTool.toolName, { bindings: [{ mouseButton: MouseBindings.Wheel }] });
@@ -157,21 +154,20 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
           mprGroup.addViewport(VIEWPORT_IDS.CORONAL, RENDERING_ENGINE_ID);
       }
 
-      // --- Group B: 3D ---
+      // --- TOOL GROUP B: 3D ---
       const vol3dGroup = ToolGroupManager.createToolGroup(TOOL_GROUP_3D);
       if (vol3dGroup) {
           vol3dGroup.addTool(TrackballRotateTool.toolName);
           vol3dGroup.addTool(ZoomTool.toolName);
 
-          // 3D Defaults: Rotate (Left), Zoom (Right)
+          // Force Rotate on Left Click, Zoom on Right Click
           vol3dGroup.setToolActive(TrackballRotateTool.toolName, { bindings: [{ mouseButton: MouseBindings.Primary }] });
           vol3dGroup.setToolActive(ZoomTool.toolName, { bindings: [{ mouseButton: MouseBindings.Secondary }] });
 
           vol3dGroup.addViewport(VIEWPORT_IDS.VOLUME_3D, RENDERING_ENGINE_ID);
       }
 
-      // 7. Synchronizers
-      // We wrap this in try/catch just in case, but we don't check "getSynchronizer" anymore.
+      // Synchronizers (for Contrast/WindowLevel)
       try {
           const voiSynchronizer = createVOISynchronizer(SYNC_ID_VOI, {
               syncInvertState: false,
@@ -182,11 +178,9 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
           [VIEWPORT_IDS.AXIAL, VIEWPORT_IDS.SAGITTAL, VIEWPORT_IDS.CORONAL].forEach((id) => {
               voiSynchronizer.add({ renderingEngineId: RENDERING_ENGINE_ID, viewportId: id });
           });
-      } catch (err) {
-          // If it fails (e.g., exists), we just continue.
-      }
+      } catch (err) {}
 
-      // 8. Load Volume
+      // Load Volume
       const volume = await volumeLoader.createAndCacheVolume(VOLUME_ID, { imageIds });
       await volume.load();
 
@@ -196,10 +190,9 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
         [VIEWPORT_IDS.AXIAL, VIEWPORT_IDS.SAGITTAL, VIEWPORT_IDS.CORONAL, VIEWPORT_IDS.VOLUME_3D]
       );
 
-      // 9. Fix 3D Appearance (Prevent "One Color Square")
+      // Default Preset for 3D visibility
       const viewport3D = renderingEngine.getViewport(VIEWPORT_IDS.VOLUME_3D);
       if (viewport3D) {
-         // Apply a default CT Bone preset so it's visible
          viewport3D.setProperties({ preset: 'CT-Bone' });
       }
 
@@ -208,7 +201,7 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
 
     run().catch(console.error);
 
-    // --- Cleanup ---
+    // Cleanup
     return () => {
       cancelled = true;
       try { ToolGroupManager.destroyToolGroup(TOOL_GROUP_MPR); } catch(e){}
@@ -217,7 +210,6 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
       if (voiSyncRef.current) {
           try { voiSyncRef.current.destroy(); } catch(e){}
       }
-      
       if (renderingEngineRef.current) {
           try { renderingEngineRef.current.destroy(); } catch(e){}
       }
@@ -226,36 +218,49 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({ imageIds, activeTool }) =>
 
   // --- Effect 2: Tool Switching ---
   useEffect(() => {
-    // 1. Update MPR Group
+    // 1. UPDATE MPR GROUP (2D Viewports)
     const mprGroup = ToolGroupManager.getToolGroup(TOOL_GROUP_MPR);
+    
     if (mprGroup) {
+        // Deactivate whatever is currently on Left Click
         const currentPrimary = mprGroup.getActivePrimaryMouseButtonTool();
-        if (currentPrimary) mprGroup.setToolPassive(currentPrimary);
+        if (currentPrimary) {
+            mprGroup.setToolPassive(currentPrimary);
+        }
 
-        if (activeTool === CrosshairsTool.toolName) {
-            mprGroup.setToolActive(CrosshairsTool.toolName, {
+        if (activeTool === 'Crosshairs') {
+            // Activate Crosshairs specifically
+            // Note: We use the string 'Crosshairs' because that's what the tool is named internally usually
+            const toolName = CrosshairsTool.toolName; // "Crosshairs"
+            mprGroup.setToolActive(toolName, {
                 bindings: [{ mouseButton: MouseBindings.Primary }],
             });
-        } else if (activeTool !== 'Rotate') {
-             // If standard tool, check if it exists in group
-             if (mprGroup.getToolOptions(activeTool)) {
+        } else {
+            // Activate Standard Tool (Pan, Zoom, WindowLevel, etc.)
+            // We verify the tool exists in the group first to avoid errors
+            if (activeTool !== 'Rotate' && mprGroup.getToolOptions(activeTool)) {
                  mprGroup.setToolActive(activeTool, {
                     bindings: [{ mouseButton: MouseBindings.Primary }],
                  });
-             }
+            } else if (activeTool === 'Rotate') {
+                 // If user clicks Rotate, MPR doesn't rotate, but we can default to Pan or do nothing
+                 // Let's default to Pan for MPR if Rotate is selected
+                 mprGroup.setToolActive(PanTool.toolName, {
+                    bindings: [{ mouseButton: MouseBindings.Primary }],
+                 });
+            }
         }
     }
 
-    // 2. Update 3D Group (Keep it simple)
+    // 2. UPDATE 3D GROUP (3D Viewport)
+    // FIX: 3D should ALWAYS rotate on left click, unless we strictly want to Zoom
     const vol3dGroup = ToolGroupManager.getToolGroup(TOOL_GROUP_3D);
     if (vol3dGroup) {
-        // If user selects "Pan" or "Zoom", we can allow it in 3D too
-        if (activeTool === 'Zoom') {
-             vol3dGroup.setToolActive(ZoomTool.toolName, { bindings: [{ mouseButton: MouseBindings.Primary }] });
-        } else {
-             // Otherwise, force Rotate for 3D
-             vol3dGroup.setToolActive(TrackballRotateTool.toolName, { bindings: [{ mouseButton: MouseBindings.Primary }] });
-        }
+        // We do NOT change the tool based on activeTool for 3D
+        // This ensures 3D always rotates when you drag it, even if "Pan" is selected for 2D
+        vol3dGroup.setToolActive(TrackballRotateTool.toolName, { 
+            bindings: [{ mouseButton: MouseBindings.Primary }] 
+        });
     }
     
     const renderingEngine = getRenderingEngine(RENDERING_ENGINE_ID);
