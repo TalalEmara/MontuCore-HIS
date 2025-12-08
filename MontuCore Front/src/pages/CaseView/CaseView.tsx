@@ -3,6 +3,7 @@ import styles from "./CaseView.module.css";
 import UsersList from "../../components/level-1/UserList/UsersList";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import Button from "../../components/level-0/Button/Bottom";
+import ReportStepper from "../../components/level-1/ReportStepper/ReportStepper";
 
 import InfoCard from "../../components/level-0/InfoCard/InfoCard";
 import { BodyComponent } from "@darshanpatel2608/human-body-react";
@@ -10,6 +11,7 @@ import TreatmentsList from "../../components/level-1/TreatmentsList/TreatmentsLi
 import DivomLocalViewer from "../../components/level-1/DicomViewer/DicomViewer";
 // should take specific case data
 function CaseView() {
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
   return (
     <div className={styles.caseView}>
@@ -124,11 +126,20 @@ function CaseView() {
         </AdjustableCard>
       </div>
       <div className={styles.buttons}>
-        <Button variant="secondary" width="100%" className={styles.addbutton}>
+        <Button 
+          variant="secondary" 
+          width="100%" 
+          className={styles.addbutton}
+          onClick={() => setIsReportOpen(true)}
+        >
           Add report
         </Button>
         <Button variant="secondary">delete</Button>
       </div>
+       <ReportStepper
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+      />
     </div>
   );
 }

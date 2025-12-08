@@ -1,0 +1,92 @@
+.stepContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; 
+}
+
+.stepTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--accent);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* smaller gap */
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px; /* smaller gap */
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Checkboxes */
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 4px;
+  background-color: var(--hover-bg);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--background-color);
+  transform: scale(1.05);
+}
+
+.checkbox {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.error {
+  color: var(--primary-color);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+/* Slider */
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-color);
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+}
