@@ -1,168 +1,281 @@
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+import { PrismaClient, Role, Severity, CaseStatus, ApptStatus } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting Seeding...')
+  console.log('🌱 Starting comprehensive seeding...\n');
 
-  // --- 1. ADMIN ---
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@sportshis.com' },
-    update: {},
-    create: {
+  // // Clear existing data (optional - comment out if you want to keep data)
+  // await prisma.$executeRaw`TRUNCATE TABLE "pacs_images", "exams", "lab_tests", "treatments", "physio_programs", "cases", "appointments", "athlete_profiles", "clinician_profiles", "users" RESTART IDENTITY CASCADE;`;
+  // console.log('🗑️  Cleared existing data\n');
+
+  const hashedPassword = await bcrypt.hash('Test123!', 10);
+
+  // --- 1. CREATE ADMIN ---
+  const admin = await prisma.user.create({
+    data: {
       email: 'admin@sportshis.com',
-      passwordHash: 'secure_password_123', // In real app, hash this!
+      passwordHash: hashedPassword,
       fullName: 'System Admin',
-      role: 'ADMIN',
-    },
-  })
-  console.log('👤 Admin created')
+      role: Role.ADMIN,
+      dateOfBirth: new Date('1980-01-01'),
+      phoneNumber: '+1234567890',
+      gender: 'Male'
+    }
+  });
+  console.log('✅ Admin created:', admin.email);
 
-  // --- 2. CLINICIANS ---
-  // A. Physiotherapist
-  const physio = await prisma.user.upsert({
-    where: { email: 'doc@sportshis.com' },
-    update: {},
-    create: {
-      email: 'doc@sportshis.com',
-      passwordHash: '123456',
+  // --- 2. CREATE CLINICIANS ---
+  const clinicians = [];
+  
+  const clinician1 = await prisma.user.create({
+    data: {
+      email: 'physio@sportshis.com',
+      passwordHash: hashedPassword,
       fullName: 'Dr. Sarah Smith',
-      role: 'CLINICIAN',
+      role: Role.CLINICIAN,
+      dateOfBirth: new Date('1985-03-15'),
+      phoneNumber: '+1234567891',
+      gender: 'Female',
       clinicianProfile: {
         create: {
           specialty: 'Physiotherapist'
         }
       }
-    },
-  })
+    }
+  });
+  clinicians.push(clinician1);
 
-  // B. Orthopedic Surgeon
-  const ortho = await prisma.user.upsert({
-    where: { email: 'ortho@sportshis.com' },
-    update: {},
-    create: {
+  const clinician2 = await prisma.user.create({
+    data: {
       email: 'ortho@sportshis.com',
-      passwordHash: '123456',
+      passwordHash: hashedPassword,
       fullName: 'Dr. Ahmed Ali',
-      role: 'CLINICIAN',
+      role: Role.CLINICIAN,
+      dateOfBirth: new Date('1982-07-20'),
+      phoneNumber: '+1234567892',
+      gender: 'Male',
       clinicianProfile: {
         create: {
           specialty: 'Orthopedic Surgeon'
         }
       }
-    },
-  })
-  console.log('🩺 Clinicians created')
+    }
+  });
+  clinicians.push(clinician2);
 
-  // --- 3. ATHLETES ---
-  const athlete1 = await prisma.user.upsert({
-    where: { email: 'mo.salah@liverpool.com' },
-    update: {},
-    create: {
-      email: 'mo.salah@liverpool.com',
-      passwordHash: '123456',
-      fullName: 'Mo Salah',
-      role: 'ATHLETE',
-      dateOfBirth: new Date('1992-06-15'),
-      gender: 'Male',
-      athleteProfile: {
+  const clinician3 = await prisma.user.create({
+    data: {
+      email: 'sports.med@sportshis.com',
+      passwordHash: hashedPassword,
+      fullName: 'Dr. Maria Garcia',
+      role: Role.CLINICIAN,
+      dateOfBirth: new Date('1988-11-05'),
+      phoneNumber: '+1234567893',
+      gender: 'Female',
+      clinicianProfile: {
         create: {
-          position: 'Winger',
-          jerseyNumber: 11
+          specialty: 'Sports Medicine'
         }
       }
-    },
-  })
-
-  const athlete2 = await prisma.user.upsert({
-    where: { email: 'messi@intermiami.com' },
-    update: {},
-    create: {
-      email: 'messi@intermiami.com',
-      passwordHash: '123456',
-      fullName: 'Lionel Messi',
-      role: 'ATHLETE',
-      gender: 'Male',
-      athleteProfile: {
-        create: {
-          position: 'Forward',
-          jerseyNumber: 10
-        }
-      }
-    },
-  })
-  console.log('🏃 Athletes created')
-
-  // --- 4. APPOINTMENTS (For Dev 3 Testing) ---
-  // A. Past Appointment (Completed)
-  const appt1 = await prisma.appointment.create({
-    data: {
-      athleteId: athlete1.id,
-      clinicianId: physio.id,
-      scheduledAt: new Date(new Date().setDate(new Date().getDate() - 7)), // 7 days ago
-      status: 'COMPLETED',
-      diagnosisNotes: 'Patient complained of knee pain after match.',
-      height: 175,
-      weight: 71
     }
-  })
+  });
+  clinicians.push(clinician3);
 
-  // B. Future Appointment (Scheduled)
-  await prisma.appointment.create({
-    data: {
-      athleteId: athlete2.id,
-      clinicianId: ortho.id,
-      scheduledAt: new Date(new Date().setDate(new Date().getDate() + 2)), // In 2 days
-      status: 'SCHEDULED'
-    }
-  })
-  console.log('📅 Appointments created')
+  console.log(`✅ ${clinicians.length} clinicians created\n`);
 
-  // --- 5. MEDICAL CASE (For Dev 2 Testing) ---
-  // Create a case linked to the past appointment (Mo Salah's Knee)
-  const injuryCase = await prisma.case.create({
-    data: {
-      athleteId: athlete1.id,
-      managingClinicianId: physio.id,
-      appointmentId: appt1.id, // Mandatory link!
-      diagnosisName: 'ACL Strain - Grade 1',
-      severity: 'MILD',
-      status: 'ACTIVE',
-      injuryDate: new Date(),
-    }
-  })
-  console.log('📂 Case created')
+  // --- 3. CREATE ATHLETES ---
+  const athletes = [];
 
-  // --- 6. EXAM & IMAGING (For PACS Testing) ---
-  const exam = await prisma.exam.create({
-    data: {
-      caseId: injuryCase.id,
-      modality: 'MRI',
-      bodyPart: 'Left Knee',
-      status: 'IMAGING_COMPLETE',
-      scheduledAt: new Date(),
-      cost: 150.00,
-      images: {
-        create: [
-          {
-            fileName: 'knee_scan_01.dcm',
-            supabasePath: 'dicoms/knee_scan_01.dcm',
-            publicUrl: 'https://placeholder.com/mock-dicom-url', // Frontend will replace this with real URL later
+  const athleteData = [
+    { name: 'John Doe', email: 'john@athlete.com', position: 'Forward', jersey: 10, dob: '2000-05-15' },
+    { name: 'Emma Wilson', email: 'emma@athlete.com', position: 'Midfielder', jersey: 8, dob: '1999-08-22' },
+    { name: 'Michael Brown', email: 'michael@athlete.com', position: 'Defender', jersey: 5, dob: '2001-03-10' },
+    { name: 'Sophia Taylor', email: 'sophia@athlete.com', position: 'Goalkeeper', jersey: 1, dob: '1998-12-01' },
+    { name: 'David Martinez', email: 'david@athlete.com', position: 'Forward', jersey: 11, dob: '2000-09-18' },
+    { name: 'Olivia Anderson', email: 'olivia@athlete.com', position: 'Midfielder', jersey: 7, dob: '2002-01-25' },
+    { name: 'James Johnson', email: 'james@athlete.com', position: 'Defender', jersey: 3, dob: '1999-06-14' },
+    { name: 'Ava Thomas', email: 'ava@athlete.com', position: 'Forward', jersey: 9, dob: '2001-11-30' },
+  ];
+
+  for (const data of athleteData) {
+    const athlete: { id: number } = await prisma.user.create({
+      data: {
+        email: data.email,
+        passwordHash: hashedPassword,
+        fullName: data.name,
+        role: Role.ATHLETE,
+        dateOfBirth: new Date(data.dob),
+        phoneNumber: `+12345678${90 + athletes.length}`,
+        gender: ['John', 'Michael', 'David', 'James'].includes(data.name.split(' ')[0]!) ? 'Male' : 'Female',
+        athleteProfile: {
+          create: {
+            position: data.position,
+            jerseyNumber: data.jersey
           }
-        ]
+        }
       }
-    }
-  })
-  console.log('🩻 Exams & PACS images created')
+    });
+    athletes.push(athlete);
+  }
 
-  console.log('✅ Seeding Finished!')
+  console.log(`✅ ${athletes.length} athletes created\n`);
+
+  // --- 4. CREATE APPOINTMENTS ---
+  const appointments = [];
+  const now = new Date();
+
+  for (let i = 0; i < 12; i++) {
+    const athleteIndex = i % athletes.length;
+    const clinicianIndex = i % clinicians.length;
+    const daysAgo = 30 - (i * 2);
+
+    const appointment = await prisma.appointment.create({
+      data: {
+        athleteId: athletes[athleteIndex]!.id,
+        clinicianId: clinicians[clinicianIndex]!.id,
+        scheduledAt: new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000),
+        height: 170 + (i * 3),
+        weight: 65 + (i * 2),
+        status: i < 10 ? ApptStatus.COMPLETED : ApptStatus.SCHEDULED,
+        diagnosisNotes: `Initial assessment - appointment ${i + 1}`
+      }
+    });
+    appointments.push(appointment);
+  }
+
+  console.log(`✅ ${appointments.length} appointments created\n`);
+
+  // --- 5. CREATE CASES (Multiple per appointment) ---
+  const caseTemplates = [
+    { diagnosis: 'ACL Tear', icd10: 'S83.5', severity: Severity.SEVERE, grade: 'Grade 3' },
+    { diagnosis: 'Ankle Sprain', icd10: 'S93.4', severity: Severity.MODERATE, grade: 'Grade 2' },
+    { diagnosis: 'Hamstring Strain', icd10: 'S76.1', severity: Severity.MILD, grade: 'Grade 1' },
+    { diagnosis: 'Shoulder Dislocation', icd10: 'S43.0', severity: Severity.SEVERE, grade: 'Anterior' },
+    { diagnosis: 'Concussion', icd10: 'S06.0', severity: Severity.MODERATE, grade: 'Grade 2' },
+    { diagnosis: 'Meniscus Tear', icd10: 'S83.2', severity: Severity.MODERATE, grade: 'Medial' },
+    { diagnosis: 'Tennis Elbow', icd10: 'M77.1', severity: Severity.MILD, grade: 'Lateral' },
+    { diagnosis: 'Stress Fracture', icd10: 'M84.3', severity: Severity.MODERATE, grade: 'Tibia' },
+  ];
+
+  let totalCases = 0;
+
+  // Create 1-3 cases per completed appointment
+  for (const appointment of appointments.filter(a => a.status === ApptStatus.COMPLETED)) {
+    const numCases = Math.floor(Math.random() * 3) + 1; // 1 to 3 cases
+    
+    for (let i = 0; i < numCases; i++) {
+      const template = caseTemplates[(totalCases + i) % caseTemplates.length]!;
+      
+      await prisma.case.create({
+        data: {
+          athleteId: appointment.athleteId,
+          managingClinicianId: appointment.clinicianId,
+          appointmentId: appointment.id,
+          diagnosisName: template.diagnosis,
+          icd10Code: template.icd10,
+          injuryDate: appointment.scheduledAt,
+          status: Math.random() > 0.3 ? CaseStatus.ACTIVE : CaseStatus.RECOVERED,
+          severity: template.severity,
+          medicalGrade: template.grade
+        }
+      });
+      totalCases++;
+    }
+  }
+
+  console.log(`✅ ${totalCases} cases created (multiple per appointment)\n`);
+
+  // --- 6. CREATE EXAMS FOR SOME CASES ---
+  const cases = await prisma.case.findMany({ take: 8 });
+  
+  for (let i = 0; i < cases.length; i++) {
+    await prisma.exam.create({
+      data: {
+        caseId: cases[i]!.id,
+        modality: ['MRI', 'CT', 'X-RAY', 'ULTRASOUND'][i % 4]!,
+        bodyPart: ['Knee', 'Ankle', 'Shoulder', 'Elbow'][i % 4]!,
+        status: i < 5 ? 'IMAGING_COMPLETE' : 'ORDERED',
+        scheduledAt: new Date(now.getTime() - (i * 2) * 24 * 60 * 60 * 1000),
+        performedAt: i < 5 ? new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000) : null,
+        radiologistNotes: i < 5 ? `Examination complete - findings documented` : null,
+        conclusion: i < 5 ? `${['Normal', 'Abnormal'][i % 2]} findings observed` : null,
+        cost: 200 + (i * 50)
+      }
+    });
+  }
+
+  console.log(`✅ ${cases.length} exams created\n`);
+
+  // --- 7. CREATE LAB TESTS ---
+  for (let i = 0; i < 5; i++) {
+    await prisma.labTest.create({
+      data: {
+        caseId: cases[i]!.id,
+        testName: ['CBC', 'Lipid Profile', 'Liver Function', 'Kidney Function', 'Thyroid Panel'][i]!,
+        category: 'Hematology',
+        status: i < 3 ? 'COMPLETED' : 'PENDING',
+        ...(i < 3 && { resultValues: { RBC: 5.0 + i, WBC: 7.5, Hemoglobin: 14.5 } }),
+        sampleDate: new Date(now.getTime() - (i * 3) * 24 * 60 * 60 * 1000),
+        cost: 50 + (i * 20)
+      }
+    });
+  }
+
+  console.log(`✅ 5 lab tests created\n`);
+
+  // --- 8. CREATE TREATMENTS ---
+  for (let i = 0; i < 6; i++) {
+    await prisma.treatment.create({
+      data: {
+        caseId: cases[i]!.id,
+        type: ['Medication', 'Surgery', 'Physical Therapy', 'Injection'][i % 4]!,
+        description: `Treatment plan ${i + 1} - comprehensive rehabilitation protocol`,
+        providerName: i % 2 === 0 ? 'Internal Clinic' : 'External Specialist',
+        cost: 100 + (i * 150),
+        date: new Date(now.getTime() - (i * 2) * 24 * 60 * 60 * 1000)
+      }
+    });
+  }
+
+  console.log(`✅ 6 treatments created\n`);
+
+  // --- 9. CREATE PHYSIO PROGRAMS ---
+  for (let i = 0; i < 5; i++) {
+    await prisma.physioProgram.create({
+      data: {
+        caseId: cases[i]!.id,
+        title: `Rehabilitation Program ${i + 1}`,
+        numberOfSessions: 10 + (i * 2),
+        sessionsCompleted: i * 2,
+        startDate: new Date(now.getTime() - (i * 7) * 24 * 60 * 60 * 1000),
+        weeklyRepetition: 3,
+        costPerSession: 75 + (i * 10)
+      }
+    });
+  }
+
+  console.log(`✅ 5 physio programs created\n`);
+
+  console.log('🎉 Seeding completed successfully!\n');
+  console.log('📊 Summary:');
+  console.log(`   - 1 Admin`);
+  console.log(`   - ${clinicians.length} Clinicians`);
+  console.log(`   - ${athletes.length} Athletes`);
+  console.log(`   - ${appointments.length} Appointments`);
+  console.log(`   - ${totalCases} Cases (multiple per appointment)`);
+  console.log(`   - ${cases.length} Exams`);
+  console.log(`   - 5 Lab Tests`);
+  console.log(`   - 6 Treatments`);
+  console.log(`   - 5 Physio Programs\n`);
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect()
+  .catch((e) => {
+    console.error('❌ Seeding error:', e);
+    process.exit(1);
   })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
