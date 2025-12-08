@@ -7,6 +7,7 @@ import Button from "../../components/level-0/Button/Bottom";
 import InfoCard from "../../components/level-0/InfoCard/InfoCard";
 import { BodyComponent } from "@darshanpatel2608/human-body-react";
 import TreatmentsList from "../../components/level-1/TreatmentsList/TreatmentsList";
+import DivomLocalViewer from "../../components/level-1/DicomViewer/DicomViewer";
 // should take specific case data
 function CaseView() {
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
@@ -56,7 +57,7 @@ function CaseView() {
 
         {activeTab === "images" && (
           <div className={styles.imagesList}>
-            <UsersList
+            {/* <UsersList
               data={[
                 ["01", "Lionel Messi", "Forward", "Pending", "View"],
                 ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
@@ -74,7 +75,8 @@ function CaseView() {
                 ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
                 ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
               ]}
-            />
+            /> */}
+            <DivomLocalViewer />
           </div>
         )}
         <p className={styles.title}>
