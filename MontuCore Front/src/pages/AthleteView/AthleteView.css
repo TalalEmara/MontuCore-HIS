@@ -155,7 +155,7 @@
   padding: 2px 2px;
 }
 
-.status.completed { background: var(--green); }
+.status.completed { background: var(--success); }
 .status.upcoming { background: var(--accent); color: #000; }
 
 /* Recent Consultations */
