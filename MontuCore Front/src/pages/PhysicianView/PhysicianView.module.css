@@ -1,0 +1,184 @@
+.physicianViewerContainer { 
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.physicianMainContent {
+  flex: 1;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 0;
+}
+
+.physicianDashboardGrid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.1fr 1.1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+  padding: 0 28px 24px 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.physicianProfileCard { grid-column: 1; grid-row: 1; }
+.urgentCasesCard { grid-column: 2; grid-row: 1; }
+.todayScheduleCard { grid-column: 3; grid-row: 1; }
+
+.urgentContainer,
+.scheduleContainer {
+  padding: 22px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  border: 1px solid var(--accent);
+  }
+
+.urgentContainer::-webkit-scrollbar,
+.scheduleContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.appointmentsHeader,
+.scheduleHeader {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--accent);
+}
+
+.appointmentsTitle,
+.scheduleTitle {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  padding-left: 12px;
+}
+
+.appointmentsTitle::before,
+.scheduleTitle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 20px;
+  background-color: var(--accent);
+  border-radius: 2px;
+}
+
+/* Urgent Cases */
+.casesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.caseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 5px; 
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-color);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px hsl(from var(--accent) h s l / 0.05);
+}
+
+.caseRow.urgent {background-color: hsl(from var(--secondary-color) h s l / 0.5);}
+.caseRow.high {background-color: hsl(from var(--primary-color) h s l / 0.2);}
+.caseRow.medium {background-color: hsl(from var(--accent) h s l / 0.2);}
+
+.caseRow.low {background-color: hsl(from var(--success) h s l / 0.2);}
+
+.caseRow:hover {
+  transform: translateX(2px);}
+
+/* Today's Schedule */
+.scheduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scheduleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 6px;
+  border-radius: 12px;
+  background: hsl(from var(--accent) h s l / 0.1 );
+  box-shadow: 
+    0 4px 12px hsl(from var(--accent) h s l / 0.1),
+    0 1px 3px hsl(from var(--accent) h s l / 0.05),
+    inset 0 1px 0 hsl(from var(--accent) h s l / 0.05);
+  font-size: 8px;
+  font-weight: 600;
+  border: 1px solid hsl(from var(--accent) h s l / 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scheduleRow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    hsl(from var(--accent) h s l / 0.5), 
+    hsl(from var(--secondary-color) h s l / 0.5)
+  );
+}
+
+.scheduleRow:hover {
+  transform: translateY(-2px);}
+
+.athleteName { 
+  font-weight: 800; 
+  letter-spacing: 0.3px;
+}
+.status {
+  border-radius: 5px;
+  text-transform: uppercase;
+  min-width: 50px;
+  text-align: center;
+  font-size: 7px;
+  box-shadow: 0 2px 8px hsl(from var(--accent) h s l / 0.1);
+  font-weight: 700;
+  padding: 2px 2px;
+}
+
+.status.completed {background:hsl(from var(--success) h s l / 0.5);}
+
+.status.upcoming { 
+  background: var(--accent);
+  color: black;}
+
+@media (max-width: 900px) {
+  .physicianDashboardGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 16px;
+    padding: 0 16px 16px 16px;
+  }
+}
+
+@media (max-width: 800px) {
+  .physicianMainContent { margin-left: 0; padding: 0; }
+  .physicianDashboardGrid { padding: 0 12px 16px 12px; }
+  .urgentContainer,
+  .scheduleContainer { padding: 20px; }
+}
