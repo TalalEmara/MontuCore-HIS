@@ -7,9 +7,9 @@ import * as caseService from './case.service.js';
 export const createCase = async (req: Request, res: Response): Promise<void> => {
   try {
     const caseData = req.body;
-    const createdBy = (req as any).user.id;
+    // const createdBy = (req as any).user.id;
     
-    const newCase = await caseService.createCase({ ...caseData, createdBy });
+    const newCase = await caseService.createCase({ ...caseData });
     
     res.status(201).json({
       success: true,
@@ -29,9 +29,16 @@ export const createCase = async (req: Request, res: Response): Promise<void> => 
  */
 export const getAllCases = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, athleteId } = req.query;
 
-    const cases = await caseService.getAllCases({ page: Number(page), limit: Number(limit), status: status as string });    res.status(200).json({
+    const cases = await caseService.getAllCases({ 
+      page: Number(page), 
+      limit: Number(limit), 
+      status: status as any,
+      athleteId: athleteId ? Number(athleteId) : undefined
+    });
+    
+    res.status(200).json({
       success: true,
       data: cases
     });
@@ -50,7 +57,7 @@ export const getCaseById = async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
     
-    const caseData = await caseService.getCaseById(id);
+    const caseData = await caseService.getCaseById(Number(id));
     
     res.status(200).json({
       success: true,
@@ -72,7 +79,7 @@ export const updateCase = async (req: Request, res: Response): Promise<void> => 
     const { id } = req.params;
     const updates = req.body;
     
-    const updatedCase = await caseService.updateCase(id, updates);
+    const updatedCase = await caseService.updateCase(Number(id), updates);
     
     res.status(200).json({
       success: true,
@@ -94,7 +101,7 @@ export const deleteCase = async (req: Request, res: Response): Promise<void> => 
   try {
     const { id } = req.params;
     
-    await caseService.deleteCase(id);
+    await caseService.deleteCase(Number(id));
     
     res.status(200).json({
       success: true,

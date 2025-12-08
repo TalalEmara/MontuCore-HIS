@@ -1,16 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { 
-  RenderingEngine, 
-  Enums, 
-  init as coreInit,
-  type Types 
-} from '@cornerstonejs/core';
-import { 
-  init as dicomImageLoaderInit, 
-  wadouri 
-} from '@cornerstonejs/dicom-image-loader';
-// 1. Import Tools Library
+import React, { useEffect, useRef, useState } from 'react';
+import { RenderingEngine, Enums, init as coreInit, type Types } from '@cornerstonejs/core';
+import { init as dicomImageLoaderInit } from '@cornerstonejs/dicom-image-loader';
 import * as cornerstoneTools from '@cornerstonejs/tools';
+
+// Define the Props this component accepts
+interface DicomViewerProps {
+  imageIds: string[];      // The stack of images
+  activeTool: string;      // 'WindowLevel', 'Pan', 'Zoom', etc.
+  viewportId: string;      // UNIQUE ID (e.g., "left-viewport")
+}
 
 const {
   ToolGroupManager,
@@ -18,68 +16,62 @@ const {
   WindowLevelTool,
   PanTool,
   ZoomTool,
-  PlanarRotateTool,
   StackScrollTool,
+  LengthTool,
+  PlanarRotateTool,
+  AngleTool, // Added Angle tool
 } = cornerstoneTools;
 
-const DicomLocalViewer: React.FC = () => {
+const DicomViewer: React.FC<DicomViewerProps> = ({ imageIds, activeTool, viewportId }) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const renderingEngineRef = useRef<RenderingEngine | null>(null);
-  const toolGroupId = 'MY_TOOLGROUP_ID';
-  const viewportId = 'CT_AXIAL_STACK';
+  const [isReady, setIsReady] = useState(false);
+  
+  // Create a unique tool group ID for this specific viewport
+  const toolGroupId = `TOOLGROUP_${viewportId}`; 
 
+  // 1. INITIALIZATION (Runs once on mount)
   useEffect(() => {
     const setup = async () => {
-      // Initialize Core, Loader, AND Tools
+      // A. Init Libraries (Safe to call multiple times)
       await coreInit();
       await dicomImageLoaderInit();
-      await cornerstoneTools.init(); // <--- Initialize Tools
+      await cornerstoneTools.init();
 
-      // 2. Add Tools to the Cornerstone engine
+      // B. Register Tools Globally
       cornerstoneTools.addTool(WindowLevelTool);
       cornerstoneTools.addTool(PanTool);
       cornerstoneTools.addTool(ZoomTool);
-      cornerstoneTools.addTool(PlanarRotateTool);
       cornerstoneTools.addTool(StackScrollTool);
+      cornerstoneTools.addTool(LengthTool);
+      cornerstoneTools.addTool(PlanarRotateTool);
+      cornerstoneTools.addTool(AngleTool);
 
-      // 3. Define a Tool Group (a set of tools for our viewport)
-      const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
-      if (toolGroup) {
-        // Add tools to the group
-        toolGroup.addTool(WindowLevelTool.toolName);
-        toolGroup.addTool(PanTool.toolName);
-        toolGroup.addTool(ZoomTool.toolName);
-        toolGroup.addTool(PlanarRotateTool.toolName);
-        toolGroup.addTool(StackScrollTool.toolName);
-
-        // 4. Set Active Tools (Bind them to Mouse Buttons)
-        toolGroup.setToolActive(WindowLevelTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Primary }, // Left Click = Contrast
-          ],
-        });
-        toolGroup.setToolActive(PanTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Auxiliary }, // Middle Click = Pan
-          ],
-        });
-        toolGroup.setToolActive(ZoomTool.toolName, {
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Secondary }, // Right Click = Zoom
-          ],
-        });
-        toolGroup.setToolActive(StackScrollTool.toolName,{
-          bindings: [
-            { mouseButton: csToolsEnums.MouseBindings.Wheel }, // Right Click = Zoom
-          ],
-        }); // Scroll Wheel = Next/Prev Image
+      // C. Create Tool Group
+      // Check if it exists first to prevent errors on re-renders
+      let toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+      if (!toolGroup) {
+        toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
       }
 
-      // Create Rendering Engine
-      const renderingEngineId = 'myRenderingEngine';
+      if (toolGroup) {
+        // Add tools to this group
+        toolGroup.addTool(WindowLevelTool.toolName, {bindings: [{ mouseButton: csToolsEnums.MouseBindings.Secondary}]});
+        toolGroup.addTool(PanTool.toolName , {bindings: [{ mouseButton: csToolsEnums.MouseBindings.Auxiliary}]});
+        toolGroup.addTool(ZoomTool.toolName);
+        toolGroup.addTool(StackScrollTool.toolName, {bindings: [{ mouseButton: csToolsEnums.MouseBindings.Wheel}]});
+        toolGroup.addTool(LengthTool.toolName);
+        toolGroup.addTool(PlanarRotateTool.toolName);
+        toolGroup.addTool(AngleTool.toolName);
+
+      }
+
+      // D. Initialize Rendering Engine
+      const renderingEngineId = `ENGINE_${viewportId}`;
       const renderingEngine = new RenderingEngine(renderingEngineId);
       renderingEngineRef.current = renderingEngine;
 
+      // E. Enable the Element
       if (elementRef.current) {
         const viewportInput = {
           viewportId,
@@ -88,85 +80,122 @@ const DicomLocalViewer: React.FC = () => {
         };
         renderingEngine.enableElement(viewportInput);
         
-        // 5. Connect the Tool Group to the Viewport
-        // This makes the tools work specifically on this HTML element
+        // Connect tools to this viewport
         toolGroup?.addViewport(viewportId, renderingEngineId);
       }
+
+      setIsReady(true);
     };
 
     setup();
 
+    // Cleanup on unmount
     return () => {
-      // Cleanup tools and engine
+      // Optional: Destroying toolgroups can sometimes cause issues if navigating back quickly, 
+      // but strictly good practice.
       ToolGroupManager.destroyToolGroup(toolGroupId);
-      if (renderingEngineRef.current) {
-        renderingEngineRef.current.destroy();
+      renderingEngineRef.current?.destroy();
+    };
+  }, [viewportId, toolGroupId]);
+
+  // 2. LOAD IMAGES (Runs when imageIds change)
+  useEffect(() => {
+    if (!isReady || !renderingEngineRef.current || imageIds.length === 0) return;
+
+    const loadImages = async () => {
+      const viewport = renderingEngineRef.current?.getViewport(viewportId) as Types.IStackViewport;
+      if (viewport) {
+        await viewport.setStack(imageIds, 0);
+        viewport.render();
       }
     };
-  }, []);
+    loadImages();
+  }, [isReady, imageIds, viewportId]);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0 || !renderingEngineRef.current) return;
-
-    const fileArray = Array.from(files);
-    const imageIds = fileArray.map((file) => wadouri.fileManager.add(file));
-
-    const viewport = renderingEngineRef.current.getViewport(viewportId) as Types.IStackViewport;
-    
-    // Load images
-    await viewport.setStack(imageIds, 0);
-    viewport.render();
-  };
-
-  // Helper function to activate Rotate tool manually (optional button)
-  const toggleRotate = () => {
+  // 3. TOOL SWITCHING (Runs when activeTool changes)
+  // 3. TOOL SWITCHING (Runs when activeTool changes)
+  useEffect(() => {
+    if (!isReady) return;
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
     if (!toolGroup) return;
 
-    // Switch Left Click to Rotate instead of WindowLevel
-    toolGroup.setToolActive(PlanarRotateTool.toolName, {
-        bindings: [ { mouseButton: csToolsEnums.MouseBindings.Primary } ],
-    });
-    // Set WindowLevel to passive so it doesn't conflict
-    toolGroup.setToolPassive(WindowLevelTool.toolName);
-  };
+    // Define all tools that need to be managed
+    const controllableTools = [
+      WindowLevelTool.toolName,
+      PanTool.toolName,
+      ZoomTool.toolName,
+      StackScrollTool.toolName,
+      LengthTool.toolName,
+      PlanarRotateTool.toolName,
+      AngleTool.toolName,
+    ];
 
-  const resetTools = () => {
-    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    if (!toolGroup) return;
+    const MouseBindings = csToolsEnums.MouseBindings;
+
+    controllableTools.forEach((toolName) => {
+      const isSelected = toolName === activeTool;
+      console.log(`Configuring tool: ${toolName}, isSelected: ${isSelected}`);
+      // Define bindings based on the tool's specific requirements
+      let toolBindings: any[] = [];
+
+      switch (toolName) {
+        // CASE A: Tools with Permanent Bindings (Right/Middle/Wheel)
+        case WindowLevelTool.toolName:
+          // Always Right Click (Secondary). If selected, add Left Click (Primary).
+          toolBindings = isSelected 
+            ? [{ mouseButton: MouseBindings.Primary }, { mouseButton: MouseBindings.Secondary }] 
+            : [{ mouseButton: MouseBindings.Secondary }];
+          break;
+
+        case PanTool.toolName:
+          // Always Middle Click (Auxiliary). If selected, add Left Click (Primary).
+          toolBindings = isSelected 
+            ? [{ mouseButton: MouseBindings.Primary }, { mouseButton: MouseBindings.Auxiliary }] 
+            : [{ mouseButton: MouseBindings.Auxiliary }];
+          break;
+
+        case StackScrollTool.toolName:
+          // Always Scroll Wheel. If selected, add Left Click (Primary) for drag.
+          toolBindings = isSelected 
+            ? [{ mouseButton: MouseBindings.Primary }, { mouseButton: MouseBindings.Wheel }] 
+            : [{ mouseButton: MouseBindings.Wheel }];
+          break;
+
+        // CASE B: Standard Tools (Left Click Only)
+        default:
+          // (Zoom, Length, Angle, etc.) -> Active only if selected.
+          toolBindings = isSelected 
+            ? [{ mouseButton: MouseBindings.Primary }] 
+            : [];
+          break;
+      }
+// 1. WIPE CLEAN: Set Passive first to remove ALL previous bindings (Left/Right/etc)
+      toolGroup.setToolPassive(toolName);
+
+      // 2. RE-APPLY: Set Active only with the specific bindings we calculated
+      if (toolBindings.length > 0) {
+        toolGroup.setToolActive(toolName, { bindings: toolBindings });
+      }
     
-    // Restore WindowLevel to Left Click
-    toolGroup.setToolActive(WindowLevelTool.toolName, {
-        bindings: [ { mouseButton: csToolsEnums.MouseBindings.Primary } ],
     });
-    toolGroup.setToolPassive(PlanarRotateTool.toolName);
-  };
+
+    // Render to update cursor/state
+    renderingEngineRef.current?.getViewport(viewportId)?.render();
+
+  }, [activeTool, isReady, toolGroupId, viewportId]);
+
+
 
   return (
-    <div>
-      <div style={{ marginBottom: '10px', display:'flex', gap:'10px' }}>
-        <input type="file" onChange={handleFileChange} multiple accept=".dcm" />
-        
-        {/* Simple buttons to switch modes if needed */}
-        <button onClick={toggleRotate}>Enable Rotate (Left Click)</button>
-        <button onClick={resetTools}>Reset to Contrast (Left Click)</button>
-      </div>
-
-      <div 
-        ref={elementRef} 
-        style={{ 
-          width: '100%', 
-          height: '60vh',
-          backgroundColor: '#000',
-          border: '1px solid #444' 
-        }} 
-        // Prevent right-click context menu so Zoom works
-        onContextMenu={(e) => e.preventDefault()}
-      >
-      </div>
-    </div>
+    <>
+    <p>{activeTool}</p>
+    <div 
+      ref={elementRef} 
+      style={{ width: '100%', height: '100%', background: '#000' }}
+      // Prevent browser menu on Right Click (so Zoom works)
+      onContextMenu={(e) => e.preventDefault()} 
+    /></>
   );
 };
 
-export default DicomLocalViewer;
+export default DicomViewer;

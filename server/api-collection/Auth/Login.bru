@@ -1,18 +1,24 @@
 meta {
-  name: Login (Mock)
+  name: Login
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
-  url: {{baseUrl}}/auth/login
+  url: {{baseURL}}/auth/login
   body: json
   auth: none
 }
 
 body:json {
   {
-    "email": "admin@sportshis.com",
-    "password": "secure_password_123"
+    "email": "mo.salah@liverpool.com",
+    "password": "123456"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.data?.token) {
+    bru.setEnvVar("authToken", res.body.data.token);
   }
 }
