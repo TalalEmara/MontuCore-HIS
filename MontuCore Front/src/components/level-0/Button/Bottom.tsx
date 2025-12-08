@@ -9,6 +9,7 @@ interface ButtonProps {
   height?: string;
   className?: string;
   disabled?: boolean;
+  type?: "button" | "submit" | "reset"; 
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -19,9 +20,11 @@ const Button: React.FC<ButtonProps> = ({
   height = "auto",
   className = "",
   disabled = false,
+  type = "button",
 }) => {
   return (
     <button
+      type={type}
       className={`shared-button ${variant} ${className}`}
       style={{ width, height }}
       onClick={onClick}
