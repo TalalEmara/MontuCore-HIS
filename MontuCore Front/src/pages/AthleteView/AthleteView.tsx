@@ -1,8 +1,8 @@
 import { useState } from "react";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
-import AthleteTopBar from "../../components/level-1/AthleteTopBar/AthleteTopBar";
+import TopBar from "../../components/level-1/TopBar/TopBar";
 import Button from "../../components/level-0/Button/Bottom";
-import AthleteProfileCard from "../../components/level-1/AthleteProfileCard/AthleteProfileCard";
+import ProfileCard from "../../components/level-1/userProfileCard/userProfileCard";
 import bookAppointment from '../../assets/images/bookAppointment.webp';
 import athleteProfile from '../../assets/images/Cristiano Ronaldo.webp';
 
@@ -14,15 +14,14 @@ function AthleteView() {
   return (
     <div className="athlete-viewer-container">
       <div className="athlete-main-content">
-        <AthleteTopBar
-          athleteName="Ronaldo"
-          athleteRole="Forward"
+        <TopBar
+          Name="Ronaldo"
+          Role="Forward"
           jerseyNumber="10"
-          athleteProfile={athleteProfile}
         />
 
         <div className="athlete-dashboard-grid">
-          <AthleteProfileCard 
+          <ProfileCard 
             profileImage={athleteProfile}
             stats={{
               age: "40 years",

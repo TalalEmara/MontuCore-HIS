@@ -27,6 +27,16 @@
   transition: margin-left var(--transition);
 }
 
+
+.main-content.sidebar-open {
+  margin-left: 180px;
+}
+
+.main-content.sidebar-closed {
+  margin-left: 50px;
+}
+
+
 .test{
   background-color: blue;
   overflow: auto;
