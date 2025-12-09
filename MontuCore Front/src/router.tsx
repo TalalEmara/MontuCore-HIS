@@ -14,6 +14,7 @@ import PhysicianView from "./pages/PhysicianView/PhysicianView";
 import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
+import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -66,6 +67,12 @@ export const CaseRoute = createRoute({
   component: CaseView,
 });
 
+export const DicomRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "dicom/$dicomId", 
+  component: DicomViewPage,
+});
+
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
   sidebarLayoutRoute.addChildren([
@@ -73,6 +80,7 @@ const routeTree = rootRoute.addChildren([
     athleteViewRoute
   ]),
   CaseRoute,
+  DicomRoute
 ]);
 
 export const router = createRouter({ routeTree });

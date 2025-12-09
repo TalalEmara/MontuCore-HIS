@@ -9,6 +9,7 @@ type ListProps = {
   listClassName?: string;
   headerClassName?: string;
   rowClassName?: string;
+  onClick?: ()=>void ;
 };
 
 function List({
@@ -18,6 +19,7 @@ function List({
   listClassName,
   headerClassName,
   rowClassName,
+  onClick
 }: ListProps) {
   return (
     <div className={`${styles.list} ${listClassName ?? ''}`}>
@@ -35,6 +37,7 @@ function List({
           key={i}
           className={`${styles.row} ${rowClassName ?? ''}`}
           style={{ gridTemplateColumns }}
+          onClick={onClick}
         >
           {row.map((cell, j) => (
             <div key={j}>{cell}</div>

@@ -9,9 +9,9 @@ background-color: var(--background-color);
   grid-auto-flow: column;
   grid-template-rows: 1fr ;
   grid-template-columns:
-   50px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
+   2%  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
 
-   justify-items: start;
+   justify-items: center;
    align-items: center;
    align-content: center;
 

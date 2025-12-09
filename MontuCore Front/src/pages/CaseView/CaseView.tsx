@@ -12,13 +12,19 @@ import DivomLocalViewer from "../../components/level-1/DicomViewer/DicomViewer";
 // should take specific case data
 
 import Bill from "../../components/level-1/bill/bill";
-import { getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useCaseRecord } from "../../hooks/useCaseRecord";
 import LabTestsList from "../../components/level-1/LabTestsList/LabTestsList";
+import ImagingList from "../../components/level-1/ImagingList/ImagingList";
 const routeApi = getRouteApi("/case/$caseId");
 function CaseView() {
  const { caseId } = routeApi.useParams();
  const { data: caseRecord, isLoading, isError } = useCaseRecord(caseId);
+
+
+  const navigate = useNavigate();
+
+
  const currentPhysioProgram = caseRecord?.physioPrograms[0];  
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
@@ -34,6 +40,13 @@ function CaseView() {
   t.category ,        
   t.status,                           
   new Date(t.sampleDate).toLocaleDateString()        // Column 4: Date (Formatted)
+]) || [];
+  const ImagingData = caseRecord?.exams.map((t,indx) => [
+  (indx+1),                                      
+  t.modality ,        
+  t.bodyPart ,        
+  t.status,                           
+  new Date(t.performedAt).toLocaleDateString()        // Column 4: Date (Formatted)
 ]) || [];
   //test bill
   const InvoiceId = "test-invoice-001";
@@ -58,6 +71,13 @@ function CaseView() {
         createdBy: "Dr. Alphons"
       };
     };
+
+    const handleScanClick = () => {
+    navigate({
+      to: "/dicom/2",
+      params: { dicomId: 2 },
+    });
+  };
   return (
     <div className={styles.caseView}>
       <div className={styles.overview}>
@@ -104,17 +124,9 @@ function CaseView() {
 
         {activeTab === "images" && (
           <div className={styles.imagesList}>
-            <UsersList
-              data={[
-                ["01", "Lionel Messi", "Forward", "Pending", "View"],
-                ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
-                ["01", "Lionel Messi", "Forward", "Pending", "View"],
-                ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
-              ]}
+            <ImagingList
+              data={ImagingData}
+              Route={"/dicom/2"}
             />
           </div>
         )}
