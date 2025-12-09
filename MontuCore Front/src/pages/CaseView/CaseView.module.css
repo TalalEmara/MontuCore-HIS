@@ -8,8 +8,8 @@
 
     /* background-color: HSl(from var(--background-color) h s  calc(l*5)); */
     background-color: var(--primary-color);
-    width: 89vw;
-    height: 88vh;
+    width: 100%;
+    height: 100%;
     padding: 2vh 1vw;
 
 
@@ -45,7 +45,7 @@
 .bodyComponent{
     height: fit-content;
 }
-.title{
+.title, .subTitle{
     justify-self: flex-end;
     font-size: 2rem;
     font-weight: bold;
@@ -59,6 +59,10 @@
     font-weight: normal;
     margin-left: 1vw;
     color: var(--text-secondary-color);
+}
+.subTitle{
+    font-size: 1rem;
+    margin: 0 ;
 }
 .tabButtons{
     display: flex;

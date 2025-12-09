@@ -8,7 +8,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppRouter />
-    
+    {/* <App/> */}
       {/* <TanStackRouterDevtools /> */}
   </StrictMode>,
 )

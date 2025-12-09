@@ -12,11 +12,29 @@ import DivomLocalViewer from "../../components/level-1/DicomViewer/DicomViewer";
 // should take specific case data
 
 import Bill from "../../components/level-1/bill/bill";
-
+import { getRouteApi } from "@tanstack/react-router";
+import { useCaseRecord } from "../../hooks/useCaseRecord";
+import LabTestsList from "../../components/level-1/LabTestsList/LabTestsList";
+const routeApi = getRouteApi("/case/$caseId");
 function CaseView() {
+ const { caseId } = routeApi.useParams();
+ const { data: caseRecord, isLoading, isError } = useCaseRecord(caseId);
+ const currentPhysioProgram = caseRecord?.physioPrograms[0];  
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
- 
+  const treatmentsData = caseRecord?.treatments.map((t) => [
+  t.type,                                      
+  t.providerName || "Unknown Provider",        
+  t.cost.toString(),                           
+  new Date(t.date).toLocaleDateString()        // Column 4: Date (Formatted)
+]) || [];
+  const labTestsData = caseRecord?.labTests.map((t,indx) => [
+  (indx+1),                                      
+  t.testName ,        
+  t.category ,        
+  t.status,                           
+  new Date(t.sampleDate).toLocaleDateString()        // Column 4: Date (Formatted)
+]) || [];
   //test bill
   const InvoiceId = "test-invoice-001";
     const FetchInvoice = async (id: string) => {
@@ -86,7 +104,7 @@ function CaseView() {
 
         {activeTab === "images" && (
           <div className={styles.imagesList}>
-            {/* <UsersList
+            <UsersList
               data={[
                 ["01", "Lionel Messi", "Forward", "Pending", "View"],
                 ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
@@ -96,50 +114,28 @@ function CaseView() {
                 ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
                 ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
                 ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
-                ["01", "Lionel Messi", "Forward", "Pending", "View"],
-                ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-                ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
               ]}
-            /> */}
-            <DivomLocalViewer/>
+            />
           </div>
         )}
         <p className={styles.title}>
-          Case number <span>Dr. Alphons</span>
-          <Bill 
-            invoiceId={InvoiceId}
-            onFetchInvoice={FetchInvoice}
-          />
+           {caseRecord?.athlete.fullName} | Case #{caseId}  <span>{caseRecord?.managingClinician.fullName}</span>
         </p>
+        <p className={styles.subTitle}>{caseRecord?.diagnosisName}</p>
         
       </div>
       <div className={styles.reports}>
         {/* <p> reports</p> */}
-        <AdjustableCard title="Reports" maxHeight="100%">
-          <UsersList
-            data={[
-              ["01", "Lionel Messi", "Forward", "Pending", "View"],
-              ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
-              ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-              ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-              ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
-            ]}
+        <AdjustableCard title="Laboratory Tests" maxHeight="100%">
+          <LabTestsList
+            data={labTestsData}
           />
         </AdjustableCard>
       </div>
       <div className={styles.treatments}>
         <AdjustableCard title="Treatments" maxHeight="100%" maxWidth="100%">
           <TreatmentsList
-            data={[
-              ["Physiotherapy session", "Dr. Ahmed Ali", "150", "2025-11-01"],
-              ["MRI Scan", "Dr. Sara Hussein", "600", "2025-11-05"],
-              ["Medication plan", "Dr. Omar Nassar", "80", "2025-11-07"],
-              ["Surgery follow-up", "Dr. Lina Mansour", "200", "2025-11-10"],
-            ]}
+            data={treatmentsData}
           />
         </AdjustableCard>
       </div>
@@ -147,13 +143,13 @@ function CaseView() {
         <AdjustableCard title="Physiotherapy" height="100%" maxWidth="100%">
           <div className={styles.physioContent}>
             <div className={styles.physioCards}>
-              <InfoCard label="Sessions" value={20} />
-              <InfoCard label="Completed" value={10} />
-              <InfoCard label="per week" value={2} />
+              <InfoCard label="Sessions" value={currentPhysioProgram?.numberOfSessions} />
+              <InfoCard label="Completed" value={currentPhysioProgram?.sessionsCompleted} />
+              <InfoCard label="per week" value={currentPhysioProgram?.weeklyRepetition} />
             </div>
-            <p>
-              Name of program <span>physiotherapist name</span>
-            </p>
+            <a href="">
+              {currentPhysioProgram?.title} | {new Date( currentPhysioProgram?.startDate).toLocaleDateString() }
+            </a>
           </div>
         </AdjustableCard>
       </div>
@@ -166,7 +162,10 @@ function CaseView() {
         >
           Add report
         </Button>
-        <Button variant="secondary">delete</Button>
+        <Bill 
+            invoiceId={InvoiceId}
+            onFetchInvoice={FetchInvoice}
+          />
       </div>
        <ReportStepper
         isOpen={isReportOpen}

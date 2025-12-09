@@ -1,90 +1,88 @@
+//
 import {
   createRootRoute,
   createRoute,
   createRouter,
-  Link,
   Outlet,
-  RouterProvider
+  RouterProvider,
 } from "@tanstack/react-router";
-
 import { useState } from "react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import PhysicianView from "./pages/PhysicianView/PhysicianView";
 import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 
+// 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
-  component: RootLayout,
+  component: () => <Outlet />,
 });
 
-// eslint-disable-next-line react-refresh/only-export-components
-function RootLayout() {
+// 2. The Layout for Dashboard pages (Contains Sidebar)
+const sidebarLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'dashboard', // Logical grouping
+  component: SidebarLayout,
+});
+
+// Moved the old RootLayout logic here
+function SidebarLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div>
-     
-      <div className="layout-container">
-        <Sidebar onToggle={setIsSidebarOpen} />
-
-        <div
-          className={`main-content ${
-            isSidebarOpen ? "sidebar-open" : "sidebar-closed"
-          }`}
-        >
-          <Outlet />
-
-            {/* <nav style={{ display: "flex", gap: 8 , marginLeft: '1.5rem'}}>
-        <Link to="/">Home</Link>
-        <Link to="/physician">physician</Link>
-        <Link to="/case">Case</Link>
-        <Link to="/athlete-viewer">Athlete Viewer</Link>
-      </nav> */}
-      
-        </div>
+    <div className="layout-container">
+      <Sidebar onToggle={setIsSidebarOpen} />
+      <div
+        className={`main-content ${
+          isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+        }`}
+      >
+        <Outlet />
       </div>
     </div>
   );
 }
 
+// 3. Child Routes for the Sidebar Layout
 const physicianViewRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => sidebarLayoutRoute,
   path: "physician",
   component: PhysicianView,
 });
 
-const CaseRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "case",
-  component: CaseView,
-});
-
 const athleteViewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/athlete-viewer",
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "athlete",
   component: AthleteView,
 });
 
-const routeTree = rootRoute.addChildren([
-  physicianViewRoute,
-  CaseRoute,
-  athleteViewRoute
-]);
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// 4. Case Route (No Sidebar, Direct child of Root)
+// Added $caseId parameter
+export const CaseRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "case/$caseId", 
+  component: CaseView,
+});
 
-// eslint-disable-next-line react-refresh/only-export-components
+// 5. Build Tree
+const routeTree = rootRoute.addChildren([
+  sidebarLayoutRoute.addChildren([
+    physicianViewRoute, 
+    athleteViewRoute
+  ]),
+  CaseRoute,
+]);
+
 export const router = createRouter({ routeTree });
 const queryClient = new QueryClient();
 
 export function AppRouter() {
   return (
-    <>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router}/>
-      </QueryClientProvider>
       <TanStackRouterDevtools router={router}/>
-    </>
+    </QueryClientProvider>
   );
 }

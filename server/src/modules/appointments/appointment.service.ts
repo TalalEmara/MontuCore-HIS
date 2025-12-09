@@ -1,6 +1,6 @@
 import { PrismaClient, ApptStatus, Prisma } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 interface AppointmentData {
   athleteId: number;

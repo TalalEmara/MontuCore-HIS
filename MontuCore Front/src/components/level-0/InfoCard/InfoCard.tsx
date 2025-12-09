@@ -1,7 +1,7 @@
 import styles from './InfoCard.module.css';
 type InfoCardProps = {
   label: string;
-  value: string | number;
+  value: string | number | undefined;
 };
  function InfoCard( {label, value}: InfoCardProps) {
   return (
