@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient, Role } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../index.js';
+// const prisma = new PrismaClient();
 
 interface RegisterInput {
   email: string;

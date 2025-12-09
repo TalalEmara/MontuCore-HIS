@@ -36,12 +36,12 @@ function RootLayout() {
         >
           <Outlet />
 
-            <nav style={{ display: "flex", gap: 8 , marginLeft: '1.5rem'}}>
+            {/* <nav style={{ display: "flex", gap: 8 , marginLeft: '1.5rem'}}>
         <Link to="/">Home</Link>
         <Link to="/physician">physician</Link>
         <Link to="/case">Case</Link>
         <Link to="/athlete-viewer">Athlete Viewer</Link>
-      </nav>
+      </nav> */}
       
         </div>
       </div>
@@ -72,14 +72,18 @@ const routeTree = rootRoute.addChildren([
   CaseRoute,
   athleteViewRoute
 ]);
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const router = createRouter({ routeTree });
+const queryClient = new QueryClient();
 
 export function AppRouter() {
   return (
     <>
+      <QueryClientProvider client={queryClient}>
       <RouterProvider router={router}/>
+      </QueryClientProvider>
       <TanStackRouterDevtools router={router}/>
     </>
   );
