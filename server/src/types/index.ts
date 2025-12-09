@@ -3,7 +3,7 @@ import type { Request } from 'express';
 
 export interface AuthenticatedRequest extends Request {
   user: {
-    id: string;
+    id: number;
     email: string;
     role: string;
   };

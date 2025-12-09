@@ -2,6 +2,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// -----------------------------
+// Types
+// -----------------------------
 interface InvoiceItem {
   quantity: number;
   unitPrice: number;
@@ -9,22 +12,22 @@ interface InvoiceItem {
 }
 
 interface InvoiceData {
-  patientId: string;
-  caseId?: string;
-  sessionId?: string;
+  patientId: number;
+  caseId?: number;
+  sessionId?: number;
   dueDate?: string;
   items: InvoiceItem[];
   tax?: number;
   discount?: number;
   notes?: string;
-  createdBy: string;
+  createdBy: number;
 }
 
 interface GetAllInvoicesParams {
-  page?: number;
-  limit?: number;
+  page: number | undefined;
+  limit: number | undefined;
   status?: string;
-  patientId?: string;
+  patientId: number | undefined;
 }
 
 interface PaymentData {
@@ -34,51 +37,61 @@ interface PaymentData {
   notes?: string;
 }
 
-/**
- * Create a new invoice
- */
+// -----------------------------
+// Invoice Services
+// -----------------------------
+
 export const createInvoice = async (invoiceData: InvoiceData) => {
-  const totalAmount = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-  
+  const totalAmount = invoiceData.items.reduce(
+    (sum, item) => sum + item.quantity * item.unitPrice,
+    0
+  );
+
+  const data: any = {
+    patientId: invoiceData.patientId,
+    invoiceNumber: await generateInvoiceNumber(),
+    invoiceDate: new Date(),
+    dueDate: invoiceData.dueDate
+      ? new Date(invoiceData.dueDate)
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    items: invoiceData.items,
+    subtotal: totalAmount,
+    tax: invoiceData.tax || 0,
+    discount: invoiceData.discount || 0,
+    totalAmount: totalAmount + (invoiceData.tax || 0) - (invoiceData.discount || 0),
+    paidAmount: 0,
+    status: 'PENDING',
+    notes: invoiceData.notes,
+    createdBy: invoiceData.createdBy,
+  };
+
+  if (invoiceData.caseId) data.caseId = invoiceData.caseId;
+  if (invoiceData.sessionId) data.sessionId = invoiceData.sessionId;
+
   const newInvoice = await prisma.invoice.create({
-    data: {
-      patientId: invoiceData.patientId,
-      caseId: invoiceData.caseId,
-      sessionId: invoiceData.sessionId,
-      invoiceNumber: await generateInvoiceNumber(),
-      invoiceDate: new Date(),
-      dueDate: invoiceData.dueDate ? new Date(invoiceData.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      items: invoiceData.items,
-      subtotal: totalAmount,
-      tax: invoiceData.tax || 0,
-      discount: invoiceData.discount || 0,
-      totalAmount: totalAmount + (invoiceData.tax || 0) - (invoiceData.discount || 0),
-      paidAmount: 0,
-      status: 'PENDING',
-      notes: invoiceData.notes,
-      createdBy: invoiceData.createdBy
-    },
+    data,
     include: {
       patient: {
         select: {
           id: true,
-          name: true,
-          email: true
-        }
-      }
-    }
+          fullName: true,
+          email: true,
+        },
+      },
+    },
   });
 
   return newInvoice;
 };
 
-/**
- * Get all invoices with pagination and filters
- */
-export const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }: GetAllInvoicesParams) => {
+export const getAllInvoices = async ({
+  page = 1,
+  limit = 10,
+  status,
+  patientId,
+}: GetAllInvoicesParams) => {
   const skip = (page - 1) * limit;
   const where: any = {};
-  
   if (status) where.status = status;
   if (patientId) where.patientId = patientId;
 
@@ -91,16 +104,16 @@ export const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }
         patient: {
           select: {
             id: true,
-            name: true,
-            email: true
-          }
-        }
+            fullName: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
-        invoiceDate: 'desc'
-      }
+        invoiceDate: 'desc',
+      },
     }),
-    prisma.invoice.count({ where })
+    prisma.invoice.count({ where }),
   ]);
 
   return {
@@ -109,63 +122,56 @@ export const getAllInvoices = async ({ page = 1, limit = 10, status, patientId }
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   };
 };
 
-/**
- * Get invoice by ID
- */
-export const getInvoiceById = async (invoiceId: string) => {
+export const getInvoiceById = async (invoiceId: number) => {
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
       patient: true,
       case: true,
       session: true,
-      payments: true
-    }
+      payments: true,
+    },
   });
 
-  if (!invoice) {
-    throw new Error('Invoice not found');
-  }
-
+  if (!invoice) throw new Error('Invoice not found');
   return invoice;
 };
 
-/**
- * Update invoice
- */
-export const updateInvoice = async (invoiceId: string, updates: Partial<InvoiceData>) => {
-  if (updates.dueDate) {
-    (updates as any).dueDate = new Date(updates.dueDate);
-  }
+export const updateInvoice = async (invoiceId: number, updates: Partial<InvoiceData>) => {
+  const data: any = { ...updates };
+  if (updates.dueDate) data.dueDate = new Date(updates.dueDate);
+  if (updates.caseId === undefined) delete data.caseId;
+  if (updates.sessionId === undefined) delete data.sessionId;
 
   const updatedInvoice = await prisma.invoice.update({
     where: { id: invoiceId },
-    data: updates,
+    data,
     include: {
       patient: {
         select: {
           id: true,
-          name: true,
-          email: true
-        }
-      }
-    }
+          fullName: true,
+          email: true,
+        },
+      },
+    },
   });
 
   return updatedInvoice;
 };
 
-/**
- * Record payment
- */
-export const recordPayment = async (invoiceId: string, paymentData: PaymentData) => {
+// -----------------------------
+// Payment Services
+// -----------------------------
+
+export const recordPayment = async (invoiceId: number, paymentData: PaymentData) => {
   const invoice = await prisma.invoice.findUnique({
-    where: { id: invoiceId }
+    where: { id: invoiceId },
   });
 
   if (!invoice) {
@@ -175,18 +181,19 @@ export const recordPayment = async (invoiceId: string, paymentData: PaymentData)
   const newPaidAmount = invoice.paidAmount + paymentData.amount;
   const remainingAmount = invoice.totalAmount - newPaidAmount;
 
+  // create payment
   const payment = await prisma.payment.create({
     data: {
       invoiceId,
       amount: paymentData.amount,
       paymentMethod: paymentData.paymentMethod,
       paymentDate: new Date(),
-      transactionId: paymentData.transactionId,
-      notes: paymentData.notes
-    }
+      transactionId: paymentData.transactionId ?? null, // <-- use null
+      notes: paymentData.notes ?? null,                 // <-- use null
+    },
   });
 
-  // Update invoice status
+  // determine new status
   let status = 'PENDING';
   if (remainingAmount <= 0) {
     status = 'PAID';
@@ -194,24 +201,29 @@ export const recordPayment = async (invoiceId: string, paymentData: PaymentData)
     status = 'PARTIALLY_PAID';
   }
 
+  // update invoice
   await prisma.invoice.update({
     where: { id: invoiceId },
     data: {
       paidAmount: newPaidAmount,
-      status
-    }
+      status,
+      // ensure optional relational fields are null, not undefined
+      caseId: invoice.caseId ?? null,
+      sessionId: invoice.sessionId ?? null,
+      notes: invoice.notes ?? null,
+    },
   });
 
   return payment;
 };
 
-/**
- * Get patient billing summary
- */
-export const getPatientBillingSummary = async (patientId: string) => {
-  const invoices = await prisma.invoice.findMany({
-    where: { patientId }
-  });
+
+// -----------------------------
+// Patient Billing Summary
+// -----------------------------
+
+export const getPatientBillingSummary = async (patientId: number) => {
+  const invoices = await prisma.invoice.findMany({ where: { patientId } });
 
   const totalBilled = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
   const totalPaid = invoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
@@ -227,27 +239,29 @@ export const getPatientBillingSummary = async (patientId: string) => {
       pending: invoices.filter(inv => inv.status === 'PENDING').length,
       partiallyPaid: invoices.filter(inv => inv.status === 'PARTIALLY_PAID').length,
       paid: invoices.filter(inv => inv.status === 'PAID').length,
-      overdue: invoices.filter(inv => inv.status === 'OVERDUE').length
-    }
+      overdue: invoices.filter(inv => inv.status === 'OVERDUE').length,
+    },
   };
 };
 
-/**
- * Generate unique invoice number
- */
+// -----------------------------
+// Generate Invoice Number
+// -----------------------------
+
 const generateInvoiceNumber = async (): Promise<string> => {
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
-  
+
   const count = await prisma.invoice.count({
     where: {
       invoiceDate: {
         gte: new Date(year, date.getMonth(), 1),
-        lt: new Date(year, date.getMonth() + 1, 1)
-      }
-    }
+        lt: new Date(year, date.getMonth() + 1, 1),
+      },
+    },
   });
 
   return `INV-${year}${month}-${String(count + 1).padStart(4, '0')}`;
 };
+

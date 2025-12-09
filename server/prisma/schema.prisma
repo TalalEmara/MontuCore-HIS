@@ -1,11 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// server/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,7 +7,194 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- ENUMS ---
+model User {
+  id                    Int               @id @default(autoincrement())
+  email                 String            @unique
+  passwordHash          String            @map("password_hash")
+  fullName              String            @map("full_name")
+  dateOfBirth           DateTime?         @map("date_of_birth")
+  phoneNumber           String?           @map("phone_number")
+  gender                String?
+  role                  Role              @default(ATHLETE)
+  createdAt             DateTime          @default(now())
+  athleteAppointments   Appointment[]     @relation("AthleteAppt")
+  clinicianAppointments Appointment[]     @relation("ClinicianAppt")
+  athleteProfile        AthleteProfile?
+  athleteCases          Case[]            @relation("AthleteCase")
+  managedCases          Case[]            @relation("ManagingClinician")
+  clinicianProfile      ClinicianProfile?
+
+  invoices Invoice[] @relation("PatientInvoices") 
+
+  @@map("users")
+}
+
+model AthleteProfile {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique @map("user_id")
+  position     String?
+  jerseyNumber Int?    @map("jersey_number")
+  user         User    @relation(fields: [userId], references: [id])
+
+  @@map("athlete_profiles")
+}
+
+model ClinicianProfile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique @map("user_id")
+  specialty String?
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@map("clinician_profiles")
+}
+
+model Appointment {
+  id             Int        @id @default(autoincrement())
+  athleteId      Int        @map("athlete_id")
+  clinicianId    Int        @map("clinician_id")
+  scheduledAt    DateTime   @map("scheduled_at")
+  height         Float?
+  weight         Float?
+  status         ApptStatus @default(SCHEDULED)
+  diagnosisNotes String?    @map("diagnosis_notes")
+  athlete        User       @relation("AthleteAppt", fields: [athleteId], references: [id])
+  clinician      User       @relation("ClinicianAppt", fields: [clinicianId], references: [id])
+  generatedCase  Case?
+
+  invoices Invoice[] @relation("InvoiceSession")
+
+  @@map("appointments")
+}
+
+model Case {
+  id                  Int             @id @default(autoincrement())
+  athleteId           Int             @map("athlete_id")
+  managingClinicianId Int             @map("managing_clinician_id")
+  appointmentId       Int             @unique @map("appointment_id")
+  diagnosisName       String          @map("diagnosis_name")
+  icd10Code           String?         @map("icd10_code")
+  injuryDate          DateTime        @default(now()) @map("injury_date")
+  status              CaseStatus      @default(ACTIVE)
+  severity            Severity        @default(MILD)
+  medicalGrade        String?         @map("medical_grade")
+  originAppointment   Appointment     @relation(fields: [appointmentId], references: [id])
+  athlete             User            @relation("AthleteCase", fields: [athleteId], references: [id])
+  managingClinician   User            @relation("ManagingClinician", fields: [managingClinicianId], references: [id])
+  exams               Exam[]
+  labTests            LabTest[]
+  physioPrograms      PhysioProgram[]
+  treatments          Treatment[]
+  invoices            Invoice[]       @relation("InvoiceCase")
+
+  @@map("cases")
+}
+
+model Exam {
+  id               Int         @id @default(autoincrement())
+  caseId           Int         @map("case_id")
+  modality         String
+  bodyPart         String      @map("body_part")
+  status           String
+  scheduledAt      DateTime?   @map("scheduled_at")
+  performedAt      DateTime?   @map("performed_at")
+  radiologistNotes String?     @map("radiologist_notes")
+  conclusion       String?
+  cost             Float?
+  medicalCase      Case        @relation(fields: [caseId], references: [id])
+  images           PACSImage[]
+
+  @@map("exams")
+}
+
+model PACSImage {
+  id           Int      @id @default(autoincrement())
+  examId       Int      @map("exam_id")
+  fileName     String   @map("file_name")
+  supabasePath String   @map("supabase_path")
+  publicUrl    String   @map("public_url")
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+  exam         Exam     @relation(fields: [examId], references: [id])
+
+  @@map("pacs_images")
+}
+
+model LabTest {
+  id                 Int       @id @default(autoincrement())
+  caseId             Int       @map("case_id")
+  testName           String    @map("test_name")
+  category           String?
+  status             LabStatus @default(PENDING)
+  resultPdfUrl       String?   @map("result_pdf_url")
+  resultValues       Json?     @map("result_values")
+  labTechnicianNotes String?   @map("lab_technician_notes")
+  sampleDate         DateTime? @map("sample_date")
+  cost               Float?
+  medicalCase        Case      @relation(fields: [caseId], references: [id])
+
+  @@map("lab_tests")
+}
+
+model Treatment {
+  id           Int      @id @default(autoincrement())
+  caseId       Int      @map("case_id")
+  type         String
+  description  String
+  providerName String?  @map("provider_name")
+  cost         Float?
+  date         DateTime @default(now())
+  medicalCase  Case     @relation(fields: [caseId], references: [id])
+
+  @@map("treatments")
+}
+
+model PhysioProgram {
+  id                Int      @id @default(autoincrement())
+  caseId            Int      @map("case_id")
+  title             String
+  numberOfSessions  Int      @map("number_of_sessions")
+  sessionsCompleted Int      @default(0) @map("sessions_completed")
+  startDate         DateTime @map("start_date")
+  weeklyRepetition  Int      @map("weekly_repetition")
+  costPerSession    Float?   @map("cost_per_session")
+  medicalCase       Case     @relation(fields: [caseId], references: [id])
+
+  @@map("physio_programs")
+}
+
+model Invoice {
+  id            Int       @id @default(autoincrement())
+  patientId     Int
+  caseId        Int?
+  sessionId     Int?
+  invoiceNumber String    @unique
+  invoiceDate   DateTime  @default(now())
+  dueDate       DateTime
+  items         Json
+  subtotal      Float
+  tax           Float
+  discount      Float
+  totalAmount   Float
+  paidAmount    Float     @default(0)
+  status        String    @default("PENDING")
+  notes         String?
+  createdBy     Int
+  payments      Payment[]
+
+  patient User         @relation("PatientInvoices", fields: [patientId], references: [id])
+  case    Case?        @relation("InvoiceCase", fields: [caseId], references: [id])
+  session Appointment? @relation("InvoiceSession", fields: [sessionId], references: [id])
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  invoiceId     Int
+  amount        Float
+  paymentMethod String
+  transactionId String?
+  paymentDate   DateTime @default(now())
+  notes         String?
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+}
 
 enum Role {
   ADMIN
@@ -41,7 +220,6 @@ enum CaseStatus {
   RECOVERED
 }
 
-// Generic status for Exams/Labs if needed, or specific ones
 enum LabStatus {
   PENDING
   COMPLETED
