@@ -30,7 +30,7 @@ interface BookingPanelProps {
 // Mock Data for Clinicians (Replace with useClinicians hook if available)
 const CLINICIANS = [
   { label: "Select a Clinician", value: "" },
-  { label: "Dr. Sarah Smith (Physio)", value: "2" }
+  { label: "Dr. Sarah Smith (Physio)", value: "28" }
 ];
 
 export default function BookingPanel({ isOpen, onClose, athleteId }: BookingPanelProps) {

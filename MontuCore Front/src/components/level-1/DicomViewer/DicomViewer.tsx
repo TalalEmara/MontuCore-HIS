@@ -114,6 +114,7 @@ const DicomViewer: React.FC<DicomViewerProps> = ({
     };
     loadImages();
   }, [isReady, imageIds, viewportId]);
+  
   useEffect(() => {
     if (!isReady) return;
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);

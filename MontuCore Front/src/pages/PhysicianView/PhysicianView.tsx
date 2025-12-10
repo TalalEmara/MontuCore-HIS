@@ -100,7 +100,7 @@ const PhysicianView: React.FC = () => {
   const todaySchedule = appointments
     ? appointments
         // Optional: Filter for ONLY today's appointments
-        // .filter(appt => new Date(appt.scheduledAt).toDateString() === new Date().toDateString())
+        .filter(appt => new Date(appt.scheduledAt).toDateString() === new Date().toDateString())
         .map((appt) => {
           // Map API status to CSS class names
           let uiStatus = "upcoming";

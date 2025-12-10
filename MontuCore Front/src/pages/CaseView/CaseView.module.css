@@ -47,7 +47,7 @@
 }
 .title, .subTitle{
     justify-self: flex-end;
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: bold;
     margin: 0;
     padding: 0;
@@ -55,7 +55,7 @@
     margin-bottom: 1vh;
 }
 .title span{
-    font-size: 1rem;
+    font-size: .5rem;
     font-weight: normal;
     margin-left: 1vw;
     color: var(--text-secondary-color);

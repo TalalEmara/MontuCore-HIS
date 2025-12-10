@@ -75,8 +75,8 @@ function AthleteView() {
     } else {
       if(index == 0 ){
         navigate({
-        to: "/case/2",
-        params: { caseId:2 }
+        to: "/case/67",
+        params: { caseId:67 }
       })
       }
       console.log("No case found .");
