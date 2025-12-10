@@ -12,6 +12,7 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
         success: false,
         message: createdAppointment.message,
       });
+      return;
     }
 
     res.status(201).json({
@@ -42,6 +43,7 @@ export const updateAppointmentStatus = async (req: Request, res: Response): Prom
         success: false,
         message: 'Faileed to update appointment status: '
       });
+      return;
     }
 
     res.status(200).json({
@@ -67,6 +69,7 @@ export const getAppointmentById = async (req: Request, res: Response): Promise<v
         success: false,
         message: 'Appointment not found'
       });
+      return;
     }
 
     res.status(200).json({
@@ -91,6 +94,7 @@ export const deleteAppointment = async (req: Request, res: Response): Promise<vo
       res.status(400).json({
         success: false,
       });
+      return;
     }
     res.status(200).json({
       success: true,
@@ -120,6 +124,7 @@ export const getAllAppointments = async (req: Request, res: Response): Promise<v
         success: false,
         message: 'Something went wrong'
       });
+      return;
     }
     res.status(200).json({
       success: true,
@@ -138,7 +143,7 @@ export const getAllAppointments = async (req: Request, res: Response): Promise<v
 export const getAllAppointmentsByAthelete = async (req: Request, res: Response): Promise<void> => {
   try{
     const { athleteId } = req.params;
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date } = req.query;
+    const { page = 1, limit = 20, status, athleteName, clinicianName, date } = req.query;
     const appointments = await appointmentService.getAllAppointmentsByAthelete({
       page: Number(page),
       limit: Number(limit),
@@ -154,6 +159,7 @@ export const getAllAppointmentsByAthelete = async (req: Request, res: Response):
         success: false,
        message: 'Something went wrong'
       });
+      return;
     }
     res.status(200).json({
       success: true,
@@ -172,7 +178,7 @@ export const getAllAppointmentsByAthelete = async (req: Request, res: Response):
 export const getAllAppointmentsByClinician = async (req: Request, res: Response): Promise<void> => {
   try{
     const { clinicianId } = req.params;
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date } = req.query;
+    const { page = 1, limit = 30, status, athleteName, clinicianName, date } = req.query;
     const appointments = await appointmentService.getAllAppointmentsByClinician({
       page: Number(page),
       limit: Number(limit),
@@ -188,6 +194,7 @@ export const getAllAppointmentsByClinician = async (req: Request, res: Response)
         success: false,
         message: appointments.message
       });
+      return;
     }
     res.status(200).json({
       success: true,

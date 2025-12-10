@@ -45,14 +45,6 @@ const PhysicianView: React.FC = () => {
     },
   ]);
 
-  // const [todaySchedule] = useState([
-  //   { athleteName: "Cristiano Ronaldo", type: "Follow-up", status: "completed" },
-  //   { athleteName: "Mohamed Salah", type: "Assessment", status: "upcoming" },
-  //   { athleteName: "Neymar", type: "Rehab", status: "completed" },
-  //   { athleteName: "Leo", type: "Checkup", status: "upcoming" },
-  //   { athleteName: "Messi", type: "Physio", status: "completed" },
-  //   { athleteName: "Famous", type: "Treatment", status: "upcoming" },
-  // ]);
 
   const [physioNotes] = useState([
     {

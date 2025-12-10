@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../index.js';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+
 
 interface ImagingOrderData {
   caseId: number;

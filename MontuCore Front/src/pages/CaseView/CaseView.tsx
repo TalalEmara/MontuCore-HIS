@@ -16,18 +16,29 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useCaseRecord } from "../../hooks/useCaseRecord";
 import LabTestsList from "../../components/level-1/LabTestsList/LabTestsList";
 import ImagingList from "../../components/level-1/ImagingList/ImagingList";
+import { useAthleteAppointments } from "../../hooks/useAppointments";
+import List from "../../components/level-0/List/List";
 const routeApi = getRouteApi("/case/$caseId");
 function CaseView() {
  const { caseId } = routeApi.useParams();
  const { data: caseRecord, isLoading, isError } = useCaseRecord(caseId);
-
-
-  const navigate = useNavigate();
+  const {data:reports} = useAthleteAppointments(caseRecord?.athleteId)
 
 
  const currentPhysioProgram = caseRecord?.physioPrograms[0];  
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
+  const [activeList, setActiveList] = useState<"reports" | "labTests">("reports");
+  
+  const reportsData = reports?.map((appt,indx) => [
+    indx+1,
+    appt.clinician.fullName,                         // Col 2: Clinician Name
+    new Date(appt.scheduledAt).toLocaleDateString(), // Col 1: Date
+    appt.diagnosisNotes || "Routine Checkup",        // Col 3: Notes/Type
+    `${appt.height || '-'} cm / ${appt.weight || '-'} kg`, // Col 4: Vitals (Height/Weight)
+                   
+  ]) || [];
+  
   const treatmentsData = caseRecord?.treatments.map((t) => [
   t.type,                                      
   t.providerName || "Unknown Provider",        
@@ -72,12 +83,7 @@ function CaseView() {
       };
     };
 
-    const handleScanClick = () => {
-    navigate({
-      to: "/dicom/2",
-      params: { dicomId: 2 },
-    });
-  };
+
   return (
     <div className={styles.caseView}>
       <div className={styles.overview}>
@@ -130,19 +136,45 @@ function CaseView() {
             />
           </div>
         )}
+        <p className={styles.subTitle}>{caseRecord?.diagnosisName}</p>
         <p className={styles.title}>
            {caseRecord?.athlete.fullName} | Case #{caseId}  <span>{caseRecord?.managingClinician.fullName}</span>
         </p>
-        <p className={styles.subTitle}>{caseRecord?.diagnosisName}</p>
         
       </div>
       <div className={styles.reports}>
         {/* <p> reports</p> */}
+       <div className={styles.tabButtons}>
+          <Button
+            variant="secondary"
+            onClick={() => setActiveList("reports")}
+            className={styles.tabButton}
+          >
+            reports
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setActiveList("labTests")}
+            className={styles.tabButton}
+          >
+            lab tests
+          </Button>
+        </div>
+        {activeList == "labTests"?
         <AdjustableCard title="Laboratory Tests" maxHeight="100%">
           <LabTestsList
             data={labTestsData}
-          />
+            />
         </AdjustableCard>
+            :
+        <AdjustableCard title="Reports" maxHeight="100%">
+          {/* needs refactoring */}
+          <List
+            header={["","clinician", "Date" , "notes" , "measurements"]}
+            data={reportsData}
+            />
+        </AdjustableCard>    
+            }
       </div>
       <div className={styles.treatments}>
         <AdjustableCard title="Treatments" maxHeight="100%" maxWidth="100%">
@@ -179,10 +211,12 @@ function CaseView() {
             onFetchInvoice={FetchInvoice}
           />
       </div>
-       <ReportStepper
-        isOpen={isReportOpen}
-        onClose={() => setIsReportOpen(false)}
-      />
+      <ReportStepper
+  isOpen={isReportOpen}
+  onClose={() => setIsReportOpen(false)}
+  athleteId={caseRecord?.athleteId}    
+  clinicianId={2}         
+/>
     </div>
   );
 }

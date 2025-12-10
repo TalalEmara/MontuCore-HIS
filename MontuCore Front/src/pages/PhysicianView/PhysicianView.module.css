@@ -16,7 +16,7 @@
 
 .physicianProfileCard { grid-column: 1; grid-row: 1; }
 .urgentCasesCard { grid-column: 2; grid-row: 1; }
-.todayScheduleCard { grid-column: 3; grid-row: 1; }
+.todayScheduleCard {overflow: auto; grid-column: 3; grid-row: 1; }
 .physioNotesCard { grid-column: 3 / 4; grid-row: 2; }
 .athleteHandlingCard { grid-column: 1 / 3; grid-row: 2; }
 

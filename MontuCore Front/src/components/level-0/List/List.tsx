@@ -1,4 +1,4 @@
-// List.tsx
+
 import React from 'react';
 import styles from './List.module.css';
 
@@ -9,7 +9,8 @@ type ListProps = {
   listClassName?: string;
   headerClassName?: string;
   rowClassName?: string;
-  onClick?: ()=>void ;
+  // Update type to accept index number
+  onClick?: (index: number) => void;
 };
 
 function List({
@@ -37,7 +38,8 @@ function List({
           key={i}
           className={`${styles.row} ${rowClassName ?? ''}`}
           style={{ gridTemplateColumns }}
-          onClick={onClick}
+          // FIX IS HERE: Wrap in arrow function and pass 'i'
+          onClick={() => onClick && onClick(i)}
         >
           {row.map((cell, j) => (
             <div key={j}>{cell}</div>
