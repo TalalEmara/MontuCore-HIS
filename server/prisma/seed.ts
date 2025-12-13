@@ -1,7 +1,6 @@
-import { PrismaClient, Role, Severity, CaseStatus, ApptStatus } from '@prisma/client';
+import { Role, Severity, CaseStatus, ApptStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/config/db.js';
 
 async function main() {
   console.log('🌱 Starting comprehensive seeding...\n');

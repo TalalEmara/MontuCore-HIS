@@ -1,6 +1,5 @@
-import { PrismaClient, Severity, CaseStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Severity, CaseStatus } from '@prisma/client';
+import { prisma } from '../../config/db.js';
 
 interface CaseData {
   athleteId:           number;

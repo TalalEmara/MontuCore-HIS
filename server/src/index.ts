@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './config/db.js';
 
 // Import all routes
 import authRoutes from './modules/auth/auth.routes.js';
@@ -12,7 +12,7 @@ import sessionRoutes from './modules/sessions/session.routes.js';
 import billingRoutes from './modules/billing/billing.routes.js';
 
 const app = express();
-export const prisma = new PrismaClient();
+export { prisma };
 const PORT = process.env.PORT || 3000;
 
 // Middleware
