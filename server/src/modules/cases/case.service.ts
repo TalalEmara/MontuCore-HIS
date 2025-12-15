@@ -1,5 +1,6 @@
 import { Severity, CaseStatus } from '@prisma/client';
 import { prisma } from '../../config/db.js';
+import { get } from 'http';
 
 interface CaseData {
   athleteId:           number;
@@ -297,4 +298,19 @@ export const getActiveCasesByClinicianId = async (clinicianId: number, page: num
     page,
     limit
   });
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get all cases by athlete ID
+ * Returns: case id, diagnosis name, injury date, status
+ */
+export const getCasesByAthleteId = async (athleteId: number) => {
+  try {
+    const cases = await getCases({
+      athleteId
+    });
+    return cases.cases;
+  } catch (error) {
+    throw error;
+  }
 };

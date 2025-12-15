@@ -457,4 +457,22 @@ export const getTodaysAppointmentsByClinicianId = async (clinicianId: number) =>
   } catch (error) {
     throw error;
   }
-}; 
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get upcoming appointments for athlete
+ * Returns: appointment id, scheduled at, physician name and role
+ */
+export const getUpcomingAppointmentsByAthleteId = async (athleteId: number) => {
+  try {
+    const now = new Date();
+    const result = await getAppointments({
+      athleteId,
+      status: ApptStatus.SCHEDULED,
+      dateRange: { startDate: now, endDate: new Date('2100-01-01') } // Far future date
+    });
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../../index.js';
-import { supabase, getPublicUrl } from './supabase.service.js';
+import { supabase, getPublicUrl } from '../../storage/supabase.service.js';
 import dicomParser from 'dicom-parser';
 
 // Extend Request type to include Multer file

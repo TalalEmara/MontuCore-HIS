@@ -1,0 +1,36 @@
+meta {
+  name: Get Treatments
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/api/treatments?athleteId=&caseId=&type=&page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  athleteId: 
+  caseId: 
+  type: 
+  page: 1
+  limit: 10
+  ~startDate: 
+  ~endDate: 
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  Get treatments with optional filters:
+  - athleteId: Filter by athlete
+  - caseId: Filter by case
+  - type: Filter by treatment type
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - startDate: Filter treatments after this date
+  - endDate: Filter treatments before this date
+}

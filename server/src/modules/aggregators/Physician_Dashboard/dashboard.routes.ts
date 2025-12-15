@@ -12,6 +12,6 @@ const router: Router = express.Router();
  * @query   page - Page number for active cases (default: 1)
  * @query   limit - Items per page for active cases (default: 10)
  */
-router.get('/physician/:clinicianId', dashboardController.getPhysicianDashboard);
+router.get('/dashboard/:clinicianId', dashboardController.getPhysicianDashboard);
 
 export default router;

@@ -1,0 +1,40 @@
+meta {
+  name: Get Exams
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/api/exams?athleteId=&caseId=&modality=&status=&page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  athleteId: 
+  caseId: 
+  modality: 
+  status: 
+  page: 1
+  limit: 10
+  ~startDate: 
+  ~endDate: 
+  ~isToday: 
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  Get imaging exams with optional filters:
+  - athleteId: Filter by athlete
+  - caseId: Filter by case
+  - modality: Filter by modality (MRI, CT, X-RAY, etc.)
+  - status: Filter by status (SCHEDULED, COMPLETED, etc.)
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - startDate: Filter exams after this date
+  - endDate: Filter exams before this date
+  - isToday: Filter today's exams (true/false)
+}

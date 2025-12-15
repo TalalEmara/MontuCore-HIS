@@ -15,8 +15,20 @@ params:query {
   limit: 10
   ~status: ACTIVE
   ~athleteId: 1
+  ~clinicianId: 1
+  ~severity: CRITICAL
 }
 
 auth:bearer {
   token: {{authToken}}
+}
+
+docs {
+  Get cases with optional filters:
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - status: Filter by status (ACTIVE, INACTIVE, CLOSED, etc.)
+  - athleteId: Filter by athlete ID
+  - clinicianId: Filter by managing clinician ID
+  - severity: Filter by severity (CRITICAL, HIGH, MODERATE, LOW)
 }

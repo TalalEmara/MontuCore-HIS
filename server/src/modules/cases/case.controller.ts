@@ -25,18 +25,25 @@ export const createCase = async (req: Request, res: Response): Promise<void> => 
 };
 
 /**
- * Get all cases
+ * Get all cases with filters
+ * Supports: page, limit, status, athleteId, clinicianId, severity
  */
 export const getAllCases = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { page = 1, limit = 10, status, athleteId } = req.query;
+    const { page = 1, limit = 10, status, athleteId, clinicianId, severity } = req.query;
 
-    const cases = await caseService.getAllCases({ 
-      page: Number(page), 
-      limit: Number(limit), 
-      status: status as any,
-      athleteId: athleteId ? Number(athleteId) : undefined
-    });
+    // Build filters object for service layer
+    const filters: any = {
+      page: Number(page),
+      limit: Number(limit)
+    };
+
+    if (status) filters.status = status as any;
+    if (severity) filters.severity = severity as any;
+    if (athleteId) filters.athleteId = Number(athleteId);
+    if (clinicianId) filters.clinicianId = Number(clinicianId);
+
+    const cases = await caseService.getCases(filters);
     
     res.status(200).json({
       success: true,

@@ -1,0 +1,38 @@
+meta {
+  name: Get Lab Tests
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/api/lab-tests?athleteId=&caseId=&status=&category=&page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  athleteId: 
+  caseId: 
+  status: 
+  category: 
+  page: 1
+  limit: 10
+  ~startDate: 
+  ~endDate: 
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  Get lab tests with optional filters:
+  - athleteId: Filter by athlete
+  - caseId: Filter by case
+  - status: Filter by status (PENDING, COMPLETED, etc.)
+  - category: Filter by test category
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - startDate: Filter tests after this date
+  - endDate: Filter tests before this date
+}
