@@ -20,6 +20,16 @@ interface GetAllCasesParams {
   athleteId?: number | undefined;
 }
 
+interface GetCasesFilterParams {
+  clinicianId?: number;
+  athleteId?: number;
+  status?: CaseStatus;
+  severity?: string;
+  page?: number;
+  limit?: number;
+  isToday?: boolean;
+}
+
 /**
  * Create a new case
  */
@@ -183,4 +193,108 @@ export const deleteCase = async (caseId: number) => {
   });
 
   return { message: 'Case deleted successfully' };
+};
+
+/**
+ * FLEXIBLE BASE FUNCTION - Get cases with multiple filter options
+ * Supports: clinician, athlete, status, severity, pagination, date filtering
+ * @example getCases({ clinicianId: 1, severity: 'CRITICAL' })
+ * @example getCases({ clinicianId: 1, status: 'ACTIVE', page: 1, limit: 10 })
+ * @example getCases({ athleteId: 5, isToday: true })
+ */
+export const getCases = async (filters: GetCasesFilterParams = {}) => {
+  try {
+    const { 
+      clinicianId, 
+      athleteId, 
+      status, 
+      severity, 
+      page = 1, 
+      limit = 10, 
+      isToday 
+    } = filters;
+
+    const where: any = {};
+
+    // Apply filters
+    if (clinicianId) where.managingClinicianId = clinicianId;
+    if (athleteId) where.athleteId = athleteId;
+    if (status) where.status = status;
+    if (severity) where.severity = severity;
+
+    // Date filter for today's cases
+    if (isToday) {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+      where.injuryDate = {
+        gte: startOfDay,
+        lte: endOfDay
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [cases, total] = await Promise.all([
+      prisma.case.findMany({
+        where,
+        select: {
+          id: true,
+          diagnosisName: true,
+          severity: true,
+          status: true,
+          injuryDate: true,
+          athlete: {
+            select: {
+              fullName: true
+            }
+          }
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          injuryDate: 'desc'
+        }
+      }),
+      prisma.case.count({ where })
+    ]);
+
+    return {
+      cases,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get critical cases by clinician ID
+ * Returns: id, athlete name, diagnosis name
+ */
+export const getCriticalCasesByClinicianId = async (clinicianId: number) => {
+  const result = await getCases({
+    clinicianId,
+    severity: 'CRITICAL'
+  });
+  
+  return result.cases;
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get active cases by clinician ID with pagination
+ * Returns: id, athlete name, diagnosis name
+ */
+export const getActiveCasesByClinicianId = async (clinicianId: number, page: number = 1, limit: number = 10) => {
+  return getCases({
+    clinicianId,
+    status: 'ACTIVE' as CaseStatus,
+    page,
+    limit
+  });
 };

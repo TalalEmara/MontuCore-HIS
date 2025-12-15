@@ -20,6 +20,16 @@ interface GetAllAppointmentsParams {
   date?: string;
 }
 
+interface GetAppointmentsFilterParams {
+  clinicianId?: number;
+  athleteId?: number;
+  status?: ApptStatus;
+  page?: number;
+  limit?: number;
+  isToday?: boolean;
+  dateRange?: { startDate: Date; endDate: Date };
+}
+
 /**
  * Create a new appointment
  */
@@ -339,4 +349,112 @@ export const getAllAppointmentsByClinician = async({ page = 1, limit = 10, statu
   catch(error){
     return error;
   }
-} 
+}
+
+/**
+ * FLEXIBLE BASE FUNCTION - Get appointments with multiple filter options
+ * Supports: clinician, athlete, status, pagination, date filtering
+ * @example getAppointments({ clinicianId: 1, isToday: true })
+ * @example getAppointments({ athleteId: 5, status: 'SCHEDULED' })
+ * @example getAppointments({ clinicianId: 1, dateRange: { startDate: new Date(), endDate: new Date() } })
+ */
+export const getAppointments = async (filters: GetAppointmentsFilterParams = {}) => {
+  try {
+    const {
+      clinicianId,
+      athleteId,
+      status,
+      page = 1,
+      limit = 10,
+      isToday,
+      dateRange
+    } = filters;
+
+    const where: Prisma.AppointmentWhereInput = {};
+
+    // Apply filters
+    if (clinicianId) where.clinicianId = clinicianId;
+    if (athleteId) where.athleteId = athleteId;
+    if (status) where.status = status;
+
+    // Date filtering
+    if (isToday) {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+      where.scheduledAt = {
+        gte: startOfDay,
+        lte: endOfDay
+      };
+    } else if (dateRange) {
+      where.scheduledAt = {
+        gte: dateRange.startDate,
+        lte: dateRange.endDate
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [appointments, total] = await Promise.all([
+      prisma.appointment.findMany({
+        where,
+        select: {
+          id: true,
+          scheduledAt: true,
+          height: true,
+          weight: true,
+          status: true,
+          diagnosisNotes: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          },
+          clinician: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          }
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          scheduledAt: 'asc'
+        }
+      }),
+      prisma.appointment.count({ where })
+    ]);
+
+    return {
+      appointments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get appointments for clinician for today only
+ */
+export const getTodaysAppointmentsByClinicianId = async (clinicianId: number) => {
+  try {
+    const result = await getAppointments({
+      clinicianId,
+      isToday: true
+    });
+
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+}; 

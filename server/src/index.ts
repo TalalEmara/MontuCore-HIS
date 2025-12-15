@@ -10,6 +10,7 @@ import imagingRoutes from './modules/imaging/imaging.routes.js';
 import appointmentRoutes from './modules/appointments/appointment.routes.js';
 import sessionRoutes from './modules/sessions/session.routes.js';
 import billingRoutes from './modules/billing/billing.routes.js';
+import dashboardRoutes from './modules/aggregators/Physician_Dashboard/dashboard.routes.js';
 
 const app = express();
 export { prisma };
@@ -26,6 +27,7 @@ app.use('/api/imaging', imagingRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health Check
 app.get('/', (req, res) => {
