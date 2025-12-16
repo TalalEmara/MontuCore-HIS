@@ -5,7 +5,7 @@ import { get } from 'http';
 interface CaseData {
   athleteId:           number;
   managingClinicianId: number;
-  appointmentId:       number;
+  initialAppointmentId?: number; // Optional: The appointment where case was first detected
   diagnosisName:       string;
   icd10Code:           string | null;
   injuryDate:          Date;
@@ -39,7 +39,7 @@ export const createCase = async (caseData: CaseData) => {
     data: {
       athleteId: caseData.athleteId,
       managingClinicianId: caseData.managingClinicianId,
-      appointmentId: caseData.appointmentId,
+      initialAppointmentId: caseData.initialAppointmentId,
       diagnosisName: caseData.diagnosisName,
       icd10Code: caseData.icd10Code,
       injuryDate: caseData.injuryDate,
@@ -119,7 +119,8 @@ export const getCaseById = async (caseId: number) => {
     include: {
       athlete: true,
       managingClinician: true,
-      originAppointment: true,
+      initialAppointment: true,
+      appointments: true,
       exams: {
         include: {
           images: true

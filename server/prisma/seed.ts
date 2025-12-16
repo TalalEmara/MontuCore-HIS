@@ -5,9 +5,9 @@ import { prisma } from '../src/config/db.js';
 async function main() {
   console.log('🌱 Starting comprehensive seeding...\n');
 
-  // // Clear existing data (optional - comment out if you want to keep data)
-  // await prisma.$executeRaw`TRUNCATE TABLE "pacs_images", "exams", "lab_tests", "treatments", "physio_programs", "cases", "appointments", "athlete_profiles", "clinician_profiles", "users" RESTART IDENTITY CASCADE;`;
-  // console.log('🗑️  Cleared existing data\n');
+  // Clear existing data
+  await prisma.$executeRaw`TRUNCATE TABLE "pacs_images", "exams", "lab_tests", "treatments", "physio_programs", "cases", "appointments", "athlete_profiles", "clinician_profiles", "users" RESTART IDENTITY CASCADE;`;
+  console.log('🗑️  Cleared existing data\n');
 
   const hashedPassword = await bcrypt.hash('Test123!', 10);
 
@@ -146,7 +146,7 @@ async function main() {
 
   console.log(`✅ ${appointments.length} appointments created\n`);
 
-  // --- 5. CREATE CASES (Multiple per appointment) ---
+  // --- 5. CREATE CASES ---
   const caseTemplates = [
     { diagnosis: 'ACL Tear', icd10: 'S83.5', severity: Severity.SEVERE, grade: 'Grade 3' },
     { diagnosis: 'Ankle Sprain', icd10: 'S93.4', severity: Severity.MODERATE, grade: 'Grade 2' },
@@ -158,36 +158,59 @@ async function main() {
     { diagnosis: 'Stress Fracture', icd10: 'M84.3', severity: Severity.MODERATE, grade: 'Tibia' },
   ];
 
-  let totalCases = 0;
+  const cases = [];
+  const completedAppointments = appointments.filter(a => a.status === ApptStatus.COMPLETED);
 
-  // Create 1-3 cases per completed appointment
-  for (const appointment of appointments.filter(a => a.status === ApptStatus.COMPLETED)) {
-    const numCases = Math.floor(Math.random() * 3) + 1; // 1 to 3 cases
+  // Create cases with initial appointment references (one-to-one: each appointment can only be initial for one case)
+  for (let i = 0; i < Math.min(8, completedAppointments.length); i++) {
+    const athleteIndex = i % athletes.length;
+    const clinicianIndex = i % clinicians.length;
+    const template = caseTemplates[i]!;
     
-    for (let i = 0; i < numCases; i++) {
-      const template = caseTemplates[(totalCases + i) % caseTemplates.length]!;
+    // Each completed appointment is the initial appointment for exactly one case
+    const initialAppointment = completedAppointments[i];
+    
+    const newCase = await prisma.case.create({
+      data: {
+        athleteId: athletes[athleteIndex]!.id,
+        managingClinicianId: clinicians[clinicianIndex]!.id,
+        initialAppointmentId: initialAppointment?.id, // Link to the initial appointment (one-to-one)
+        diagnosisName: template.diagnosis,
+        icd10Code: template.icd10,
+        injuryDate: initialAppointment?.scheduledAt || new Date(now.getTime() - (i * 5) * 24 * 60 * 60 * 1000),
+        status: Math.random() > 0.3 ? CaseStatus.ACTIVE : CaseStatus.RECOVERED,
+        severity: template.severity,
+        medicalGrade: template.grade
+      }
+    });
+    cases.push(newCase);
+  }
+
+  console.log(`✅ ${cases.length} cases created\n`);
+
+  // --- 6. LINK FOLLOW-UP APPOINTMENTS TO CASES ---
+  // Create additional follow-up appointments for some cases
+  // (Don't link the initial appointments again as they're already linked via initialAppointmentId)
+  const usedInitialAppointmentIds = new Set(cases.map(c => c.initialAppointmentId).filter(id => id !== null));
+  
+  for (let i = 0; i < appointments.length; i++) {
+    const appointment = appointments[i]!;
+    
+    // Only link completed appointments that aren't already used as initial appointments
+    if (appointment.status === ApptStatus.COMPLETED && !usedInitialAppointmentIds.has(appointment.id)) {
+      // Link to a random case as a follow-up appointment
+      const caseForAppointment = cases[i % cases.length]!;
       
-      await prisma.case.create({
-        data: {
-          athleteId: appointment.athleteId,
-          managingClinicianId: appointment.clinicianId,
-          appointmentId: appointment.id,
-          diagnosisName: template.diagnosis,
-          icd10Code: template.icd10,
-          injuryDate: appointment.scheduledAt,
-          status: Math.random() > 0.3 ? CaseStatus.ACTIVE : CaseStatus.RECOVERED,
-          severity: template.severity,
-          medicalGrade: template.grade
-        }
+      await prisma.appointment.update({
+        where: { id: appointment.id },
+        data: { caseId: caseForAppointment.id }
       });
-      totalCases++;
     }
   }
 
-  console.log(`✅ ${totalCases} cases created (multiple per appointment)\n`);
+  console.log(`✅ Follow-up appointments linked to cases\n`);
 
-  // --- 6. CREATE EXAMS FOR SOME CASES ---
-  const cases = await prisma.case.findMany({ take: 8 });
+  // --- 7. CREATE EXAMS FOR SOME CASES ---
   
   for (let i = 0; i < cases.length; i++) {
     await prisma.exam.create({
@@ -263,7 +286,7 @@ async function main() {
   console.log(`   - ${clinicians.length} Clinicians`);
   console.log(`   - ${athletes.length} Athletes`);
   console.log(`   - ${appointments.length} Appointments`);
-  console.log(`   - ${totalCases} Cases (multiple per appointment)`);
+  console.log(`   - ${cases.length} Cases`);
   console.log(`   - ${cases.length} Exams`);
   console.log(`   - 5 Lab Tests`);
   console.log(`   - 6 Treatments`);
