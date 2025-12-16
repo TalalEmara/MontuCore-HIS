@@ -476,3 +476,47 @@ export const getUpcomingAppointmentsByAthleteId = async (athleteId: number) => {
     throw error;
   }
 };
+
+/**
+ * CONVENIENCE WRAPPER - Get all appointments for a specific case
+ * Returns: appointments related to the case (initial + follow-ups)
+ */
+export const getAppointmentsByCaseId = async (caseId: number) => {
+  try {
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        OR: [
+          { caseId: caseId }, // Follow-up appointments
+          { 
+            initialCaseDetection: {
+              id: caseId // Initial appointment where case was detected
+            }
+          }
+        ]
+      },
+      include: {
+        athlete: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true
+          }
+        },
+        clinician: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        scheduledAt: 'asc'
+      }
+    });
+
+    return appointments;
+  } catch (error) {
+    throw error;
+  }
+};

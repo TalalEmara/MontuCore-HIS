@@ -1,0 +1,29 @@
+meta {
+  name: Case View
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/case-view/1
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Complete Case View
+  
+  Retrieves comprehensive data for a specific case including:
+  - Case details with athlete and clinician information
+  - All appointments (initial + follow-ups)
+  - All treatments
+  - All physio therapy programs
+  - All lab tests
+  - All exams with images
+  
+  ## Parameters
+  - `caseId` (path): The ID of the case to retrieve
+  
+  ## Response
+  Returns a comprehensive JSON object with all related case data organized into sections.
+}
