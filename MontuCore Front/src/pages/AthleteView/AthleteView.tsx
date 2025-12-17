@@ -22,6 +22,7 @@ function AthleteView() {
 
         <div className="athlete-dashboard-grid">
           <ProfileCard 
+            className="athlete-profile-card"
             profileImage={athleteProfile}
             stats={{
               age: "40 years",
@@ -35,8 +36,7 @@ function AthleteView() {
 
           <AdjustableCard
             className="booking-card-wrapper"
-            height="190px"
-            minHeight="190px"
+            height="100%"
           >
             <div
               className="book-appointment"
@@ -48,7 +48,7 @@ function AthleteView() {
             >
               <div className="book-content">
                 <div className="book-title">
-                  Book Your Next <br /> Appointment
+                  Book Your Next Appointment
                 </div>
                 <div className="booking-description">
                   Schedule training sessions, medical checkups, or consultations
@@ -60,7 +60,15 @@ function AthleteView() {
             </div>
           </AdjustableCard>
 
-          <AdjustableCard className="medical-records-card" height="190px" minHeight="190px">
+          <AdjustableCard className="next-appointments-card" height="100%">
+            <div className="next-container">
+              <div className="next-header">
+                <h2 className="next-title">Next Appointments</h2>
+              </div>
+            </div>
+          </AdjustableCard>
+
+          <AdjustableCard className="medical-records-card" height="100%">
             <div className="medical-records-container">
               <div className="medical-records-header">
                 <h2 className="medical-records-title">Medical Records</h2>
@@ -81,15 +89,6 @@ function AthleteView() {
               </div>
             </div>
           </AdjustableCard>
-
-          <AdjustableCard className="next-appointments-card" height="190px" minHeight="190px">
-            <div className="next-container">
-              <div className="next-header">
-                <h2 className="next-title">Next Appointments</h2>
-              </div>
-            </div>
-          </AdjustableCard>
-
         </div>
       </div>
     </div>
