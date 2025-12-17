@@ -53,6 +53,11 @@ const physicianViewRoute = createRoute({
   path: "physician",
   component: PhysicianView,
 });
+const PhysiotherapistViewRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio",
+  component: PhysiotherapistView,
+});
 
 const athleteViewRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
@@ -78,7 +83,8 @@ export const DicomRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   sidebarLayoutRoute.addChildren([
     physicianViewRoute, 
-    athleteViewRoute
+    athleteViewRoute,
+    PhysiotherapistViewRoute
   ]),
   CaseRoute,
   DicomRoute
