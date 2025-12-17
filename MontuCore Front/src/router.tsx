@@ -11,6 +11,7 @@ import { useState } from "react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import PhysicianView from "./pages/PhysicianView/PhysicianView";
+import PhysiotherapistView from "./pages/PhysiotherapistView/PhysiotherapistView";
 import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
@@ -38,7 +39,8 @@ function RootLayout() {
 
             <nav style={{ display: "flex", gap: 8 , marginLeft: '1.5rem'}}>
         <Link to="/">Home</Link>
-        <Link to="/physician">physician</Link>
+        <Link to="/physician">Physician</Link>
+        <Link to="/physiotherapist">Physiotherapist</Link>
         <Link to="/case">Case</Link>
         <Link to="/athlete-viewer">Athlete Viewer</Link>
       </nav>
@@ -55,6 +57,12 @@ const physicianViewRoute = createRoute({
   component: PhysicianView,
 });
 
+const physiotherapistViewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "physiotherapist",
+  component: PhysiotherapistView,
+});
+
 const CaseRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "case",
@@ -69,6 +77,7 @@ const athleteViewRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   physicianViewRoute,
+  physiotherapistViewRoute,
   CaseRoute,
   athleteViewRoute
 ]);

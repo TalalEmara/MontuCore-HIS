@@ -1,0 +1,205 @@
+.physiotherapistViewerContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.physiotherapistMainContent {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.physiotherapistDashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 65vh auto; 
+  gap: 1.5rem;
+  padding: 0 1.75rem 1.5rem 1.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.physiotherapistProfileCard { grid-column: 1; grid-row: 1; height: 100%; }
+.appointmentsCard { grid-column: 2; grid-row: 1; height: 100%; }
+
+.activeRehabCard {
+  grid-column: 1 / 3;
+  grid-row: 2;
+  height: 31rem;
+}
+
+.appointmentsContainer {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  border: 0.0625rem solid var(--primary-color);
+  height: 100%;
+  overflow: hidden;
+}
+
+.appointmentsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 0.0625rem solid var(--primary-color);
+}
+
+.appointmentsTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  padding-left: 0.875rem;
+  position: relative;
+}
+
+.appointmentsTitle::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%; transform: translateY(-50%);
+  width: 0.375rem; height: 1.5rem;
+  background-color: var(--primary-color);
+}
+
+.appointmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: none; 
+}
+.appointmentsList::-webkit-scrollbar { display: none; }
+
+.appointmentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+cursor: pointer;
+}
+
+.appointmentRow[data-status="completed"] {
+  background: hsl(from var(--success) h s l / 0.1);
+  border-color: hsl(from var(--success) h s l / 0.2);
+  border-left: 6px solid var(--success);
+}
+.appointmentRow[data-status="upcoming"] {
+  background: hsl(from var(--accent) h s l / 0.1);
+  border-color: hsl(from var(--accent) h s l / 0.2);
+  border-left: 6px solid var(--accent);
+}
+.appointmentRow[data-status="canceled"] {
+  background: hsl(from var(--secondary-color) h s l / 0.1);
+  border-color: hsl(from var(--secondary-color) h s l / 0.2);
+  border-left: 6px solid var(--secondary-color);
+}
+
+.athleteName { font-weight: 800; color: var(--text-color); font-size: 0.95rem; }
+.appointmentDetails { font-size: 0.75rem; font-weight: 700; opacity: 0.7; }
+
+.status {
+  border-radius: 0.375rem;
+  min-width: 5.5rem;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 0.4rem;
+  text-transform: uppercase;
+}
+.status.completed { background: var(--success); color: black; }
+.status.upcoming { background: var(--accent); color: black; }
+.status.canceled { background: var(--secondary-color); color: white; }
+
+.rehabContainer {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  border: 0.0625rem solid var(--accent);
+  height: 100%;
+  overflow: hidden;
+}
+
+.rehabHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--accent);
+}
+
+.rehabTitle { font-size: 1.25rem; font-weight: 900; color: var(--text-color); text-transform: uppercase; }
+
+.addRiskBtn {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.severityColumns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  max-height: 25rem;
+}
+
+.severityColumn {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: hsl(from var(--text-color) h s l / 0.02);
+  border: 1px solid hsl(from var(--text-color) h s l / 0.08);
+  overflow: hidden;
+  height: 100%;
+}
+
+.severityHeader { display: flex; justify-content: space-between; align-items: center; padding: 1rem; flex-shrink: 0; }
+.severityColumn[data-severity="MILD"] .severityHeader { background-color: var(--success); }
+.severityColumn[data-severity="MODERATE"] .severityHeader { background-color: var(--accent); }
+.severityColumn[data-severity="SEVERE"] .severityHeader { background-color: var(--primary-color); }
+.severityColumn[data-severity="CRITICAL"] .severityHeader { background-color: var(--secondary-color); }
+
+.severityTitle { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--background-color); }
+.caseCount { background: rgba(255, 255, 255, 0.25); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; color: var(--background-color); }
+
+.casesList {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto; 
+  flex: 1;
+  scrollbar-width: none;
+}
+.casesList::-webkit-scrollbar { display: none; }
+
+.caseCard { padding: 1rem; border-radius: 8px; background: var(--background-color); border: 1px solid hsl(from var(--text-color) h s l / 0.05); }
+
+.severityColumn[data-severity="MILD"] .caseCard { border-left: 5px solid var(--success); }
+.severityColumn[data-severity="MODERATE"] .caseCard { border-left: 5px solid var(--accent); }
+.severityColumn[data-severity="SEVERE"] .caseCard { border-left: 5px solid var(--primary-color); }
+.severityColumn[data-severity="CRITICAL"] .caseCard { border-left: 5px solid var(--secondary-color); }
+
+.caseName { font-size: 0.9rem; font-weight: 800; color: var(--text-color); }
+.caseSession { font-size: 0.75rem; font-weight: 600; opacity: 0.6; }
+
+@media (max-width: 48rem) {
+  .physiotherapistDashboardGrid { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .severityColumns { grid-template-columns: 1fr; }
+  .activeRehabCard { height: auto; }
+}
