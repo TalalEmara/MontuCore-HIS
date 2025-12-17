@@ -13,23 +13,25 @@ interface UserStats {
 interface UserProfileCardProps {
   profileImage: string;
   stats: UserStats;
-  width?: string;      
-  minWidth?: string;  
-  height?: string;    
-  minHeight?: string;  
+  className?: string;
+  width?: string;
+  minWidth?: string;
+  height?: string;
+  minHeight?: string;
 }
 
 function UserProfileCard({
   profileImage,
   stats,
-  width = "100%",      
-  minWidth = "0",      
-  height = "400px",    
-  minHeight = "400px",
+  className = "",
+  width = "100%",
+  minWidth = "0",
+  height = "100%",
+  minHeight = "0",
 }: UserProfileCardProps) {
   return (
     <AdjustableCard
-      className="user-profile-card"
+      className={`user-profile-card ${className}`}
       width={width}
       minWidth={minWidth}
       height={height}

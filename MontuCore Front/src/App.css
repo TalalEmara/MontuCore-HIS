@@ -1,21 +1,31 @@
 :root {
-  --primary-color: light-dark(  #990000, #c91633);
-  --secondary-color: light-dark(#5c0606,#a50a24);
+  --primary-color: light-dark(#990000, #c91633);
+  --secondary-color: light-dark(#5c0606, #a50a24);
   --text-color: light-dark(#100a0a, #f5efef);
   --accent: light-dark(#ffae00, #ffae00);
-  --background-color: light-dark( #f4f9fb, #17121a);
-  --success: light-dark( #5FDD9D, #5FDD9D);
-
+  --background-color: light-dark(#f4f9fb, #17121a);
+  --success: light-dark(#5FDD9D, #5FDD9D);
   --hover-bg: light-dark(#9900003b, #9900003b);
+}
 
+html, body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none;
 }
 
 * {
   box-sizing: border-box;
 }
-body{
+
+body {
   margin: 0;
 }
+
 #root {
   color-scheme: dark;
   background-color: var(--background-color);
@@ -25,29 +35,44 @@ body{
   display: flex;
   min-height: 100vh;
   background-color: var(--background-color);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-container::-webkit-scrollbar {
+  display: none;
 }
 
 .main-content {
   flex: 1;
   transition: margin-left var(--transition);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
+.main-content::-webkit-scrollbar {
+  display: none;
+}
 
 .main-content.sidebar-open {
-  margin-left: 180px;
+  margin-left: 13rem;
 }
 
 .main-content.sidebar-closed {
-  margin-left: 50px;
+  margin-left: 4rem;
 }
 
-
-.test{
+.test {
   background-color: blue;
   overflow: auto;
-  /* width: 60%; */
-  /* height: 20vh; */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.test::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .main-content.sidebar-open { margin-left: 180px; }
   .main-content.sidebar-closed { margin-left: 50px; }
@@ -57,6 +82,7 @@ body{
   .main-content.sidebar-open { margin-left: 160px; }
   .main-content.sidebar-closed { margin-left: 48px; }
 }
+
 @media (max-height: 700px) {
   .main-content.sidebar-open { margin-left: 185px; }
   .main-content.sidebar-closed { margin-left: 48px; }
