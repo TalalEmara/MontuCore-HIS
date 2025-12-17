@@ -23,6 +23,7 @@ interface GetAllAppointmentsParams {
 interface GetAppointmentsFilterParams {
   clinicianId?: number;
   athleteId?: number;
+  caseId?: number;
   status?: ApptStatus;
   page?: number;
   limit?: number;
@@ -364,18 +365,20 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
       clinicianId,
       athleteId,
       status,
+      caseId,
       page = 1,
       limit = 10,
       isToday,
       dateRange
     } = filters;
 
-    const where: Prisma.AppointmentWhereInput = {};
+    const where: any = {};
 
     // Apply filters
     if (clinicianId) where.clinicianId = clinicianId;
     if (athleteId) where.athleteId = athleteId;
     if (status) where.status = status;
+    if (caseId) where.caseId = caseId;
 
     // Date filtering
     if (isToday) {
@@ -479,43 +482,16 @@ export const getUpcomingAppointmentsByAthleteId = async (athleteId: number) => {
 
 /**
  * CONVENIENCE WRAPPER - Get all appointments for a specific case
- * Returns: appointments related to the case (initial + follow-ups)
+ * Uses the base getAppointments function for consistent filtering
+ * Returns: appointments related to the case
  */
-export const getAppointmentsByCaseId = async (caseId: number) => {
+export const getAppointmentsByCaseId = async (caseId: number, page: number = 1, limit: number = 10) => {
   try {
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        OR: [
-          { caseId: caseId }, // Follow-up appointments
-          { 
-            initialCaseDetection: {
-              id: caseId // Initial appointment where case was detected
-            }
-          }
-        ]
-      },
-      include: {
-        athlete: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true
-          }
-        },
-        clinician: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true
-          }
-        }
-      },
-      orderBy: {
-        scheduledAt: 'asc'
-      }
+    return await getAppointments({
+      caseId,
+      page,
+      limit
     });
-
-    return appointments;
   } catch (error) {
     throw error;
   }

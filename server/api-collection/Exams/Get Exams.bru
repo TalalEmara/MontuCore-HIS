@@ -5,29 +5,38 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/api/exams?athleteId=&caseId=&modality=&status=&page=1&limit=10
+  url: {{baseURL}}/exams?page=1&limit=10
   body: none
-  auth: bearer
+  auth: none
 }
 
 params:query {
-  athleteId: 
-  caseId: 
-  modality: 
-  status: 
   page: 1
   limit: 10
-  ~startDate: 
-  ~endDate: 
-  ~isToday: 
-}
-
-auth:bearer {
-  token: {{authToken}}
+  ~athleteId: 
+  ~caseId: 
+  ~modality: 
+  ~status: 
 }
 
 docs {
-  Get imaging exams with optional filters:
+  # Get Exams
+  
+  Retrieves imaging exams with optional filters and pagination support.
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `athleteId` (optional): Filter by athlete ID
+  - `caseId` (optional): Filter by case ID
+  - `modality` (optional): Filter by modality (MRI, CT, X-RAY, etc.)
+  - `status` (optional): Filter by status (ORDERED, IMAGING_COMPLETE, etc.)
+  
+  ## Response
+  Returns paginated list of exams with:
+  - `exams`: Array of exam objects with images
+  - `pagination`: Object with page info (page, limit, total, totalPages)
+}
   - athleteId: Filter by athlete
   - caseId: Filter by case
   - modality: Filter by modality (MRI, CT, X-RAY, etc.)

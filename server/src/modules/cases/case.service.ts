@@ -5,7 +5,7 @@ import { get } from 'http';
 interface CaseData {
   athleteId:           number;
   managingClinicianId: number;
-  initialAppointmentId?: number; // Optional: The appointment where case was first detected
+  initialAppointmentId: number;
   diagnosisName:       string;
   icd10Code:           string | null;
   injuryDate:          Date;
@@ -19,11 +19,14 @@ interface GetAllCasesParams {
   limit?: number;
   status?: CaseStatus;
   athleteId?: number | undefined;
+  initialAppointmentId?: number | null;
 }
 
 interface GetCasesFilterParams {
+  caseId?: number;
   clinicianId?: number;
   athleteId?: number;
+  initialAppointmentId?: number | null;
   status?: CaseStatus;
   severity?: string;
   page?: number;
@@ -111,32 +114,119 @@ export const getAllCases = async ({ page = 1, limit = 10, status, athleteId }: G
 };
 
 /**
- * Get case by ID
+ * Get case by ID - Uses base getCases logic then adds extra details
  */
 export const getCaseById = async (caseId: number) => {
-  const caseData = await prisma.case.findUnique({
-    where: { id: caseId },
-    include: {
-      athlete: true,
-      managingClinician: true,
-      initialAppointment: true,
-      appointments: true,
-      exams: {
-        include: {
-          images: true
-        }
-      },
-      labTests: true,
-      treatments: true,
-      physioPrograms: true
-    }
-  });
-
-  if (!caseData) {
+  // Use base getCases function with caseId filter to ensure dependency chain
+  const result = await getCases({ caseId });
+  
+  if (!result.cases || result.cases.length === 0) {
     throw new Error('Case not found');
   }
 
-  return caseData;
+  const baseCaseData = result.cases[0];
+
+  if (!baseCaseData?.athlete?.id || !baseCaseData?.managingClinician?.id) {
+    throw new Error('Invalid case data: missing athlete or clinician information');
+  }
+
+  // Now fetch all the extra details in parallel
+  const [exams, labTests, treatments, physioPrograms, athlete, managingClinician] = await Promise.all([
+    prisma.exam.findMany({
+      where: { caseId },
+      select: {
+        id: true,
+        modality: true,
+        bodyPart: true,
+        status: true,
+        scheduledAt: true,
+        performedAt: true,
+        radiologistNotes: true,
+        conclusion: true,
+        cost: true,
+        images: {
+          select: {
+            id: true,
+            fileName: true,
+            publicUrl: true,
+            uploadedAt: true
+          }
+        }
+      }
+    }),
+    prisma.labTest.findMany({
+      where: { caseId },
+      select: {
+        id: true,
+        testName: true,
+        category: true,
+        status: true,
+        resultPdfUrl: true,
+        resultValues: true,
+        labTechnicianNotes: true,
+        sampleDate: true,
+        cost: true
+      }
+    }),
+    prisma.treatment.findMany({
+      where: { caseId },
+      select: {
+        id: true,
+        type: true,
+        description: true,
+        providerName: true,
+        date: true,
+        cost: true
+      }
+    }),
+    prisma.physioProgram.findMany({
+      where: { caseId },
+      select: {
+        id: true,
+        title: true,
+        numberOfSessions: true,
+        sessionsCompleted: true,
+        startDate: true,
+        weeklyRepetition: true,
+        costPerSession: true
+      }
+    }),
+    prisma.user.findUnique({
+      where: { id: baseCaseData.athlete.id },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        dateOfBirth: true,
+        phoneNumber: true,
+        gender: true
+      }
+    }),
+    prisma.user.findUnique({
+      where: { id: baseCaseData.managingClinician.id },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true
+      }
+    })
+  ]);
+
+  if (!athlete || !managingClinician) {
+    throw new Error('Related athlete or clinician not found');
+  }
+
+  // Combine base info with extra details
+  return {
+    ...baseCaseData,
+    athlete,
+    managingClinician,
+    exams,
+    labTests,
+    treatments,
+    physioPrograms
+  };
 };
 
 /**
@@ -248,7 +338,16 @@ export const getCases = async (filters: GetCasesFilterParams = {}) => {
           injuryDate: true,
           athlete: {
             select: {
-              fullName: true
+              id: true,
+              fullName: true,
+              email: true
+            }
+          },
+          managingClinician: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
             }
           }
         },

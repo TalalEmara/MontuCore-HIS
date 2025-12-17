@@ -111,7 +111,6 @@ model Appointment {
   // Relations
   athlete        User       @relation("AthleteAppt", fields: [athleteId], references: [id])
   clinician      User       @relation("ClinicianAppt", fields: [clinicianId], references: [id])
-  case           Case?      @relation("CaseAppointments", fields: [caseId], references: [id])
   initialCaseDetection Case? @relation("InitialCaseAppointment") // The case where this was the initial appointment (one-to-one)
   
   scheduledAt    DateTime   @map("scheduled_at")
@@ -127,13 +126,12 @@ model Case {
   id                  Int        @id @default(autoincrement())
   athleteId           Int        @map("athlete_id")
   managingClinicianId Int        @map("managing_clinician_id")
-  initialAppointmentId Int?      @unique @map("initial_appointment_id") // The appointment where case was first detected (one-to-one)
+  initialAppointmentId Int      @unique @map("initial_appointment_id") // The appointment where case was first detected (one-to-one)
 
   // Relations
   athlete             User       @relation("AthleteCase", fields: [athleteId], references: [id])
   managingClinician   User       @relation("ManagingClinician", fields: [managingClinicianId], references: [id])
-  initialAppointment  Appointment? @relation("InitialCaseAppointment", fields: [initialAppointmentId], references: [id])
-  appointments        Appointment[] @relation("CaseAppointments") // One case can have many follow-up appointments
+  initialAppointment  Appointment @relation("InitialCaseAppointment", fields: [initialAppointmentId], references: [id])
 
   diagnosisName       String      @map("diagnosis_name") // "ACL Tear", "Concussion"
   icd10Code           String?     @map("icd10_code")

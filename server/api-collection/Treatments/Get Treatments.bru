@@ -5,29 +5,36 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/api/treatments?athleteId=&caseId=&type=&page=1&limit=10
+  url: {{baseURL}}/treatments?page=1&limit=10
   body: none
-  auth: bearer
+  auth: none
 }
 
 params:query {
-  athleteId: 
-  caseId: 
-  type: 
   page: 1
   limit: 10
-  ~startDate: 
-  ~endDate: 
-}
-
-auth:bearer {
-  token: {{authToken}}
+  ~athleteId: 
+  ~caseId: 
+  ~type: 
 }
 
 docs {
-  Get treatments with optional filters:
-  - athleteId: Filter by athlete
-  - caseId: Filter by case
+  # Get Treatments
+  
+  Retrieves treatments with optional filters and pagination support.
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `athleteId` (optional): Filter by athlete ID
+  - `caseId` (optional): Filter by case ID
+  - `type` (optional): Filter by treatment type
+  
+  ## Response
+  Returns paginated list of treatments with:
+  - `treatments`: Array of treatment objects
+  - `pagination`: Object with page info (page, limit, total, totalPages)
+}
   - type: Filter by treatment type
   - page: Page number (default: 1)
   - limit: Items per page (default: 10)
