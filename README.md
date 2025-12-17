@@ -1,6 +1,4 @@
 # MontuCore-HIS
-Here is the revised `README.md` following your specific structure request.
-
 ***
 
 # MontuCore HIS (Sports Health Information System)
