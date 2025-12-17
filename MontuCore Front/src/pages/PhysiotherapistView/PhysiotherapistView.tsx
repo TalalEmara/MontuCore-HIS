@@ -5,7 +5,6 @@ import TopBar from "../../components/level-1/TopBar/TopBar";
 import styles from "./PhysiotherapistView.module.css";
 import physiotherapistProfile from "../../assets/images/physiotherapist.webp";
 
-// Import the new component
 import RiskNotesPanel from "../../components/level-1/RiskNotesPanel/RiskNotesPanel"; 
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
@@ -24,7 +23,6 @@ interface Appointment {
 }
 
 const PhysiotherapistView: React.FC = () => {
-  // --- State ---
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
   
   const [activeRehabCases] = useState<RehabCase[]>([
@@ -59,12 +57,11 @@ const PhysiotherapistView: React.FC = () => {
 
   const severityLevels: Severity[] = ["MILD", "MODERATE", "SEVERE", "CRITICAL"];
 
-  // --- Memoized Data ---
   
   const PatientList = useMemo(() => [
     { label: "Cristiano Ronaldo", value: "1" },
     { label: "Mohamed Salah", value: "2" },
-    { label: "Neymar Jr", value: "3" },
+    { label: "Neymar", value: "3" },
     { label: "Leo Messi", value: "4" },
     { label: "Kylian Mbappe", value: "5" }
   ], []);
@@ -84,7 +81,6 @@ const PhysiotherapistView: React.FC = () => {
     return grouped;
   }, [activeRehabCases]);
 
-  // --- Callbacks ---
   const handleAddRiskNotes = useCallback(() => {
     setRiskModalOpen(true);
   }, []);
@@ -156,7 +152,6 @@ const PhysiotherapistView: React.FC = () => {
         </div>
       </div>
 
-      {/* Risk Notes Popup Modal - Now using PatientList */}
       <RiskNotesPanel 
         isOpen={isRiskModalOpen} 
         onClose={() => setRiskModalOpen(false)} 
@@ -166,7 +161,6 @@ const PhysiotherapistView: React.FC = () => {
   );
 };
 
-// --- Sub-Components ---
 
 const SeverityColumn = React.memo<{
   severity: Severity;
