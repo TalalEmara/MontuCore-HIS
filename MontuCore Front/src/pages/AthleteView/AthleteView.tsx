@@ -1,43 +1,56 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import Button from "../../components/level-0/Button/Bottom";
 import ProfileCard from "../../components/level-1/userProfileCard/userProfileCard";
-import bookAppointment from '../../assets/images/bookAppointment.webp';
-import athleteProfile from '../../assets/images/Cristiano Ronaldo.webp';
+import bookAppointment from "../../assets/images/bookAppointment.webp";
+import athleteProfile from "../../assets/images/Cristiano Ronaldo.webp";
 
 import "./AthleteView.css";
+import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState("reports");
+  const [currentPage, setPage] = useState(1);
+
+  
+  const athleteData = {
+    fullName: "Cristiano Ronaldo",
+    position: "Forward",
+    id: 3,
+    jerseyNumber: 7,
+    height: 185, //cm
+    weight: 72 ,//Kg
+    status: "Fit",
+  };
+const {dashboard, 
+    message, 
+    isLoading, 
+    isError, 
+    error} =useAthleteDashboard(athleteData.id, currentPage , 4)
 
   return (
     <div className="athlete-viewer-container">
       <div className="athlete-main-content">
-        <TopBar
-          Name="Ronaldo"
-          Role="Forward"
-          jerseyNumber="10"
-        />
+        <TopBar Name={athleteData.fullName} Role={athleteData.position} jerseyNumber={athleteData.jerseyNumber} />
 
         <div className="athlete-dashboard-grid">
-          <ProfileCard 
+          <ProfileCard
             className="athlete-profile-card"
             profileImage={athleteProfile}
             stats={{
+              // still no AGE
+              id: athleteData.id ,
               age: "40 years",
-              height: "185 cm",
-              weight: "72 kg",
-              status: "Fit",
-              role: "Forward",
-              jersey: "#10",
+              height: athleteData.height +" cm",
+              weight: athleteData.weight + " kg",
+              status: athleteData.status,
+              role: athleteData.position,
+              jersey: `#${athleteData.jerseyNumber}`,
             }}
           />
 
-          <AdjustableCard
-            className="booking-card-wrapper"
-            height="100%"
-          >
+          <AdjustableCard className="booking-card-wrapper" height="100%">
             <div
               className="book-appointment"
               style={{
@@ -47,13 +60,11 @@ function AthleteView() {
               }}
             >
               <div className="book-content">
-                <div className="book-title">
-                  Book Your Next Appointment
-                </div>
+                <div className="book-title">Book Your Next Appointment</div>
                 <div className="booking-description">
                   Schedule training sessions, medical checkups, or consultations
                 </div>
-                <Button variant="primary" height="35px" >
+                <Button variant="primary" height="35px">
                   SCHEDULE NOW ➜
                 </Button>
               </div>
@@ -65,6 +76,7 @@ function AthleteView() {
               <div className="next-header">
                 <h2 className="next-title">Next Appointments</h2>
               </div>
+              
             </div>
           </AdjustableCard>
 

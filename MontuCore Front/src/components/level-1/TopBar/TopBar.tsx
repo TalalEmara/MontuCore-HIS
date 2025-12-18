@@ -4,7 +4,7 @@ import './TopBar.css';
 interface TopBarProps {
   Name?: string;
   Role?: string;
-  jerseyNumber?: string;
+  jerseyNumber?: number;
 }
 
 const TopBar: React.FC<TopBarProps> = ({

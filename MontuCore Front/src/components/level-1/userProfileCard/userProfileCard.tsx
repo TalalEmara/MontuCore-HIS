@@ -2,6 +2,7 @@ import AdjustableCard from "../AdjustableCard/AdjustableCard";
 import "./userProfileCard.css";
 
 interface UserStats {
+  id?: number;
   age?: string;
   height?: string;
   weight?: string;
