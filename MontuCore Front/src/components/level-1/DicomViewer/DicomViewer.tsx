@@ -183,11 +183,26 @@ const DicomViewer: React.FC<DicomViewerProps> = ({
       viewport.render();
     }
   }, [activePreset, isReady, viewportId]);
+useEffect(() => {
+    if (!elementRef.current || !renderingEngineRef.current) return;
 
+    const resizeObserver = new ResizeObserver(() => {
+      if (renderingEngineRef.current) {
+        // Tells the engine to look at the DOM size and update the canvas size
+        renderingEngineRef.current.resize(true, false);
+      }
+    });
+
+    resizeObserver.observe(elementRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isReady]); // Re-run if ready state changes to ensure engine exist
   return (
     <div 
       ref={elementRef} 
-      style={{ width: '100%', height: '100%'}}
+      style={{ width: '100%', height: '100%', overflow: 'hidden'}}
       onContextMenu={(e) => e.preventDefault()} 
     />
   );
