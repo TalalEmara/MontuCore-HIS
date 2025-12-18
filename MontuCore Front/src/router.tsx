@@ -69,7 +69,7 @@ const athleteViewRoute = createRoute({
 // Added $caseId parameter
 export const CaseRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "case/$caseId", 
+  path: "cases/$caseId", 
   component: CaseView,
 });
 
