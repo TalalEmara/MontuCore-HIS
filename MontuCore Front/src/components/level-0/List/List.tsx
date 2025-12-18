@@ -4,7 +4,7 @@ import styles from './List.module.css';
 
 type ListProps = {
   header: string[];
-  data: React.ReactNode[][];
+  data: React.ReactNode[][] | string[][] | undefined;
   gridTemplateColumns?: string;
   listClassName?: string;
   headerClassName?: string;
@@ -24,7 +24,7 @@ function List({
     () => (gridTemplateColumns ? { gridTemplateColumns } : undefined),
     [gridTemplateColumns]
   );
-
+  const safeData = data || [];
   return (
     <div className={`${styles.container} ${listClassName ?? ''}`}>
       <table className={styles.list}>
@@ -41,7 +41,7 @@ function List({
           </tr>
         </thead>
         <tbody>
-          {data.map((row, i) => (
+          {safeData.map((row, i) => (
             <tr
               key={i}
               className={`${styles.row} ${rowClassName ?? ''}`}

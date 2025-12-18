@@ -8,31 +8,43 @@ import athleteProfile from "../../assets/images/Cristiano Ronaldo.webp";
 
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
+import List from "../../components/level-0/List/List";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState("reports");
   const [currentPage, setPage] = useState(1);
 
-  
   const athleteData = {
     fullName: "Cristiano Ronaldo",
     position: "Forward",
     id: 3,
     jerseyNumber: 7,
     height: 185, //cm
-    weight: 72 ,//Kg
+    weight: 72, //Kg
     status: "Fit",
   };
-const {dashboard, 
-    message, 
-    isLoading, 
-    isError, 
-    error} =useAthleteDashboard(athleteData.id, currentPage , 4)
+  const { dashboard, message, isLoading, isError, error } = useAthleteDashboard(
+    athleteData.id,
+    currentPage,
+    4
+  );
+
+  const appointments = dashboard?.upcomingAppointments.appointments.map(
+    (appt,indx) => [
+      indx+1, // Added ID to match header
+      appt.clinician?.fullName || "Unassigned", 
+      new Date(appt.scheduledAt).toLocaleDateString(), 
+    ]
+  ) || [];
 
   return (
     <div className="athlete-viewer-container">
       <div className="athlete-main-content">
-        <TopBar Name={athleteData.fullName} Role={athleteData.position} jerseyNumber={athleteData.jerseyNumber} />
+        <TopBar
+          Name={athleteData.fullName}
+          Role={athleteData.position}
+          jerseyNumber={athleteData.jerseyNumber}
+        />
 
         <div className="athlete-dashboard-grid">
           <ProfileCard
@@ -40,9 +52,9 @@ const {dashboard,
             profileImage={athleteProfile}
             stats={{
               // still no AGE
-              id: athleteData.id ,
+              id: athleteData.id,
               age: "40 years",
-              height: athleteData.height +" cm",
+              height: athleteData.height + " cm",
               weight: athleteData.weight + " kg",
               status: athleteData.status,
               role: athleteData.position,
@@ -76,7 +88,8 @@ const {dashboard,
               <div className="next-header">
                 <h2 className="next-title">Next Appointments</h2>
               </div>
-              
+
+              <List header={["", "Clicincian", "Date"]} data={appointments} gridTemplateColumns=".2fr 1fr 1fr" />
             </div>
           </AdjustableCard>
 

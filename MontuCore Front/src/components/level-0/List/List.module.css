@@ -14,8 +14,6 @@
 .list {
   width: 100%;
   border-collapse: collapse;
-  /* Ensure min-width prevents columns from collapsing to 0 on mobile */
-  min-width: 600px; 
 }
 
 /* We apply display: grid to the TR elements. 
