@@ -11,7 +11,7 @@ import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import List from "../../components/level-0/List/List";
 
 function AthleteView() {
-  const [activeTab, setActiveTab] = useState("reports");
+  const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
 
   const athleteData = {
@@ -37,6 +37,22 @@ function AthleteView() {
     ]
   ) || [];
 
+  const medicalRecords = {
+    reports: [
+      [1, "Physical Examination Report", "Dec 15, 2024"],
+      [2, "Annual Health Checkup", "Nov 28, 2024"],
+    ],
+    prescriptions: [
+      [1, "Recovery Supplements", "Dec 10, 2024"],
+    ],
+    imaging: [
+      [1, "Knee MRI Scan", "Nov 20, 2024"],
+    ],
+    "Lab tests": [
+      [1, "Blood Test Results", "Dec 5, 2024"],
+    ]
+  };
+
   return (
     <div className="athlete-viewer-container">
       <div className="athlete-main-content">
@@ -51,7 +67,6 @@ function AthleteView() {
             className="athlete-profile-card"
             profileImage={athleteProfile}
             stats={{
-              // still no AGE
               id: athleteData.id,
               age: "40 years",
               height: athleteData.height + " cm",
@@ -89,7 +104,21 @@ function AthleteView() {
                 <h2 className="next-title">Next Appointments</h2>
               </div>
 
-              <List header={["", "Clicincian", "Date"]} data={appointments} gridTemplateColumns=".2fr 1fr 1fr" />
+              <div className="appointments-list">
+                {appointments.length > 0 ? (
+                  appointments.map((appt, idx) => (
+                    <div key={idx} className="appointment-item">
+                      <div className="appointment-index">{appt[0]}</div>
+                      <div className="appointment-details">
+                        <div className="appointment-clinician">{appt[1]}</div>
+                        <div className="appointment-date">{appt[2]}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-appointments">No upcoming appointments</div>
+                )}
+              </div>
             </div>
           </AdjustableCard>
 
@@ -100,17 +129,31 @@ function AthleteView() {
               </div>
 
               <div className="medical-records-tabs">
-                {["reports", "prescriptions", "imaging"].map((tab) => (
+                {["reports", "prescriptions", "imaging", "Lab tests"].map((tab) => (
                   <div
                     key={tab}
                     className={`medical-records-tab ${
                       activeTab === tab ? "active" : ""
                     }`}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => setActiveTab(tab as typeof activeTab)}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </div>
                 ))}
+              </div>
+
+              <div className="medical-records-content">
+                <div className="records-list">
+                  {medicalRecords[activeTab]?.map((record, idx) => (
+                    <div key={idx} className="record-item">
+                      <div className="record-number">{record[0]}</div>
+                      <div className="record-details">
+                        <div className="record-name">{record[1]}</div>
+                        <div className="record-date">{record[2]}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </AdjustableCard>
