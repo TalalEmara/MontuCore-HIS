@@ -1,5 +1,7 @@
-import { ApptStatus, Prisma } from '@prisma/client';
-import { prisma } from '../../config/db.js';
+import { PrismaClient, ApptStatus, Prisma } from '@prisma/client';
+import { prisma } from '../../index.js'
+import * as billingService from '../billing/billing.service.js';
+//const prisma = new PrismaClient();
 
 interface AppointmentData {
   athleteId: number;
@@ -19,6 +21,7 @@ interface GetAllAppointmentsParams {
   clinicianName: string;
   date?: string;
 }
+
 
 interface GetAppointmentsFilterParams {
   clinicianId?: number;
@@ -124,56 +127,61 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
 }
 
 
-export const updateAppointmentStatus  = async(appointmentID: number, status: ApptStatus) => {
-  try{
+export const updateAppointmentStatus = async (appointmentID: number, status: ApptStatus) => {
+  try {
     const appointment = await prisma.appointment.findUnique({
-      where: {
-        id: appointmentID
-      }
+      where: { id: appointmentID },
     });
-    if (!appointment){
+
+    if (!appointment) {
       throw new Error('Appointment not found');
     }
 
     const updatedAppointment = await prisma.appointment.update({
-      where: {
-        id: appointmentID
-      },
-      data: {
-        status: status
-      }
+      where: { id: appointmentID },
+      data: { status },
     });
 
-    if(!updatedAppointment){
-      throw new Error('Failed to update appointment status');
+    // Auto-create invoice if appointment is COMPLETED
+    if (status === ApptStatus.COMPLETED) {
+      const invoiceData: any = {
+        athleteId: appointment.athleteId,
+        clinicianId: appointment.clinicianId,
+        appointmentId: appointment.id,
+        items: [
+          {
+            quantity: 1,
+            unitPrice: 0,
+            description: 'Appointment services (covered by insurance)',
+          },
+        ],
+        notes: 'Automatically generated invoice for completed appointment',
+        createdBy: appointment.clinicianId,
+        caseId: appointment.caseId ?? undefined, // safely add caseId if exists
+      };
+
+      await billingService.createInvoice(invoiceData);
     }
-    
+
+    // Return the usual response
     const responseData = {
-      "Athelte Name" : await prisma.user.findUnique({
-        where: {
-          id: appointment.athleteId}
-        }
-        )?.then(athlete => athlete?.fullName),
+      "Athlete Name": await prisma.user
+        .findUnique({ where: { id: appointment.athleteId } })
+        ?.then((athlete) => athlete?.fullName),
+      "Clinician Name": await prisma.user
+        .findUnique({ where: { id: appointment.clinicianId } })
+        ?.then((clinician) => clinician?.fullName),
+      "Scheduled At": appointment.scheduledAt,
+      "Status": updatedAppointment.status,
+      "Diagnosis Notes": appointment.diagnosisNotes,
+    };
 
-
-      "Clinician Name" : await prisma.user.findUnique({
-        where: {
-          id: appointment.clinicianId}
-        })?.then(clinician => clinician?.fullName),
-
-
-      "Scheduled At" : appointment.scheduledAt,
-      "Status" : appointment.status,
-      "Diagnosis Notes" : appointment.diagnosisNotes
-    }
-    
     return responseData;
-  }
-
-  catch(error){
+  } catch (error) {
     return error;
   }
-}
+};
+
 
 
 export const getAppointment = async(appointmentID: number) => {
@@ -350,7 +358,9 @@ export const getAllAppointmentsByClinician = async({ page = 1, limit = 10, statu
   catch(error){
     return error;
   }
-}
+} 
+
+
 
 /**
  * FLEXIBLE BASE FUNCTION - Get appointments with multiple filter options
