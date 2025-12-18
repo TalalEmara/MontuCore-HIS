@@ -19,28 +19,41 @@ function List({
   headerClassName,
   rowClassName,
 }: ListProps) {
-  return (
-    <div className={`${styles.list} ${listClassName ?? ''}`}>
-      <div
-        className={`${styles.listHeader} ${headerClassName ?? ''}`}
-        style={{ gridTemplateColumns }}
-      >
-        {header.map((h) => (
-          <div key={h}>{h}</div>
-        ))}
-      </div>
+  // Memoize style to avoid unnecessary re-renders
+  const rowStyle = React.useMemo(
+    () => (gridTemplateColumns ? { gridTemplateColumns } : undefined),
+    [gridTemplateColumns]
+  );
 
-      {data.map((row, i) => (
-        <div
-          key={i}
-          className={`${styles.row} ${rowClassName ?? ''}`}
-          style={{ gridTemplateColumns }}
-        >
-          {row.map((cell, j) => (
-            <div key={j}>{cell}</div>
+  return (
+    <div className={`${styles.container} ${listClassName ?? ''}`}>
+      <table className={styles.list}>
+        <thead>
+          <tr
+            className={`${styles.headerRow} ${headerClassName ?? ''}`}
+            style={rowStyle}
+          >
+            {header.map((h, i) => (
+              <th key={i} title={typeof h === 'string' ? h : undefined}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr
+              key={i}
+              className={`${styles.row} ${rowClassName ?? ''}`}
+              style={rowStyle}
+            >
+              {row.map((cell, j) => (
+                <td key={j}>{cell}</td>
+              ))}
+            </tr>
           ))}
-        </div>
-      ))}
+        </tbody>
+      </table>
     </div>
   );
 }
