@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import * as appointmentService from '../modules/appointments/appointment.service.js';
+import * as appointmentService from './appointment.service.js';
 
 
 export const createAppointment = async (req: Request, res: Response): Promise<void> => {
