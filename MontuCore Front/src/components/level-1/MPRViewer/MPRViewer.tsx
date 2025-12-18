@@ -52,7 +52,6 @@ const VIEWPORT_IDS = {
   SAGITTAL: "SAGITTAL",
 
   CORONAL: "CORONAL",
-
 };
 
 export const MPRViewer: React.FC<MPRViewerProps> = ({
@@ -103,7 +102,6 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({
 
       addToolSafe(CrosshairsTool);
 
-
       const loadPromises = imageIds.map((imageId) =>
         imageLoader.loadAndCacheImage(imageId)
       );
@@ -121,8 +119,6 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({
       const renderingEngine = new RenderingEngine(RENDERING_ENGINE_ID);
 
       renderingEngineRef.current = renderingEngine;
-
-
 
       const viewportInput: Types.PublicViewportInput[] = [
         {
@@ -254,11 +250,7 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({
 
         [{ volumeId: VOLUME_ID }],
 
-        [
-          VIEWPORT_IDS.AXIAL,
-          VIEWPORT_IDS.SAGITTAL,
-          VIEWPORT_IDS.CORONAL,
-        ] // <--- NEW
+        [VIEWPORT_IDS.AXIAL, VIEWPORT_IDS.SAGITTAL, VIEWPORT_IDS.CORONAL] // <--- NEW
       );
 
       renderingEngine.render();
@@ -358,7 +350,6 @@ export const MPRViewer: React.FC<MPRViewerProps> = ({
           refProp={coronalRef}
           color="#5FDD9D"
         />
-
       </div>
     </div>
   );

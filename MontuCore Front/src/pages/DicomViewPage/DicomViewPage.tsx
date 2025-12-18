@@ -136,6 +136,11 @@ function DicomViewPage() {
                     imageIds={activeViewportData.imageIds}
                     activeTool={activeTool}
                  />
+
+                //   <DicomViewer3D
+                //     imageIds={activeViewportData.imageIds}
+                //     // activeTool={activeTool}
+                //  />
              ) : <></>}
         </div>
       )}
