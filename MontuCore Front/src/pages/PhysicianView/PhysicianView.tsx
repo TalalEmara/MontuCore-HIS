@@ -4,8 +4,24 @@ import ProfileCard from "../../components/level-1/userProfileCard/userProfileCar
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import styles from "./PhysicianView.module.css";
 import physicianProfile from '../../assets/images/physician.webp';
+import { email } from "zod";
+import { usePhysicianDashboard } from "../../hooks/usePhysicianDashboard";
 
 const PhysicianView: React.FC = () => {
+  const physicianData = {
+    fullName: "Olivia Black",
+    id: 2,
+    email: "olivia@physician.com"
+  }
+  const[cuurentPage,setPage] = useState(1)
+  const { 
+    dashboard, 
+    message, 
+    isLoading, 
+    isPlaceholderData 
+  } = usePhysicianDashboard(physicianData.id, cuurentPage, 4);
+
+
   const [urgentCases] = useState([
     { id: "1", athleteName: "Cristiano Ronaldo", injury: "Knee Strain", priority: "urgent" },
     { id: "2", athleteName: "Mohamed Salah", injury: "Hamstring Injury", priority: "high" },
@@ -15,14 +31,14 @@ const PhysicianView: React.FC = () => {
     { id: "6", athleteName: "Famous", injury: "Shoulder Strain", priority: "low" },
   ]);
 
-  const [todaySchedule] = useState([
-    { athleteName: "Cristiano Ronaldo", type: "Follow-up", status: "completed" },
-    { athleteName: "Mohamed Salah", type: "Assessment", status: "upcoming" },
-    { athleteName: "Neymar", type: "Rehab", status: "completed" },
-    { athleteName: "Leo", type: "Checkup", status: "upcoming" },
-    { athleteName: "Messi", type: "Physio", status: "completed" },
-    { athleteName: "Famous", type: "Treatment", status: "upcoming" },
-  ]);
+  // const [todaySchedule] = useState([
+  //   { athleteName: "Cristiano Ronaldo", type: "Follow-up", status: "completed" },
+  //   { athleteName: "Mohamed Salah", type: "Assessment", status: "upcoming" },
+  //   { athleteName: "Neymar", type: "Rehab", status: "completed" },
+  //   { athleteName: "Leo", type: "Checkup", status: "upcoming" },
+  //   { athleteName: "Messi", type: "Physio", status: "completed" },
+  //   { athleteName: "Famous", type: "Treatment", status: "upcoming" },
+  // ]);
 
   const [physioNotes] = useState([
     { athleteName: "Cristiano Ronaldo", note: "Mild fatigue, monitor next session" },
@@ -76,12 +92,13 @@ const PhysicianView: React.FC = () => {
                 <h2 className={styles.scheduleTitle}>Today's Schedule</h2>
               </div>
               <div className={styles.scheduleList}>
-                {todaySchedule.map(({ athleteName, type, status }, idx) => (
+                {dashboard?.todaysAppointments.appointments.map((appointment, idx) => (
                   <div key={idx} className={styles.scheduleRow}>
                     <div className={styles.scheduleInfo}>
-                      <span className={styles.athleteName}>{athleteName}</span> - <span>{type}</span>
+                      {/* <span className={styles.athleteName}>{appointment.athlete.fullName}</span> - <span>{type}</span> */}
+                      <span className={styles.athleteName}>{appointment.athlete.fullName}</span>
                     </div>
-                    <div className={`${styles.status} ${styles[status]}`}>{status}</div>
+                    <div className={`${styles.status} ${styles[appointment.status]}`}>{appointment.status}</div>
                   </div>
                 ))}
               </div>
