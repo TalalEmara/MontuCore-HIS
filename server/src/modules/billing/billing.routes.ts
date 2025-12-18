@@ -1,49 +1,31 @@
 import express, { Router } from 'express';
-import * as billingController from './billing.controller';
-import { authenticateToken } from '../../middleware/auth';
+import * as billingController from './billing.controller.js';
+import { authenticateToken } from '../../middleware/auth.js';
 
 const router: Router = express.Router();
 
-/**
- * @route   POST /api/billing/invoices
- * @desc    Create a new invoice
- * @access  Private
+/***
+ * @route POST /api/billing/invoices
+ * @desc Create a new invoice
+ * @access Protected
  */
 router.post('/invoices', authenticateToken, billingController.createInvoice);
 
-/**
- * @route   GET /api/billing/invoices
- * @desc    Get all invoices
- * @access  Private
+/***
+ * @route GET /api/billing/invoices
+ * @desc Get all invoices
+ * @access Protected
  */
 router.get('/invoices', authenticateToken, billingController.getAllInvoices);
 
-/**
- * @route   GET /api/billing/invoices/:id
- * @desc    Get invoice by ID
- * @access  Private
+/***
+ * @route GET /api/billing/invoices/:id
+ * @desc Get invoice by ID
+ * @access Protected
  */
 router.get('/invoices/:id', authenticateToken, billingController.getInvoiceById);
 
-/**
- * @route   PUT /api/billing/invoices/:id
- * @desc    Update invoice
- * @access  Private
- */
-router.put('/invoices/:id', authenticateToken, billingController.updateInvoice);
-
-/**
- * @route   POST /api/billing/invoices/:id/payments
- * @desc    Record payment
- * @access  Private
- */
-router.post('/invoices/:id/payments', authenticateToken, billingController.recordPayment);
-
-/**
- * @route   GET /api/billing/patients/:patientId/summary
- * @desc    Get patient billing summary
- * @access  Private
- */
-router.get('/patients/:patientId/summary', authenticateToken, billingController.getPatientBillingSummary);
 
 export default router;
+
+
