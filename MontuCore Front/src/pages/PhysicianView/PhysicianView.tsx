@@ -91,9 +91,7 @@ const PhysicianView: React.FC = () => {
                   {dashboard?.criticalCases.cases.map((criticalCase) => (
                     <div
                       key={criticalCase.id}
-                      className={`${styles.caseRow} ${
-                        styles[criticalCase.severity]
-                      }`}
+                      className={`${styles.caseRow}`}
                     >
                       <div className={styles.caseName}>
                         {criticalCase.athlete.fullName}
