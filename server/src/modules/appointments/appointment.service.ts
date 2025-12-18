@@ -1,5 +1,7 @@
-import { ApptStatus, Prisma } from '@prisma/client';
-import { prisma } from '../../config/db.js';
+import { PrismaClient, ApptStatus, Prisma } from '@prisma/client';
+import { prisma } from '../../index.js'
+import * as billingService from '../billing/billing.service.js';
+//const prisma = new PrismaClient();
 
 interface AppointmentData {
   athleteId: number;
@@ -18,17 +20,6 @@ interface GetAllAppointmentsParams {
   athleteName: string;
   clinicianName: string;
   date?: string;
-}
-
-interface GetAppointmentsFilterParams {
-  clinicianId?: number;
-  athleteId?: number;
-  caseId?: number;
-  status?: ApptStatus;
-  page?: number;
-  limit?: number;
-  isToday?: boolean;
-  dateRange?: { startDate: Date; endDate: Date };
 }
 
 /**
@@ -124,56 +115,61 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
 }
 
 
-export const updateAppointmentStatus  = async(appointmentID: number, status: ApptStatus) => {
-  try{
+export const updateAppointmentStatus = async (appointmentID: number, status: ApptStatus) => {
+  try {
     const appointment = await prisma.appointment.findUnique({
-      where: {
-        id: appointmentID
-      }
+      where: { id: appointmentID },
     });
-    if (!appointment){
+
+    if (!appointment) {
       throw new Error('Appointment not found');
     }
 
     const updatedAppointment = await prisma.appointment.update({
-      where: {
-        id: appointmentID
-      },
-      data: {
-        status: status
-      }
+      where: { id: appointmentID },
+      data: { status },
     });
 
-    if(!updatedAppointment){
-      throw new Error('Failed to update appointment status');
+    // Auto-create invoice if appointment is COMPLETED
+    if (status === ApptStatus.COMPLETED) {
+      const invoiceData: any = {
+        athleteId: appointment.athleteId,
+        clinicianId: appointment.clinicianId,
+        appointmentId: appointment.id,
+        items: [
+          {
+            quantity: 1,
+            unitPrice: 0,
+            description: 'Appointment services (covered by insurance)',
+          },
+        ],
+        notes: 'Automatically generated invoice for completed appointment',
+        createdBy: appointment.clinicianId,
+        caseId: appointment.caseId ?? undefined, // safely add caseId if exists
+      };
+
+      await billingService.createInvoice(invoiceData);
     }
-    
+
+    // Return the usual response
     const responseData = {
-      "Athelte Name" : await prisma.user.findUnique({
-        where: {
-          id: appointment.athleteId}
-        }
-        )?.then(athlete => athlete?.fullName),
+      "Athlete Name": await prisma.user
+        .findUnique({ where: { id: appointment.athleteId } })
+        ?.then((athlete) => athlete?.fullName),
+      "Clinician Name": await prisma.user
+        .findUnique({ where: { id: appointment.clinicianId } })
+        ?.then((clinician) => clinician?.fullName),
+      "Scheduled At": appointment.scheduledAt,
+      "Status": updatedAppointment.status,
+      "Diagnosis Notes": appointment.diagnosisNotes,
+    };
 
-
-      "Clinician Name" : await prisma.user.findUnique({
-        where: {
-          id: appointment.clinicianId}
-        })?.then(clinician => clinician?.fullName),
-
-
-      "Scheduled At" : appointment.scheduledAt,
-      "Status" : appointment.status,
-      "Diagnosis Notes" : appointment.diagnosisNotes
-    }
-    
     return responseData;
-  }
-
-  catch(error){
+  } catch (error) {
     return error;
   }
-}
+};
+
 
 
 export const getAppointment = async(appointmentID: number) => {
@@ -350,149 +346,4 @@ export const getAllAppointmentsByClinician = async({ page = 1, limit = 10, statu
   catch(error){
     return error;
   }
-}
-
-/**
- * FLEXIBLE BASE FUNCTION - Get appointments with multiple filter options
- * Supports: clinician, athlete, status, pagination, date filtering
- * @example getAppointments({ clinicianId: 1, isToday: true })
- * @example getAppointments({ athleteId: 5, status: 'SCHEDULED' })
- * @example getAppointments({ clinicianId: 1, dateRange: { startDate: new Date(), endDate: new Date() } })
- */
-export const getAppointments = async (filters: GetAppointmentsFilterParams = {}) => {
-  try {
-    const {
-      clinicianId,
-      athleteId,
-      status,
-      caseId,
-      page = 1,
-      limit = 10,
-      isToday,
-      dateRange
-    } = filters;
-
-    const where: any = {};
-
-    // Apply filters
-    if (clinicianId) where.clinicianId = clinicianId;
-    if (athleteId) where.athleteId = athleteId;
-    if (status) where.status = status;
-    if (caseId) where.caseId = caseId;
-
-    // Date filtering
-    if (isToday) {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-      where.scheduledAt = {
-        gte: startOfDay,
-        lte: endOfDay
-      };
-    } else if (dateRange) {
-      where.scheduledAt = {
-        gte: dateRange.startDate,
-        lte: dateRange.endDate
-      };
-    }
-
-    const skip = (page - 1) * limit;
-
-    const [appointments, total] = await Promise.all([
-      prisma.appointment.findMany({
-        where,
-        select: {
-          id: true,
-          scheduledAt: true,
-          height: true,
-          weight: true,
-          status: true,
-          diagnosisNotes: true,
-          athlete: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true
-            }
-          },
-          clinician: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true
-            }
-          }
-        },
-        skip,
-        take: limit,
-        orderBy: {
-          scheduledAt: 'asc'
-        }
-      }),
-      prisma.appointment.count({ where })
-    ]);
-
-    return {
-      appointments,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * CONVENIENCE WRAPPER - Get appointments for clinician for today only
- */
-export const getTodaysAppointmentsByClinicianId = async (clinicianId: number) => {
-  try {
-    const result = await getAppointments({
-      clinicianId,
-      isToday: true
-    });
-
-    return result.appointments;
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * CONVENIENCE WRAPPER - Get upcoming appointments for athlete
- * Returns: appointment id, scheduled at, physician name and role
- */
-export const getUpcomingAppointmentsByAthleteId = async (athleteId: number) => {
-  try {
-    const now = new Date();
-    const result = await getAppointments({
-      athleteId,
-      status: ApptStatus.SCHEDULED,
-      dateRange: { startDate: now, endDate: new Date('2100-01-01') } // Far future date
-    });
-    return result.appointments;
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * CONVENIENCE WRAPPER - Get all appointments for a specific case
- * Uses the base getAppointments function for consistent filtering
- * Returns: appointments related to the case
- */
-export const getAppointmentsByCaseId = async (caseId: number, page: number = 1, limit: number = 10) => {
-  try {
-    return await getAppointments({
-      caseId,
-      page,
-      limit
-    });
-  } catch (error) {
-    throw error;
-  }
-};
+} 
