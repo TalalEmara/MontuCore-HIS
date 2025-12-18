@@ -22,23 +22,6 @@ const PhysicianView: React.FC = () => {
   } = usePhysicianDashboard(physicianData.id, cuurentPage, 4);
 
 
-  const [urgentCases] = useState([
-    { id: "1", athleteName: "Cristiano Ronaldo", injury: "Knee Strain", priority: "urgent" },
-    { id: "2", athleteName: "Mohamed Salah", injury: "Hamstring Injury", priority: "high" },
-    { id: "3", athleteName: "Neymar", injury: "Ankle Sprain", priority: "medium" },
-    { id: "4", athleteName: "Leo", injury: "Muscle Fatigue", priority: "medium" },
-    { id: "5", athleteName: "Messi", injury: "Back Pain", priority: "high" },
-    { id: "6", athleteName: "Famous", injury: "Shoulder Strain", priority: "low" },
-  ]);
-
-  // const [todaySchedule] = useState([
-  //   { athleteName: "Cristiano Ronaldo", type: "Follow-up", status: "completed" },
-  //   { athleteName: "Mohamed Salah", type: "Assessment", status: "upcoming" },
-  //   { athleteName: "Neymar", type: "Rehab", status: "completed" },
-  //   { athleteName: "Leo", type: "Checkup", status: "upcoming" },
-  //   { athleteName: "Messi", type: "Physio", status: "completed" },
-  //   { athleteName: "Famous", type: "Treatment", status: "upcoming" },
-  // ]);
 
   const [physioNotes] = useState([
     { athleteName: "Cristiano Ronaldo", note: "Mild fatigue, monitor next session" },
@@ -73,13 +56,13 @@ const PhysicianView: React.FC = () => {
           <AdjustableCard className={styles.urgentCasesCard} height="320px" minHeight="320px">
             <div className={styles.urgentContainer}>
               <div className={styles.appointmentsHeader}>
-                <h2 className={styles.appointmentsTitle}>Urgent Cases</h2>
+                <h2 className={styles.appointmentsTitle}>Critical Cases</h2>
               </div>
               <div className={styles.casesList}>
-                {urgentCases.map(({ id, athleteName, injury, priority }) => (
-                  <div key={id} className={`${styles.caseRow} ${styles[priority]}`}>
-                    <div className={styles.caseName}>{athleteName}</div>
-                    <div className={styles.caseInjury}>{injury}</div>
+                {dashboard?.criticalCases.cases.map((criticalCase) => (
+                  <div key={criticalCase.id} className={`${styles.caseRow} ${styles[criticalCase.severity]}`}>
+                    <div className={styles.caseName}>{criticalCase.athlete.fullName}</div>
+                    <div className={styles.caseInjury}>{criticalCase.diagnosisName}</div>
                   </div>
                 ))}
               </div>
