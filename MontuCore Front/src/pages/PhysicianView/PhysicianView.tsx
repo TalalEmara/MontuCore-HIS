@@ -105,7 +105,11 @@ const PhysicianView: React.FC = () => {
                   ))}
                 </div>
                 <div className={styles.cardFooter}>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+                   
+                {totalPages > 1 && (
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} /> 
+                )}
+
               </div>
               </div>
             </AdjustableCard>
@@ -144,8 +148,10 @@ const PhysicianView: React.FC = () => {
                   )}
                 </div>
                 <div className={styles.cardFooter}>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
-              </div>
+                {totalPages > 1 && (
+                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+                )}
+                </div>
               </div>
             </AdjustableCard>
 
@@ -167,8 +173,10 @@ const PhysicianView: React.FC = () => {
                   ))}
                 </div>
                 <div className={styles.cardFooter}>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
-              </div>
+                   {totalPages > 1 && (
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+                   )}
+                </div>
               </div>
             </AdjustableCard>
 
@@ -202,11 +210,13 @@ const PhysicianView: React.FC = () => {
                   ))}
                 </div>
                 <div className={styles.cardFooter}>
+                   {totalPages > 1 && (
                 <Pagination 
                   currentPage={currentPage} 
                   totalPages={totalPages} 
                   onPageChange={(page) => setPage(page)} 
-                />
+                /> )}
+                
               </div>
               </div>
             </AdjustableCard>

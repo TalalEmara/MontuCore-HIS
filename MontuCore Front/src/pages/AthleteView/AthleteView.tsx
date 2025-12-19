@@ -157,12 +157,13 @@ function AthleteView() {
                   <div className="no-appointments">No upcoming appointments</div>
                 )}
                 <div className="card-footer">
-                <Pagination 
+                {totalPages > 1 && (
+                 <Pagination 
                   currentPage={currentPage} 
                   totalPages={totalPages} 
                   onPageChange={(page) => setPage(page)} 
                   variant="white"
-                />
+                /> )}
               </div>
               </div>
             </div>
@@ -210,11 +211,12 @@ function AthleteView() {
               </div>
 
               <div className="card-footer">
-               <Pagination 
+              {totalPages > 1 && (
+                <Pagination 
                   currentPage={currentPage} 
                   totalPages={totalPages} 
                   onPageChange={(page) => setPage(page)} 
-                />
+                /> )}
               </div>
             </div>
           </AdjustableCard>
