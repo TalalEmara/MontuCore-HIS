@@ -31,7 +31,10 @@ export interface AthleteAppointment {
   id: number;
   scheduledAt: string;
   status: string;
-  clinician?: UserStub; 
+  clinician?: UserStub;
+  // Added height and weight as optional properties since they might not exist on all appointments
+  height?: number; 
+  weight?: number;
 }
 
 export interface Treatment {
@@ -99,6 +102,12 @@ export interface AthleteDashboardData {
     labTests: LabTest[];
     pagination: PaginationMeta;
   };
+  // New Field for the derived data
+  latestVitals?: {
+    height: number | null;
+    weight: number | null;
+    status: string;
+  };
 }
 
 // -- API Response Wrapper --
@@ -122,22 +131,17 @@ const fetchAthleteDashboard = async (
   athleteId: number,
   page: number,
   limit: number,
-  // Added API_URL as an argument with default value
   API_URL: string = `http://localhost:3000/api` 
 ): Promise<AthleteDashboardResponse> => {
-  // const token = localStorage.getItem('token');
-
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
   });
 
-  // Updated to use the API_URL argument
   const response = await fetch(`${API_URL}/athlete/dashboard/${athleteId}?${params}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -163,10 +167,61 @@ export const useAthleteDashboard = (
     enabled: !!athleteId,
     placeholderData: keepPreviousData,
 
-    select: (response): AthleteDashboardResult => ({
-      dashboard: response.data,
-      message: response.message || 'Dashboard loaded successfully',
-    }),
+    select: (response): AthleteDashboardResult => {
+      const data = response.data;
+
+      // 1. Sort Cases by Time (Most recent first)
+      const sortedCases = [...data.report.cases].sort((a, b) => 
+        new Date(b.injuryDate).getTime() - new Date(a.injuryDate).getTime()
+      );
+
+      // 2. Determine Status (Fit if no cases, otherwise status of most recent case)
+      const latestStatus = sortedCases.length > 0 ? sortedCases[0].status : 'Fit';
+
+      // 3. Sort Appointments by Time (Most recent first)
+      const sortedAppointments = [...data.upcomingAppointments.appointments].sort((a, b) => 
+        new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+      );
+
+      // 4. Find latest Height and Weight
+      // We iterate through the sorted appointments to find the most recent non-null value for each
+      let lastHeight: number | null = null;
+      let lastWeight: number | null = null;
+
+      for (const appt of sortedAppointments) {
+        if (lastHeight === null && appt.height !== undefined && appt.height !== null) {
+          lastHeight = appt.height;
+        }
+        if (lastWeight === null && appt.weight !== undefined && appt.weight !== null) {
+          lastWeight = appt.weight;
+        }
+        // If we found both, stop looking
+        if (lastHeight !== null && lastWeight !== null) break;
+      }
+
+      // 5. Construct the Augmented Dashboard Object
+      const augmentedDashboard: AthleteDashboardData = {
+        ...data,
+        report: {
+          ...data.report,
+          cases: sortedCases, // Return the sorted cases
+        },
+        upcomingAppointments: {
+            ...data.upcomingAppointments,
+            appointments: sortedAppointments // Return sorted appointments
+        },
+        latestVitals: {
+          height: lastHeight,
+          weight: lastWeight,
+          status: latestStatus,
+        },
+      };
+
+      return {
+        dashboard: augmentedDashboard,
+        message: response.message || 'Dashboard loaded successfully',
+      };
+    },
   });
 
   return {

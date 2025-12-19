@@ -14,43 +14,73 @@ function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
 
-  const athleteData = {
+  const baseAthleteData = {
     fullName: "Cristiano Ronaldo",
     position: "Forward",
-    id: 3,
+    id: 5,
     jerseyNumber: 7,
-    height: 185, //cm
-    weight: 72, //Kg
-    status: "Fit",
   };
-  const { dashboard, message, isLoading, isError, error } = useAthleteDashboard(
-    athleteData.id,
+
+  // Fetch Data
+  const { dashboard, isLoading } = useAthleteDashboard(
+    baseAthleteData.id,
     currentPage,
     4
   );
 
+  //  Merge Static Data with Dynamic Vitals
+  const athleteData = {
+    ...baseAthleteData,
+    height: isLoading 
+      ? "..." 
+      : (dashboard?.latestVitals?.height ?? "N/A"), // Returns number or "N/A"
+    
+    weight: isLoading 
+      ? "..." 
+      : (dashboard?.latestVitals?.weight ?? "N/A"), // Returns number or "N/A"
+      
+    status: isLoading 
+      ? "Loading..." 
+      : (dashboard?.latestVitals?.status ?? "Unknown"),
+  };
   const appointments = dashboard?.upcomingAppointments.appointments.map(
     (appt,indx) => [
       indx+1, // Added ID to match header
       appt.clinician?.fullName || "Unassigned", 
       new Date(appt.scheduledAt).toLocaleDateString(), 
     ]
-  ) || [];
+  ) || []; 
+
+  const cases = dashboard?.report.cases.map((report , indx)=>[
+    indx+1,
+    report.diagnosisName,
+    new Date(report.injuryDate).toLocaleDateString(),
+  ])
+
+  const prescriptions = dashboard?.prescriptions.treatments.map((treatment, indx)=>[
+    indx+1,
+    treatment.description,
+    new Date(treatment.date).toLocaleDateString(),
+  ])
+  const images = dashboard?.imaging.exams.map((exam, indx)=>[
+    indx+1,
+    `${exam.bodyPart}-${exam.modality}`,
+    new Date(exam.performedAt|| "").toLocaleDateString(),
+    exam.status
+  ])
+
+  const labTests = dashboard?.tests.labTests.map((test,indx)=>[
+    indx+1,
+    `${test.testName}-${test.category}`,
+    new Date(test.sampleDate).toLocaleDateString(),
+    test.status
+  ])
 
   const medicalRecords = {
-    reports: [
-      [1, "Physical Examination Report", "Dec 15, 2024"],
-      [2, "Annual Health Checkup", "Nov 28, 2024"],
-    ],
-    prescriptions: [
-      [1, "Recovery Supplements", "Dec 10, 2024"],
-    ],
-    imaging: [
-      [1, "Knee MRI Scan", "Nov 20, 2024"],
-    ],
-    "Lab tests": [
-      [1, "Blood Test Results", "Dec 5, 2024"],
-    ]
+    reports: cases,
+    prescriptions:prescriptions,
+    imaging: images,
+    "Lab tests": labTests
   };
 
   return (
