@@ -16,6 +16,8 @@ import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
+import RegisterView from "./pages/RegisterView/RegisterView";
+
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -80,16 +82,25 @@ export const DicomRoute = createRoute({
   component: DicomViewPage,
 });
 
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "register",
+  component: RegisterView,
+});
+
+
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
   sidebarLayoutRoute.addChildren([
-    physicianViewRoute, 
+    physicianViewRoute,
     athleteViewRoute,
-    PhysiotherapistViewRoute
+    PhysiotherapistViewRoute,
   ]),
   CaseRoute,
-  DicomRoute
+  DicomRoute,
+  registerRoute,
 ]);
+
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const router = createRouter({ routeTree });
