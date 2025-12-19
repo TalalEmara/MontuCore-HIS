@@ -9,12 +9,13 @@ import Pagination from "../../components/level-0/Pagination/Pagination";
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import List from "../../components/level-0/List/List";
+import BookingPanel from "../../components/level-1/BookingPanel/BookingPanel";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
   const totalPages = 5;
-
+  const [isBooking, setIsBooking] = useState<boolean>(false)
   const baseAthleteData = {
     fullName: "Cristiano Ronaldo",
     position: "Forward",
@@ -23,7 +24,7 @@ function AthleteView() {
   };
 
   // Fetch Data
-  const { dashboard, isLoading } = useAthleteDashboard(
+  const { dashboard, isLoading, refetch } = useAthleteDashboard(
     baseAthleteData.id,
     currentPage,
     4
@@ -42,7 +43,7 @@ function AthleteView() {
       
     status: isLoading 
       ? "Loading..." 
-      : (dashboard?.latestVitals?.status == "RECOVERED" ? "Fit" : "Injured"),
+      : (dashboard?.latestVitals?.status == "RECOVERED" ? "Fit" : dashboard?.latestVitals?.status == "ACTIVE"?  "Injured" : "Unknown"),
   };
   const appointments = dashboard?.upcomingAppointments.appointments.map(
     (appt,indx) => [
@@ -86,6 +87,12 @@ function AthleteView() {
 
   return (
     <div className="athlete-viewer-container">
+      <BookingPanel isOpen={isBooking} onClose={function (): void {
+        setIsBooking(false);
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        refetch;
+      } } athleteId={athleteData.id}/>
+
       <div className="athlete-main-content">
         <TopBar
           Name={athleteData.fullName}
@@ -122,7 +129,7 @@ function AthleteView() {
                 <div className="booking-description">
                   Schedule training sessions, medical checkups, or consultations
                 </div>
-                <Button variant="primary" height="35px">
+                <Button onClick={()=>setIsBooking(true)} variant="primary" height="35px">
                   SCHEDULE NOW ➜
                 </Button>
               </div>
