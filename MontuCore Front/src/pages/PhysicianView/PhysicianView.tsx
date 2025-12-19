@@ -6,6 +6,7 @@ import styles from "./PhysicianView.module.css";
 import physicianProfile from "../../assets/images/physician.webp";
 import { usePhysicianDashboard } from "../../hooks/usePhysicianDashboard";
 import { Link } from "@tanstack/react-router"; // or 'react-router-dom' depending on your setup
+import Pagination from "../../components/level-0/Pagination/Pagination";
 
 const PhysicianView: React.FC = () => {
   const physicianData = {
@@ -16,6 +17,7 @@ const PhysicianView: React.FC = () => {
   };
 
   const [currentPage, setPage] = useState(1);
+  const totalPages = 3; 
 
   // 1. Destructure isError, error, and refetch from the hook
   const { 
@@ -102,6 +104,9 @@ const PhysicianView: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                <div className={styles.cardFooter}>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+              </div>
               </div>
             </AdjustableCard>
 
@@ -138,6 +143,9 @@ const PhysicianView: React.FC = () => {
                     )
                   )}
                 </div>
+                <div className={styles.cardFooter}>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+              </div>
               </div>
             </AdjustableCard>
 
@@ -158,6 +166,9 @@ const PhysicianView: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                <div className={styles.cardFooter}>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+              </div>
               </div>
             </AdjustableCard>
 
@@ -190,6 +201,13 @@ const PhysicianView: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                <div className={styles.cardFooter}>
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  onPageChange={(page) => setPage(page)} 
+                />
+              </div>
               </div>
             </AdjustableCard>
           </div>
