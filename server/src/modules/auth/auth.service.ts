@@ -7,7 +7,10 @@ interface RegisterInput {
   email: string;
   password: string;
   fullName: string;
-  role?: Role;
+  role: Role;
+  dob: Date; // Handle it to be not in the future
+  gender: string
+
 }
 
 interface LoginInput {
@@ -29,112 +32,127 @@ interface AuthResponse {
 }
 
 /**
+ * Register (By admin only)
+ * Email
+ * Password
+ * Full Name
+ * CreatedAt
+ * DOB
+ * Role (Athlete, Clinician, Admin)
+ *        and its information
+ * gender
+ */
+
+
+/**
  * Register a new user
  */
-export const register = async ({ email, password, fullName, role }: RegisterInput): Promise<AuthResponse> => {
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email }
-  });
-
-  if (existingUser) {
-    throw new Error('User with this email already exists');
-  }
-
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Create user
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash: hashedPassword,
-      fullName,
-      role: role || Role.ATHLETE
-    },
-    select: {
-      id: true,
-      email: true,
-      fullName: true,
-      role: true,
-      createdAt: true
+export const login = async (loginData : LoginInput) => {
+  try{
+    const user = await prisma.user.findUnique({
+      where:{
+        email: loginData.email
+      }
+    })
+    if (!user){
+      throw new Error('Invalid credentials');
     }
-  });
+    const isPasswordValid = await bcrypt.compare(loginData.password, user.passwordHash);
+    if (!isPasswordValid){
+      throw new Error('Invalid credentials');
+    }
 
-  // Generate JWT token
+    const token = generateJWT(user.id, user.email, user.role);
+    return {
+      "token": token,
+      "sucess": true
+    }
+  }
+  catch(error){
+    throw "Something went wrong during login process";
+  }
+}
+
+export const reigster = async (registerData : RegisterInput) => {
+  try{
+    const exitedUser = await prisma.user.findUnique({
+      where:{
+        email: registerData.email
+      }
+    });
+    if (exitedUser){
+      throw new Error('User with this email already exists');
+    }
+    if (new Date(registerData.dob) > new Date()){
+      throw new Error('Date of birth cannot be in the future');
+    }
+
+    const hashedPassword = await bcrypt.hash(registerData.password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        email: registerData.email,
+        passwordHash: hashedPassword,
+        fullName: registerData.fullName,
+        role: registerData.role,
+        createdAt: new Date(),
+        dateOfBirth: registerData.dob,
+        gender: registerData.gender
+      }
+    })
+
+    if (!newUser){
+      throw new Error('User registration failed');
+    }
+
+    const token = generateJWT(newUser.id, newUser.email, newUser.role);
+    return {
+      "token": token,
+      "sucess": true
+    };
+  }
+  catch(error){
+    throw "Something went wrong during registration process";
+  }
+}
+
+export const logout = async (token: string, userId: number) => {
+  try {
+    const decoded = jwt.decode(token) as any;
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    if (decoded.id !== userId) {
+      throw new Error('Token does not belong to the user');
+    }
+  
+    await prisma.revokedToken.create({
+      data: {
+        token,
+        userId,
+        expiresAt
+      }
+    });
+
+    return { message: 'Logged out successfully' };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const isTokenRevoked = async (token: string): Promise<boolean> => {
+  const revokedToken = await prisma.revokedToken.findUnique({
+    where: { token }
+  });
+  return !!revokedToken;
+};
+
+
+export const generateJWT = (userId : number, email: string, role: Role) => {
   const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '24h' }
+    { id: userId, email: email, role: role },
+    process.env.JWT_SECRET!,
+    { expiresIn: '72h' }
   );
 
-  return { user, token };
-};
-
-/**
- * Login user
- */
-export const login = async ({ email, password }: LoginInput): Promise<AuthResponse> => {
-  // Find user
-  const user = await prisma.user.findUnique({
-    where: { email }
-  });
-
-  if (!user) {
-    throw new Error('Invalid credentials');
-  }
-
-  // Verify password
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-  if (!isPasswordValid) {
-    throw new Error('Invalid credentials');
-  }
-
-  // Generate JWT token
-  const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '24h' }
-  );
-
-  return {
-    user: {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role
-    },
-    token
-  };
-};
-
-/**
- * Logout user
- */
-export const logout = async (userId: number): Promise<{ message: string }> => {
-  // Implement logout logic (e.g., token blacklisting if needed)
-  return { message: 'Logged out successfully' };
-};
-
-/**
- * Get user by ID
- */
-export const getUserById = async (userId: number): Promise<UserResponse> => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      fullName: true,
-      role: true,
-      createdAt: true
-    }
-  });
-
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  return user;
-};
+  return token;
+}
