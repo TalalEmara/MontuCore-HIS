@@ -9,6 +9,8 @@ interface TextInputProps {
   type?: string;
   error?: string;
   height?: string | number;
+  max?: string; 
+  min?: string;
 }
 
 const TextInput: React.FC<TextInputProps> = ({ 
@@ -18,7 +20,9 @@ const TextInput: React.FC<TextInputProps> = ({
   onChange, 
   type = "text", 
   error,
-  height 
+  height,
+  max, 
+  min  
 }) => {
   const isMultiline = height !== undefined;
 
@@ -43,6 +47,8 @@ const TextInput: React.FC<TextInputProps> = ({
         <input
           type={type}
           value={value}
+          max={max} 
+          min={min} 
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
           className={error ? "error" : ""}

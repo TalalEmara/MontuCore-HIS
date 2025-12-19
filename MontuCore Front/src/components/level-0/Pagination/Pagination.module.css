@@ -6,10 +6,11 @@
   width: fit-content;
   margin: auto auto 0 auto;
   padding: 0.25rem 0.75rem;
-  background: hsl(from var(--text-color) h s l / 0.03);
-  backdrop-filter: blur(10px);
   border-radius: 100px;
-  border: 1px solid hsl(from var(--text-color) h s l / 0.1);
+}
+
+.paginationContainer[data-variant="white"] .current {
+  color: var(--text-color);
 }
 
 .arrowButton {
@@ -27,12 +28,12 @@
 }
 
 .arrowButton:hover:not(:disabled) {
-  background: hsl(from var(--text-color) h s l / 0.1);
+  background: hsl(from var(--text-color) h s l / 0.5);
   color: var(--secondary-color);
 }
 
 .arrowButton:disabled {
-  opacity: 0.15;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -65,7 +66,7 @@
 }
 
 .current {
-  color: var(--secondary-color);
+  color: var(--primary-color);
 }
 
 .separator {
