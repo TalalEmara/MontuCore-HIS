@@ -22,7 +22,6 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         className={styles.arrowButton} 
         onClick={handlePrevious} 
         disabled={currentPage === 1}
-        aria-label="Previous Page"
       >
         <span className={styles.arrowLeft}></span>
       </button>
@@ -37,7 +36,6 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         className={styles.arrowButton} 
         onClick={handleNext} 
         disabled={currentPage === totalPages}
-        aria-label="Next Page"
       >
         <span className={styles.arrowRight}></span>
       </button>
