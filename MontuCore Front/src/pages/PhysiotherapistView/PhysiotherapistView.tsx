@@ -4,7 +4,7 @@ import ProfileCard from "../../components/level-1/userProfileCard/userProfileCar
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import styles from "./PhysiotherapistView.module.css";
 import physiotherapistProfile from "../../assets/images/physiotherapist.webp";
-
+import Pagination from "../../components/level-0/Pagination/Pagination";
 import RiskNotesPanel from "../../components/level-1/RiskNotesPanel/RiskNotesPanel"; 
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
@@ -24,7 +24,9 @@ interface Appointment {
 
 const PhysiotherapistView: React.FC = () => {
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 5;
+
   const [activeRehabCases] = useState<RehabCase[]>([
     { id: "1", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MILD" },
     { id: "2", athleteName: "Mohamed Salah", session: "Bone", severity: "MODERATE" },
@@ -121,6 +123,14 @@ const PhysiotherapistView: React.FC = () => {
                   </div>
                 ))}
               </div>
+              <div className={styles.cardFooter}>
+            {totalPages > 1 && (
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={(page) => setCurrentPage(page)} 
+              /> )}
+            </div>
             </div>
           </AdjustableCard>
 
@@ -138,14 +148,17 @@ const PhysiotherapistView: React.FC = () => {
                 </div>
 
                 <div className={styles.severityColumns}>
-                  {severityLevels.map(severity => (
-                    <SeverityColumn
-                      key={severity}
-                      severity={severity}
-                      cases={casesBySeverity[severity]}
-                    />
-                  ))}
-                </div>
+                {severityLevels.map(severity => (
+                  <SeverityColumn
+                    key={severity}
+                    severity={severity}
+                    cases={casesBySeverity[severity]}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                ))}
+              </div>
               </div>
             </AdjustableCard>
           </div>
@@ -165,7 +178,10 @@ const PhysiotherapistView: React.FC = () => {
 const SeverityColumn = React.memo<{
   severity: Severity;
   cases: RehabCase[];
-}>(({ severity, cases }) => {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}>(({ severity, cases, currentPage, totalPages, onPageChange }) => { // 2. DESTRUCTURE THEM HERE
   return (
     <div className={styles.severityColumn} data-severity={severity}>
       <div className={styles.severityHeader}>
@@ -174,10 +190,20 @@ const SeverityColumn = React.memo<{
       </div>
 
       <div className={styles.casesList}>
-        {cases.map(rehabCase => (
+        {cases.map((rehabCase) => (
           <CaseCard key={rehabCase.id} rehabCase={rehabCase} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className={styles.cardFooter}>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 });
