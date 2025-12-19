@@ -29,9 +29,13 @@ const athleteBasicSchema = z.object({
   weight: z.number({ message: "This field is required" })
     .min(45, "Weight must be realistic")
     .max(110),
-  age: z.number({ message: "This field is required" })
-    .min(10)
-    .max(60),
+  birthDate: z.string().min(1, "Birth date is required")
+    .refine((date) => {
+      const year = new Date(date).getFullYear();
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - year;
+      return age >= 10 && age <= 60;
+    }, "Athlete must be between 10 and 60 years old"),
 });
 
 const athleteDetailsSchema = z.object({
@@ -44,8 +48,11 @@ const athleteDetailsSchema = z.object({
 });
 
 const staffSchema = z.object({
+  birthDate: z.string().min(1, "Birth date is required"),
   position: z.string().min(2, "Position is required"),
 });
+
+const today = new Date().toISOString().split("T")[0];
 
 type GeneralFormData = z.infer<typeof generalSchema>;
 type AthleteBasicFormData = z.infer<typeof athleteBasicSchema>;
@@ -147,7 +154,7 @@ const handleFinalSubmit = async () => {
         ...submissionData,
         height: athleteBasicData.height,
         weight: athleteBasicData.weight,
-        age: athleteBasicData.age,
+        birthDate: athleteBasicData.birthDate,
         status: athleteDetailsData.status,
         jerseyNumber: athleteDetailsData.jerseyNumber,
         position: athleteDetailsData.position,
@@ -161,10 +168,11 @@ const handleFinalSubmit = async () => {
       console.log('Athlete Registration Data:', submissionData);
       
     } else if (generalData.role === 'physician' || generalData.role === 'physiotherapy') {
-      submissionData = {
-        ...submissionData,
-        position: staffData.position,
-      };
+    submissionData = {
+      ...submissionData,
+      birthDate: staffData.birthDate, 
+      position: staffData.position,
+    };
       
       console.log('Staff Registration Data:', submissionData);
     }
@@ -225,21 +233,36 @@ const handleFinalSubmit = async () => {
                   <>
                     <TextInput label="Height (cm)" type="number" value={String(athleteBasicData.height || "")} onChange={(v) => setAthleteBasicData({ ...athleteBasicData, height: Number(v) })} error={errors.height} />
                     <TextInput label="Weight (kg)" type="number" value={String(athleteBasicData.weight || "")} onChange={(v) => setAthleteBasicData({ ...athleteBasicData, weight: Number(v) })} error={errors.weight} />
-                    <TextInput label="Age" type="number" value={String(athleteBasicData.age || "")} onChange={(v) => setAthleteBasicData({ ...athleteBasicData, age: Number(v) })} error={errors.age} />
-                    <div className={styles.buttonGroup}>
+                      <TextInput 
+                        label="Birth Date" 
+                        type="date" 
+                        max={today}
+                        value={athleteBasicData.birthDate || ""} 
+                        onChange={(v) => setAthleteBasicData({ ...athleteBasicData, birthDate: v })} 
+                        error={errors.birthDate} 
+                      />                    
+                      <div className={styles.buttonGroup}>
                       <Button variant="secondary" onClick={() => setStep(1)} width="48%">BACK</Button>
                       <Button variant="primary" onClick={handleAthleteBasicSubmit} width="48%">NEXT</Button>
                     </div>
                   </>
-                ) : (
-                  <>
-                    <TextInput label="Position" value={staffData.position || ""} onChange={(v) => setStaffData({ ...staffData, position: v })} error={errors.position} />
-                    <div className={styles.buttonGroup}>
-                      <Button variant="secondary" onClick={() => setStep(1)} width="48%">BACK</Button>
-                      <Button variant="primary" onClick={handleStaffSubmit} width="48%">SUBMIT</Button>
-                    </div>
-                  </>
-                )}
+            ) : (
+              <>
+                <TextInput 
+                  label="Birth Date" 
+                  type="date" 
+                  max={today}
+                  value={staffData.birthDate || ""} 
+                  onChange={(v) => setStaffData({ ...staffData, birthDate: v })} 
+                  error={errors.birthDate} 
+                />
+                <TextInput label="Position" value={staffData.position || ""} onChange={(v) => setStaffData({ ...staffData, position: v })} error={errors.position} />
+                <div className={styles.buttonGroup}>
+                  <Button variant="secondary" onClick={() => setStep(1)} width="48%">BACK</Button>
+                  <Button variant="primary" onClick={handleStaffSubmit} width="48%">SUBMIT</Button>
+                </div>
+              </>
+            )}
               </div>
             )}
 
