@@ -1,0 +1,35 @@
+meta {
+  name: Get Physio-Therapist Dashboard
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/physio-therapist/dashboard/:physioId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  physioId: 2
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+vars:pre-request {
+  clinicianId: 28
+  physioId: 2
+}
+
+docs {
+  Get physician/clinician dashboard with initial data (first page only):
+  - Today's appointments
+  - Critical cases
+  - Active cases (first page)
+  
+  For pagination of cases, use dedicated endpoints:
+  - Active cases: GET /api/cases?clinicianId=X&status=ACTIVE&page=2
+  - Critical cases: GET /api/cases?clinicianId=X&severity=CRITICAL&page=2
+}

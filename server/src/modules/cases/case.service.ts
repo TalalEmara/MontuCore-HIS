@@ -392,12 +392,26 @@ export const getCriticalCasesByClinicianId = async (clinicianId: number) => {
  * Returns: id, athlete name, diagnosis name
  */
 export const getActiveCasesByClinicianId = async (clinicianId: number, page: number = 1, limit: number = 10) => {
+  // use pagination
   return getCases({
     clinicianId,
     status: 'ACTIVE' as CaseStatus,
     page,
     limit
   });
+};
+
+export const getActiveCasesByPhysioId = async (physioId: number) => {
+  // no pagination for physio therapist dashboard
+  try {
+    const cases = await getCases({
+      clinicianId: physioId,
+      status: 'ACTIVE' as CaseStatus
+    });
+    return cases.cases;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
