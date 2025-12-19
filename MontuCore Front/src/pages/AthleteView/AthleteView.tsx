@@ -23,7 +23,7 @@ function AthleteView() {
   };
 
   // Fetch Data
-  const { dashboard, isLoading } = useAthleteDashboard(
+  const { dashboard, isLoading, refetch } = useAthleteDashboard(
     baseAthleteData.id,
     currentPage,
     4
@@ -87,7 +87,9 @@ function AthleteView() {
   return (
     <div className="athlete-viewer-container">
       <BookingPanel isOpen={isBooking} onClose={function (): void {
-        setIsBooking(false)
+        setIsBooking(false);
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        refetch;
       } } athleteId={athleteData.id}/>
 
       <div className="athlete-main-content">
