@@ -9,11 +9,12 @@ import athleteProfile from "../../assets/images/Cristiano Ronaldo.webp";
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import List from "../../components/level-0/List/List";
+import BookingPanel from "../../components/level-1/BookingPanel/BookingPanel";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
-
+  const [isBooking, setIsBooking] = useState<boolean>(false)
   const baseAthleteData = {
     fullName: "Cristiano Ronaldo",
     position: "Forward",
@@ -85,6 +86,10 @@ function AthleteView() {
 
   return (
     <div className="athlete-viewer-container">
+      <BookingPanel isOpen={isBooking} onClose={function (): void {
+        setIsBooking(false)
+      } } athleteId={athleteData.id}/>
+
       <div className="athlete-main-content">
         <TopBar
           Name={athleteData.fullName}
@@ -121,7 +126,7 @@ function AthleteView() {
                 <div className="booking-description">
                   Schedule training sessions, medical checkups, or consultations
                 </div>
-                <Button variant="primary" height="35px">
+                <Button onClick={()=>setIsBooking(true)} variant="primary" height="35px">
                   SCHEDULE NOW ➜
                 </Button>
               </div>
