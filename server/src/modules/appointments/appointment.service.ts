@@ -1,6 +1,7 @@
 import { PrismaClient, ApptStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../index.js'
 import * as billingService from '../billing/billing.service.js';
+import { localToUTC, utcToLocalByTimezone } from '../../utils/timezone.js';
 //const prisma = new PrismaClient();
 
 interface AppointmentData {
@@ -11,6 +12,7 @@ interface AppointmentData {
   weight?: number;
   status?: ApptStatus;
   diagnosisNotes?: string;
+  timezone?: string; // e.g., "Europe/Berlin", "America/New_York"
 }
 
 interface GetAllAppointmentsParams {
@@ -32,6 +34,38 @@ interface GetAppointmentsFilterParams {
   limit?: number;
   isToday?: boolean;
   dateRange?: { startDate: Date; endDate: Date };
+  timezone?: string | undefined; // User's timezone for date filtering and response formatting
+}
+
+/**
+ * Helper: Get timezone offset in minutes
+ */
+const DEFAULT_TIMEZONE = 'Africa/Cairo'; // Egypt GMT+2
+
+function getTimezoneOffsetInMinutes(timezone: string = DEFAULT_TIMEZONE): number {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const formatted = parts.reduce((acc, part) => {
+    if (part.type === 'literal') return acc;
+    return { ...acc, [part.type]: part.value };
+  }, {} as Record<string, string>);
+
+  const localDate = new Date(
+    `${formatted.year}-${formatted.month}-${formatted.day}T${formatted.hour}:${formatted.minute}:${formatted.second}`
+  );
+
+  return Math.round((now.getTime() - localDate.getTime()) / (1000 * 60));
 }
 
 /**
@@ -39,6 +73,11 @@ interface GetAppointmentsFilterParams {
  */
 export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
+    // Convert local time (Egypt timezone) to UTC for storage
+    let scheduledDate = new Date(appointmentData.scheduledAt);
+    const offset = getTimezoneOffsetInMinutes();
+    scheduledDate = localToUTC(appointmentData.scheduledAt, offset);
+
     /*
       Some Important Checks
         1-> scheduledAt should be in the future
@@ -47,7 +86,6 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
         4-> at least 30 min between each appointment for the same clinician
     */
     const now = new Date();
-    const scheduledDate = new Date(appointmentData.scheduledAt);
     if (scheduledDate <= now){
       throw new Error('Appointment must be scheduled for a future date and time');
     }
@@ -379,7 +417,8 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
       page = 1,
       limit = 10,
       isToday,
-      dateRange
+      dateRange,
+      timezone = DEFAULT_TIMEZONE
     } = filters;
 
     const where: any = {};
@@ -390,11 +429,28 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
     if (status) where.status = status;
     if (caseId) where.caseId = caseId;
 
-    // Date filtering
+    // Date filtering (timezone-aware, defaults to Egypt)
     if (isToday) {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+      const now = new Date();
+      const offset = getTimezoneOffsetInMinutes(timezone);
+      // Adjust now to local timezone
+      const localNow = new Date(now.getTime() + offset * 60 * 1000);
+      // Create local start and end of day, then convert back to UTC
+      const localStart = new Date(Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate(),
+        0, 0, 0
+      ));
+      const localEnd = new Date(Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate(),
+        23, 59, 59
+      ));
+      const startOfDay = new Date(localStart.getTime() - offset * 60 * 1000);
+      const endOfDay = new Date(localEnd.getTime() - offset * 60 * 1000);
+
       where.scheduledAt = {
         gte: startOfDay,
         lte: endOfDay
@@ -442,8 +498,14 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
       prisma.appointment.count({ where })
     ]);
 
+    // Convert times to local timezone (Egypt by default)
+    const formattedAppointments = appointments.map(apt => ({
+      ...apt,
+      scheduledAt: utcToLocalByTimezone(apt.scheduledAt, timezone)
+    }));
+
     return {
-      appointments,
+      appointments: formattedAppointments,
       pagination: {
         page,
         limit,
@@ -459,13 +521,26 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
 /**
  * CONVENIENCE WRAPPER - Get appointments for clinician for today only
  */
-export const getTodaysAppointmentsByClinicianId = async (clinicianId: number) => {
+export const getTodaysAppointmentsByClinicianId = async (clinicianId: number, timezone?: string) => {
   try {
     const result = await getAppointments({
       clinicianId,
-      isToday: true
+      isToday: true,
+      timezone
     });
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+};
 
+export const getTodaysAppointmentsByPhysioId = async (physioId: number, timezone?: string) => {
+  try {
+    const result = await getAppointments({
+      clinicianId: physioId,
+      isToday: true,
+      timezone
+    });
     return result.appointments;
   } catch (error) {
     throw error;
