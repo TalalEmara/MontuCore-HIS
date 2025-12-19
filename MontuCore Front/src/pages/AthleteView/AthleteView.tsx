@@ -5,7 +5,7 @@ import Button from "../../components/level-0/Button/Bottom";
 import ProfileCard from "../../components/level-1/userProfileCard/userProfileCard";
 import bookAppointment from "../../assets/images/bookAppointment.webp";
 import athleteProfile from "../../assets/images/Cristiano Ronaldo.webp";
-
+import Pagination from "../../components/level-0/Pagination/Pagination";
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import List from "../../components/level-0/List/List";
@@ -13,6 +13,7 @@ import List from "../../components/level-0/List/List";
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
+  const totalPages = 5;
 
   const baseAthleteData = {
     fullName: "Cristiano Ronaldo",
@@ -152,7 +153,7 @@ function AthleteView() {
             </div>
           </AdjustableCard>
 
-          <AdjustableCard className="medical-records-card" height="100%">
+         <AdjustableCard className="medical-records-card" height="100%">
             <div className="medical-records-container">
               <div className="medical-records-header">
                 <h2 className="medical-records-title">Medical Records</h2>
@@ -162,9 +163,7 @@ function AthleteView() {
                 {["reports", "prescriptions", "imaging", "Lab tests"].map((tab) => (
                   <div
                     key={tab}
-                    className={`medical-records-tab ${
-                      activeTab === tab ? "active" : ""
-                    }`}
+                    className={`medical-records-tab ${activeTab === tab ? "active" : ""}`}
                     onClick={() => setActiveTab(tab as typeof activeTab)}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -177,13 +176,30 @@ function AthleteView() {
                   {medicalRecords[activeTab]?.map((record, idx) => (
                     <div key={idx} className="record-item">
                       <div className="record-number">{record[0]}</div>
-                      <div className="record-details">
-                        <div className="record-name">{record[1]}</div>
-                        <div className="record-date">{record[2]}</div>
+                      
+                      <div className="record-main-info">
+                        <div className="record-details">
+                          <div className="record-name">{record[1]}</div>
+                          <div className="record-date">{record[2]}</div>
+                        </div>
+
+                       {(activeTab === "imaging" || activeTab === "Lab tests") && record[3] && (
+                          <div className={`status-badge ${String(record[3]).toLowerCase()}`}>
+                            {record[3]}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="medical-records-footer">
+               <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  onPageChange={(page) => setPage(page)} 
+                />
               </div>
             </div>
           </AdjustableCard>
