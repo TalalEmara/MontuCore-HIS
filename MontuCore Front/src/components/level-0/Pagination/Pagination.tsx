@@ -5,9 +5,10 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  variant?: 'default' | 'white';
 }
 
-const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange,variant = 'default' }) => {
   const handlePrevious = () => {
     if (currentPage > 1) onPageChange(currentPage - 1);
   };
@@ -17,7 +18,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
   };
 
   return (
-    <div className={styles.paginationContainer}>
+    <div className={styles.paginationContainer} data-variant={variant}>
       <button 
         className={styles.arrowButton} 
         onClick={handlePrevious} 

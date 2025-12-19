@@ -73,6 +73,18 @@
   -ms-overflow-style: none;
 }
 
+.next-container, 
+.medical-records-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between; 
+}
+.appointments-list, 
+.medical-records-content {
+  flex-grow: 1;
+}
+
 .appointments-container::-webkit-scrollbar,
 .next-container::-webkit-scrollbar,
 .medical-records-container::-webkit-scrollbar {
@@ -155,7 +167,7 @@
   -ms-overflow-style: none;
 }
 
-.medical-records-footer {
+.card-footer {
   margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid hsl(from var(--text-color) h s l / 0.1);

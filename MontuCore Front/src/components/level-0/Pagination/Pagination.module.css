@@ -12,6 +12,10 @@
   border: 1px solid hsl(from var(--text-color) h s l / 0.1);
 }
 
+.paginationContainer[data-variant="white"] .current {
+  color: var(--text-color);
+}
+
 .arrowButton {
   background: none;
   border: none;
