@@ -59,24 +59,26 @@
 .cardContent::-webkit-scrollbar {
   display: none;
 }
-
 .title {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(2rem, 4vw, 2rem);
   font-weight: 900;
   color: var(--text-color);
-  text-align: center;
   text-transform: uppercase;
+  letter-spacing: -0.0625rem;
   margin: 0;
-  flex-shrink: 0;
-  letter-spacing: 0.1em;
+  line-height: 1.1;
+  text-shadow: 0.125rem 0.125rem 0 var(--primary-color);
+  position: relative;
+  text-align: center;
+
 }
+
 
 .stepIndicator {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  flex-shrink: 0;
   padding: 0.5rem 0;
 }
 
@@ -87,24 +89,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: hsl(from var(--text-color) h s l / 0.05);
-  color: hsl(from var(--text-color) h s l / 0.3);
+  background: hsl(from var(--text-color) h s l / 0.1);
+  color: hsl(from var(--text-color) h s l / 0.4);
   font-weight: 800;
   font-size: 0.75rem;
-  border: 2px solid hsl(from var(--text-color) h s l / 0.1);
+  border: 0.01rem solid hsl(from var(--text-color) h s l / 0.1);
+  transition: all 0.3s ease;
 }
 
 .stepDot.active {
-  background: var(--secondary-color);
+  background: var(--primary-color);
   color: var(--text-color);
-  border-color: var(--secondary-color);
+  border-color: var(--accent);
+  box-shadow: 0 0 0.2rem var(--accent);
 }
 
 .stepLine {
   width: 2rem;
-  height: 0.15rem;
-  background: hsl(from var(--text-color) h s l / 0.1);
+  height: 0.125rem;
+  background: hsl(from var(--text-color) h s l / 0.2);
 }
+
 
 .form {
   display: flex;
