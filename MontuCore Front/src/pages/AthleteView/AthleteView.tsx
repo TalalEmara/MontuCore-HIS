@@ -41,7 +41,7 @@ function AthleteView() {
       
     status: isLoading 
       ? "Loading..." 
-      : (dashboard?.latestVitals?.status ?? "Unknown"),
+      : (dashboard?.latestVitals?.status == "RECOVERED" ? "Fit" : "Injured"),
   };
   const appointments = dashboard?.upcomingAppointments.appointments.map(
     (appt,indx) => [
