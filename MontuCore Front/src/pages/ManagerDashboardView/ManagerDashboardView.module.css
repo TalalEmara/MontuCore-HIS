@@ -1,0 +1,227 @@
+.managerDashboardContainer { width: 100%; padding: 1.5rem 2.5rem; }
+
+.casesAnalysisHeaderGrid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem; }
+
+.chartsAnalysisRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; }
+
+.casesSummaryAnalysisPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; }
+
+.totalSpentCard {
+  padding: 1.5rem;
+  border: 0.001rem solid hsl(from var(--primary-color) h s l / 0.5);
+  border-left: 0.4rem solid hsl(from var(--primary-color) h s l / 0.5); }
+
+.casesStatusAnalysis {
+  background: hsl(from var(--primary-color) h s l / 0.5);
+  padding: 1.5rem;
+  color: var(--text-color); }
+
+.casesStatusAnalysisSplitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center; }
+
+.analysisLabelText {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.6;
+  letter-spacing: 1px; }
+
+.totalSpentNumber {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--primary-color); }
+
+.analysisVerticalSeparator {
+  width: 0.02rem;
+  height: 4rem;
+  background: var(--text-color);
+  opacity: 0.2; }
+
+.analysisValueTotal {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--text-color); }
+
+.analysisValueActive {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--accent); }
+
+.analysisValueRecovered {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--success); }
+
+.severityPieAnalysisCard,
+.appointmentPieChartCard {
+  padding: 1.5rem;
+  border: 1px solid hsl(from var(--primary-color) h s l / 0.5); }
+
+.analysisSectionHeading {
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-color);
+  border-bottom: 1px solid hsl(from var(--primary-color) h s l / 0.5);
+  padding-bottom: 10px;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.5px; }
+
+.PieChartFlexBody{  
+    display: flex;
+  align-items: center;
+  justify-content: space-around; }
+
+.pieChartCircle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);}
+
+.severityPieCircle {
+  background: conic-gradient(
+    var(--primary-color) 0% var(--critical),
+    var(--secondary-color) 0% calc(var(--critical) + var(--severe)),
+    var(--accent) 0% calc(var(--critical) + var(--severe) + var(--moderate)),
+    var(--success) 0% 100%);}
+
+.appointmentPieCircle {
+  background: conic-gradient(
+    var(--success) 0% var(--completed),
+    var(--accent) var(--completed) calc(var(--completed) + var(--scheduled)),
+    var(--primary-color) calc(var(--completed) + var(--scheduled)) 100% );}
+
+.severityPieChartInnerHole,
+.appointmentPieChartInnerHole {
+  width: 100px;
+  height: 100px;
+  background: var(--background-color);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2; }
+
+.severityPieCenterValue,
+.appointmentPieChartCenterValue { font-size: 1.8rem; font-weight: 900; }
+
+.appointmentPieChartCenterValue { color: var(--success); }
+
+.PieCenterLabel{
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  opacity: 0.5; }
+
+.severityPieChartList,
+.appointmentPieChartList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; }
+
+.severityRow,
+.appointmentStatusRow {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-color); }
+
+.severityRow span:first-child,
+.appointmentStatusRow span:first-child {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px; }
+
+.IndicatorCritical { background: var(--primary-color); }
+.IndicatorSevere { background: var(--secondary-color); }
+.IndicatorCancelled { background: var(--primary-color); }
+
+.IndicatorModerate,
+.IndicatorScheduled { background: var(--accent); }
+
+.IndicatorMild,
+.IndicatorCompleted { background: var(--success); }
+
+.appointmentTotalRow {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid hsl(from var(--primary-color) h s l / 0.3); }
+
+.appointmentTotalLabel { font-size: 0.75rem; font-weight: 700; }
+
+.athleteTableGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.5rem; }
+
+.athleteTable,
+.staffTable { padding: 1.2rem; }
+
+.tableHeaderControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem; }
+
+.tableSearchInput {
+  background: var(--background-color);
+  border: 1px solid hsl(from var(--primary-color) h s l / 0.5);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-color);
+  width: 220px;
+  outline: none; }
+
+.athleteNameText,
+.clinicanNameText { font-weight: 800; color: var(--text-color); }
+
+.clinicanSpecialty,
+.athletePosition {
+  font-size: 0.75rem;
+  background: var(--secondary-color);
+  color: var(--text-color);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700; }
+
+.athleteJerseyText { font-size: 0.75rem; opacity: 0.5; font-weight: 700; }
+
+.activeCasesCountBadge {
+  background: hsl(from var(--accent) h s l / 0.2);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.75rem; }
+
+.statusActiveText { font-weight: 800; font-size: 0.75rem; color: var(--accent); }
+.statusRecoveredText { font-weight: 800; font-size: 0.75rem; color: var(--success); }
+
+.severityCRITICALText { color: var(--primary-color); font-weight: 900; }
+.severitySEVEREText { color: var(--secondary-color); font-weight: 900; }
+.severityMODERATEText { color: var(--accent); font-weight: 900; }
+.severityMILDText { color: var(--success); font-weight: 900; }
+
+.tablePaginationContainer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center; }

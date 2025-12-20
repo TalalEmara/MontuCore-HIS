@@ -18,7 +18,7 @@ import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
 import LoginView from "./pages/LoginView/LoginView";
-
+import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -94,6 +94,11 @@ const LoginRoute = createRoute({
   component: LoginView,
 });
 
+const ManagerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "manager",
+  component: ManagerDashboard,
+});
 
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
@@ -105,7 +110,8 @@ const routeTree = rootRoute.addChildren([
   CaseRoute,
   DicomRoute,
   registerRoute,
-  LoginRoute
+  LoginRoute,
+  ManagerRoute,
 ]);
 
 
