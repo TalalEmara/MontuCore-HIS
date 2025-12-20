@@ -17,7 +17,7 @@ import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
-
+import LoginView from "./pages/LoginView/LoginView";
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -88,6 +88,12 @@ const registerRoute = createRoute({
   component: RegisterView,
 });
 
+const LoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "login",
+  component: LoginView,
+});
+
 
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
@@ -99,6 +105,7 @@ const routeTree = rootRoute.addChildren([
   CaseRoute,
   DicomRoute,
   registerRoute,
+  LoginRoute
 ]);
 
 
