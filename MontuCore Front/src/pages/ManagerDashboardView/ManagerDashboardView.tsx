@@ -42,7 +42,6 @@ const ManagerDashboard: React.FC = () => {
     MILD: athlete_data.filter(c => c.Severity === "MILD").length,
   };
 
-  // Pie chart style (shared for severity & appointment)
   const pieAnalysisStyle = {
     "--critical": `${(severityAnalysisCounts.CRITICAL / totalCasesAnalysis) * 100}%`,
     "--severe": `${(severityAnalysisCounts.SEVERE / totalCasesAnalysis) * 100}%`,
@@ -189,11 +188,12 @@ const ManagerDashboard: React.FC = () => {
           <List
             header={["Athlete", "Position", "Jersey", "Status", "Severity"]}
             data={mappedAthleteRows}
-            gridTemplateColumns="1.4fr 1fr 0.6fr 1.2fr 0.8fr"
+            gridTemplateColumns="2fr 1fr 1fr 1fr 1fr"
+
           />
 
           <div className={styles.tablePaginationContainer}>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={page => setPage(page)} />
+              {totalPages > 1 && ( <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={page => setPage(page)} /> )}
           </div>
         </AdjustableCard>
 
@@ -210,7 +210,7 @@ const ManagerDashboard: React.FC = () => {
           />
 
           <div className={styles.tablePaginationContainer}>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={page => setPage(page)} />
+              {totalPages > 1 && (<Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={page => setPage(page)} />)}
           </div>
         </AdjustableCard>
       </div>
