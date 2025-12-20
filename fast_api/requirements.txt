@@ -1,0 +1,29 @@
+# Python FastAPI Requirements
+# Install with: pip install -r requirements.txt
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Deep Learning
+torch==2.1.0
+torchvision==0.16.0
+
+# Medical Imaging
+pydicom==2.4.3
+
+# Computer Vision
+opencv-python==4.8.1.78
+pillow==10.1.0
+numpy==1.24.3
+
+# Explainability
+pytorch-grad-cam==1.4.8
+
+# HTTP Client
+requests==2.31.0
+
+# Optional but recommended
+python-multipart==0.0.6  # For file uploads if needed
+aiofiles==23.2.1  # For async file operations
