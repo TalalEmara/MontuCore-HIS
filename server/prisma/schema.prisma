@@ -54,6 +54,32 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+// --- EXTERNAL COLLABORATION ---
+
+model ConsultationShare {
+  id            Int      @id @default(autoincrement())
+  token         String   @unique @default(uuid()) // The secret link
+  externalEmail String   @map("external_email")   // The consultant's email
+  
+  // 1. THE ACTOR (Must be a Clinician)
+  clinicianId   Int      @map("clinician_id")
+  clinician     User     @relation("CreatedShares", fields: [clinicianId], references: [id])
+
+  // 2. THE SUBJECT (The Patient)
+  athleteId     Int      @map("athlete_id")
+  athlete       User     @relation("PatientShares", fields: [athleteId], references: [id])
+
+  // 3. THE DATA (JSON Allow-list)
+  permissions   Json     @map("permissions") // e.g. { "caseIds": [1] }
+
+  expiresAt     DateTime @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  accessedAt    DateTime? @map("accessed_at")
+
+  @@map("consultation_shares")
+}
+
+// Update the User model to match these specific relation names
 // --- USERS & AUTH ---
 
 model User {
@@ -67,7 +93,9 @@ model User {
   role         Role      @default(ATHLETE)
   createdAt    DateTime  @default(now())
 
-  // --- Relations ---
+  // Relations
+  createdShares ConsultationShare[] @relation("CreatedShares") // Only populated if role=CLINICIAN
+  patientShares ConsultationShare[] @relation("PatientShares") // Only populated if role=ATHLETE
 
   // Profiles
   athleteProfile   AthleteProfile?

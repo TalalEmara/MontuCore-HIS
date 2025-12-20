@@ -18,6 +18,7 @@ import labTestRoutes from './modules/lab_tests/labtest.routes.js';
 import caseViewRoutes from './modules/aggregators/Case_View/caseview.routes.js';
 import cdssRoutes from './modules/cdss/cdss.routes.js';
 import physioDashboardRoutes from './modules/aggregators/PhysioTherapist_Dashboard/dashboard.routes.js';
+import consultRoutes from './modules/consults/consult.routes.js';
 
 const app = express();
 export { prisma };
@@ -42,6 +43,7 @@ app.use('/api/physician', physicianDashboardRoutes);
 app.use('/api/athlete', athleteDashboardRoutes);
 app.use('/api/cdss', cdssRoutes);
 app.use('/api/physio-therapist', physioDashboardRoutes);
+app.use('/api/consults', consultRoutes);
 
 // Health Check
 app.get('/', (req, res) => {

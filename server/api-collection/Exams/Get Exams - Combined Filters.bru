@@ -1,0 +1,31 @@
+meta {
+  name: Get Exams - Combined Filters
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseURL}}/exams?athleteId=6&modality=MRI&status=IMAGING_COMPLETE&page=1&limit=5
+  body: none
+  auth: none
+}
+
+params:query {
+  athleteId: 6
+  modality: MRI
+  status: IMAGING_COMPLETE
+  page: 1
+  limit: 5
+}
+
+docs {
+  # Get Exams - Combined Filters
+  
+  Demonstrates using multiple filters simultaneously.
+  
+  ## This Query Returns
+  All completed MRI scans for athlete ID 6.
+  
+  ## Practical Use
+  "Show me all the MRI results for this patient that are ready for review"
+}

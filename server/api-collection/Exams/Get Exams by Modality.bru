@@ -1,0 +1,32 @@
+meta {
+  name: Get Exams by Modality
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseURL}}/exams?modality=MRI&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  modality: MRI
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Exams by Modality
+  
+  Filter exams by imaging type (modality).
+  
+  ## Common Modalities
+  - **MRI**: Magnetic Resonance Imaging
+  - **CT**: Computed Tomography
+  - **X-RAY**: Radiography
+  - **Ultrasound**: Sonography
+  
+  ## Use Case
+  View all MRI scans across all patients/cases.
+}

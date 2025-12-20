@@ -1,0 +1,32 @@
+meta {
+  name: Get Exams by Status
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseURL}}/exams?status=IMAGING_COMPLETE&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  status: IMAGING_COMPLETE
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Exams by Status
+  
+  Filter exams by their current status.
+  
+  ## Common Status Values
+  - **ORDERED**: Exam ordered but not yet performed
+  - **IMAGING_COMPLETE**: Scan completed, awaiting review
+  - **REPORTED**: Radiologist report available
+  - **CANCELLED**: Exam cancelled
+  
+  ## Use Case
+  View all completed exams that need radiologist review.
+}

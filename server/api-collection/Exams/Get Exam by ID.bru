@@ -1,0 +1,26 @@
+meta {
+  name: Get Exam by ID
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseURL}}/exams/{{newExamId}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Exam by ID
+  
+  Retrieves detailed information about a specific exam.
+  
+  ## Response Includes
+  - Complete exam details
+  - Associated medical case info
+  - Athlete information
+  - All PACS images associated with this exam
+  
+  ## Usage
+  Run "Create Exam" first to generate an exam ID, or manually set {{newExamId}}.
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Test - Invalid Token
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseURL}}/consults/view/invalid-token-123
+  body: none
+  auth: none
+}
+
+docs {
+  # Error Test - Invalid Token
+  
+  Expected Response: 404 Not Found
+  Error: "Invalid consultation link"
+  
+  This tests the public view endpoint with a non-existent token.
+}
+
+tests {
+  test("should return 404 for invalid token", function() {
+    expect(res.status).to.equal(404);
+  });
+}

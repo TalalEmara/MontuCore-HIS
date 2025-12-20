@@ -1,0 +1,41 @@
+meta {
+  name: Create Lab Test - Lipid Profile
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseURL}}/lab-tests
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 1,
+    "testName": "Lipid Profile",
+    "category": "Chemistry",
+    "status": "PENDING",
+    "sampleDate": "2025-12-20T10:30:00.000Z",
+    "cost": 95.00
+  }
+}
+
+docs {
+  # Create Lipid Profile Test
+  
+  Example of creating a lipid panel test order.
+  Lipid Profile typically includes:
+  - Total Cholesterol
+  - LDL Cholesterol (bad)
+  - HDL Cholesterol (good)
+  - Triglycerides
+  
+  Used to assess cardiovascular health risk.
+}
+
+script:post-response {
+  if (res.status === 201) {
+    console.log("Lipid Profile Test created");
+  }
+}

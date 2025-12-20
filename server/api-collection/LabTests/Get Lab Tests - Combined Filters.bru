@@ -1,0 +1,31 @@
+meta {
+  name: Get Lab Tests - Combined Filters
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseURL}}/lab-tests?athleteId=6&category=Hematology&status=COMPLETED&page=1&limit=5
+  body: none
+  auth: none
+}
+
+params:query {
+  athleteId: 6
+  category: Hematology
+  status: COMPLETED
+  page: 1
+  limit: 5
+}
+
+docs {
+  # Get Lab Tests - Combined Filters
+  
+  Demonstrates using multiple filters simultaneously.
+  
+  ## This Query Returns
+  All completed blood count tests for athlete ID 6.
+  
+  ## Practical Use
+  "Show me all the completed CBC results for this patient"
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Test - Extended Expiry
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseURL}}/consults/share
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "athleteId": 6,
+    "externalEmail": "longterm.consultant@hospital.com",
+    "permissions": {
+      "caseIds": [1]
+    },
+    "expiryHours": 168
+  }
+}
+
+docs {
+  # Extended Expiry Test
+  
+  Tests the maximum allowed expiry time (168 hours = 7 days).
+  
+  Expected Response: 201 Created
+  The link should be valid for 7 days from creation.
+}
+
+script:post-response {
+  if (res.status === 201) {
+    console.log("Extended expiry link created, expires:", res.body.data.expiresAt);
+  }
+}

@@ -1,0 +1,40 @@
+meta {
+  name: Test - Athlete Not Found
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseURL}}/consults/share
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "athleteId": 99999,
+    "externalEmail": "consultant@hospital.com",
+    "permissions": {
+      "caseIds": [1]
+    }
+  }
+}
+
+docs {
+  # Error Test - Athlete Not Found
+  
+  Expected Response: 404 Not Found
+  Error: "Athlete not found"
+  
+  Tests the case where the specified athlete ID doesn't exist.
+}
+
+tests {
+  test("should return 404 for non-existent athlete", function() {
+    expect(res.status).to.equal(404);
+  });
+}

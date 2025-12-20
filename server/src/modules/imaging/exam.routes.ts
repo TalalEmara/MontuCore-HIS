@@ -11,4 +11,25 @@ const router: Router = express.Router();
  */
 router.get('/', examController.getExams);
 
+/**
+ * @route   POST /api/exams
+ * @desc    Create a new exam
+ * @access  Public (to be protected with auth in production)
+ */
+router.post('/', examController.createExam);
+
+/**
+ * @route   GET /api/exams/:id
+ * @desc    Get exam by ID
+ * @access  Public (to be protected with auth in production)
+ */
+router.get('/:id', examController.getExamById);
+
+/**
+ * @route   PUT /api/exams/:id
+ * @desc    Update exam
+ * @access  Public (to be protected with auth in production)
+ */
+router.put('/:id', examController.updateExam);
+
 export default router;

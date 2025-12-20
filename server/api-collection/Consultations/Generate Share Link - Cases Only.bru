@@ -1,0 +1,39 @@
+meta {
+  name: Generate Share Link - Cases Only
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/consults/share
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "athleteId": 6,
+    "externalEmail": "specialist@orthoclinic.com",
+    "permissions": {
+      "caseIds": [1]
+    },
+    "expiryHours": 24
+  }
+}
+
+docs {
+  # Share Cases Only
+  
+  Example of sharing only case data without exams or lab tests.
+  Useful when you only want to share diagnosis and treatment information.
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.shareToken) {
+    console.log("Cases Only Link:", res.body.data.fullLink);
+  }
+}
