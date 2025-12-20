@@ -4,4 +4,10 @@ node_modules
 
 /generated/prisma
 
+package-lock.json
+package.json
+.vscode
 
+pnpm-lock.yaml
+yarn.lock
+pnpm-workspace.yaml

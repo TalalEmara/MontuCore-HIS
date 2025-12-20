@@ -35,70 +35,8 @@ interface AIAnalysisResult {
   metadata?: any;
 }
 
-/**
- * Analyze imaging findings with CDSS
- * @route POST /api/cdss/analyze
- * @access Public
- */
-export const analyzeImaging = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { athlete, imaging } = req.body;
-
-    if (!athlete || !imaging) {
-      res.status(400).json({
-        success: false,
-        message: 'Required fields: athlete (name, age, sport), imaging (type, findings, severity)'
-      });
-      return;
-    }
-
-    const result = cdssService.analyzeImagingFindings(athlete, imaging);
-
-    res.status(200).json({
-      success: true,
-      athlete,
-      analysis: result,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-};
-
-/**
- * Get sport-specific risks
- * @route GET /api/cdss/sport-risks/:sport
- * @access Public
- */
-export const getSportRisks = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { sport } = req.params;
-
-    if (!sport) {
-      res.status(400).json({
-        success: false,
-        message: 'Required parameter: sport'
-      });
-      return;
-    }
-
-    const risks = cdssService.getSportRisks(sport);
-
-    res.status(200).json({
-      success: true,
-      sport,
-      commonInjuries: risks
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-};
+// Note: analyzeImaging and getSportRisks methods removed as they are not implemented in cdss.service.ts
+// The main CDSS functionality is in analyzeDicom below
 
 
 /**
@@ -149,13 +87,65 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
     console.log(`📊 Abnormal Model: ${aiResult.abnormal?.probability.toFixed(4)} (${aiResult.abnormal?.confidence_level})`);
     console.log(`🎯 Overall Abnormal: ${aiResult.abnormal_detected} (${aiResult.abnormal_probability.toFixed(4)})`);
 
+    // Determine primary diagnosis based on highest probability
+    const THRESHOLD = aiResult.threshold || 0.5;
+    const findings = [
+      { type: 'ACL Tear', probability: aiResult.acl?.probability || 0, model: 'acl' },
+      { type: 'Meniscus Tear', probability: aiResult.meniscus?.probability || 0, model: 'meniscus' }
+    ];
+    
+    // Sort by probability (highest first)
+    findings.sort((a, b) => b.probability - a.probability);
+    
+    let diagnosis = 'Normal';
+    let diagnosisDetails = 'No significant abnormality detected';
+    let severity: 'normal' | 'low' | 'moderate' | 'high' = 'normal';
+    
+    // Check if highest probability exceeds threshold
+    const highestFinding = findings[0];
+    if (highestFinding && highestFinding.probability >= THRESHOLD) {
+      diagnosis = highestFinding.type;
+      const percentage = (highestFinding.probability * 100).toFixed(1);
+      
+      // Determine severity
+      if (highestFinding.probability >= 0.8) {
+        severity = 'high';
+        diagnosisDetails = `High probability of ${highestFinding.type} detected (${percentage}%). Immediate review recommended.`;
+      } else if (highestFinding.probability >= 0.65) {
+        severity = 'moderate';
+        diagnosisDetails = `Moderate probability of ${highestFinding.type} detected (${percentage}%). Clinical correlation advised.`;
+      } else {
+        severity = 'low';
+        diagnosisDetails = `Possible ${highestFinding.type} detected (${percentage}%). Further evaluation recommended.`;
+      }
+      
+      // Add secondary findings if also above threshold
+      const secondaryFindings = findings.slice(1).filter(f => f.probability >= THRESHOLD);
+      if (secondaryFindings.length > 0) {
+        const secondaryNames = secondaryFindings.map(f => `${f.type} (${(f.probability * 100).toFixed(1)}%)`).join(', ');
+        diagnosisDetails += ` Additionally: ${secondaryNames}.`;
+      }
+    } else if (aiResult.abnormal_detected) {
+      // Abnormal model detected something but specific findings are below threshold
+      diagnosis = 'General Abnormality';
+      severity = 'low';
+      diagnosisDetails = `General abnormality detected (${(aiResult.abnormal_probability * 100).toFixed(1)}%), but specific pathology unclear. Clinical review recommended.`;
+    } else {
+      const aclProb = aiResult.acl?.probability ?? 0;
+      const meniscusProb = aiResult.meniscus?.probability ?? 0;
+      diagnosisDetails = `All findings within normal limits. ACL: ${(aclProb * 100).toFixed(1)}%, Meniscus: ${(meniscusProb * 100).toFixed(1)}%.`;
+    }
+
+    console.log(`🩺 Diagnosis: ${diagnosis} (${severity})`);
+    console.log(`📝 Details: ${diagnosisDetails}`);
+
     // Optional: Save results to database
     // if (examId) {
     //   await prisma.exam.update({
     //     where: { id: examId },
     //     data: {
     //       aiAnalysisResults: aiResult,
-    //       radiologistNotes: `AI Analysis: ACL ${(aiResult.acl?.probability * 100).toFixed(1)}%, Meniscus ${(aiResult.meniscus?.probability * 100).toFixed(1)}%`
+    //       radiologistNotes: diagnosisDetails
     //     }
     //   });
     // }
@@ -164,6 +154,12 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
     res.status(200).json({
       success: true,
       data: {
+        diagnosis: {
+          primary: diagnosis,
+          severity: severity,
+          details: diagnosisDetails,
+          confidence: highestFinding?.probability || 0
+        },
         analysis: {
           acl: aiResult.acl,
           meniscus: aiResult.meniscus,
@@ -183,9 +179,7 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
           ...aiResult.metadata
         }
       },
-      message: aiResult.abnormal_detected 
-        ? 'Abnormality detected - Review recommended' 
-        : 'No significant abnormality detected'
+      message: diagnosisDetails
     });
 
   } catch (error) {
@@ -205,11 +199,12 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
       if (axiosError.response) {
         // AI service returned an error
         console.error('❌ AI Service error:', axiosError.response.data);
+        const errorData = axiosError.response.data as any;
         return res.status(axiosError.response.status).json({
           success: false,
           error: 'AI Analysis failed',
-          message: axiosError.response.data.detail || 'Analysis failed',
-          details: axiosError.response.data
+          message: errorData?.detail || 'Analysis failed',
+          details: errorData
         });
       }
 

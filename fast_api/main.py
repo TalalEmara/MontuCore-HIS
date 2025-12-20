@@ -98,75 +98,77 @@ else:
 def process_dicom(file_bytes: bytes) -> tuple:
     """
     Reads DICOM bytes, finds middle slice, converts to 3-channel tensor.
+    Uses the same preprocessing pipeline as training for maximum accuracy.
     
     Args:
         file_bytes: Raw DICOM file bytes
         
     Returns:
-        tuple: (input_tensor, original_img_array)
+        tuple: (input_tensor, visual_img_array)
+            - input_tensor: Float32 tensor for AI model (1, 3, 256, 256)
+            - visual_img_array: Uint8 array for heatmap visualization (H, W, 3)
         
     Raises:
         HTTPException: If DICOM processing fails
     """
     try:
         ds = pydicom.dcmread(io.BytesIO(file_bytes))
-        pixel_array = ds.pixel_array.astype(float)
+        # 1. Keep as FLOAT32 (Crucial for precision - matches training)
+        pixel_array = ds.pixel_array.astype(np.float32)
         
         logger.info(f"📊 DICOM shape: {pixel_array.shape}, dtype: {pixel_array.dtype}")
         
-        # If 3D Volume (Slices, H, W) -> Extract Middle 3
+        # 2. Middle Slice Logic
         if len(pixel_array.shape) == 3:
             num_slices = pixel_array.shape[0]
             mid = num_slices // 2
             
             logger.info(f"🎯 Using middle slice: {mid}/{num_slices}")
             
-            # Handle boundary cases
-            prev_idx = max(0, mid - 1)
-            next_idx = min(num_slices - 1, mid + 1)
-            
-            prev = pixel_array[prev_idx]
+            prev = pixel_array[max(0, mid - 1)]
             curr = pixel_array[mid]
-            next_s = pixel_array[next_idx]
-            
-            # Stack to (H, W, 3) for RGB-like format
-            img_stack = np.stack([prev, curr, next_s], axis=-1)
+            next_s = pixel_array[min(num_slices - 1, mid + 1)]
+            img_stack = np.stack([prev, curr, next_s], axis=-1)  # (H, W, 3)
             
         elif len(pixel_array.shape) == 2:
-            # If 2D Image -> Duplicate channels
             logger.info("📷 Processing 2D DICOM image")
-            img_stack = np.stack([pixel_array]*3, axis=-1)
+            img_stack = np.stack([pixel_array] * 3, axis=-1)
         else:
             raise ValueError(f"Unexpected DICOM shape: {pixel_array.shape}")
 
-        # Normalize to 0-255 range
-        img_min = np.min(img_stack)
-        img_max = np.max(img_stack)
+        # --- PATH A: FOR AI MODEL (High Precision) ---
+        # Convert directly to Tensor without rounding to 0-255 uint8
+        tensor = torch.from_numpy(img_stack)
         
-        if img_max > img_min:
-            img_stack = ((img_stack - img_min) / (img_max - img_min)) * 255.0
+        # PyTorch expects (Channels, Height, Width), but numpy is (H, W, C)
+        tensor = tensor.permute(2, 0, 1)
+        
+        # Exact Normalization from Training: (x - min) / (max - min)
+        if tensor.max() > tensor.min():
+            tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
         else:
-            img_stack = np.zeros_like(img_stack)
-            
-        img_stack = np.uint8(img_stack)
+            tensor = torch.zeros_like(tensor)
+
+        # Resize using Tensor method (preserves float precision)
+        # Note: We use antialias=True to match modern PIL resizing
+        resize_transform = transforms.Resize((256, 256), antialias=True)
+        tensor = resize_transform(tensor).unsqueeze(0).to(device)
         
-        logger.info(f"✅ Normalized image range: [{img_stack.min()}, {img_stack.max()}]")
+        logger.info(f"✅ Tensor shape: {tensor.shape}, device: {tensor.device}, dtype: {tensor.dtype}")
+
+        # --- PATH B: FOR HEATMAP (Visual only) ---
+        # Create uint8 version just for heatmap generation
+        # (GradCAM needs an RGB image to draw on)
+        img_min, img_max = img_stack.min(), img_stack.max()
+        if img_max > img_min:
+            img_visual = ((img_stack - img_min) / (img_max - img_min)) * 255.0
+        else:
+            img_visual = np.zeros_like(img_stack)
+        img_visual = np.uint8(img_visual)
         
-        # Prepare for Tensor (PyTorch expects CHW format)
-        transform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((256, 256)),
-            transforms.ToTensor(),
-            # Add normalization if your model was trained with it
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-        
-        # Return both Tensor (for AI) and Numpy (for Heatmap visualization)
-        tensor = transform(img_stack).unsqueeze(0).to(device)
-        
-        logger.info(f"✅ Tensor shape: {tensor.shape}, device: {tensor.device}")
-        
-        return tensor, img_stack
+        logger.info(f"✅ Visual image range: [{img_visual.min()}, {img_visual.max()}]")
+
+        return tensor, img_visual
         
     except pydicom.errors.InvalidDicomError as e:
         logger.error(f"❌ Invalid DICOM file: {str(e)}")
