@@ -1,0 +1,62 @@
+meta {
+  name: Update Lab Test
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{baseURL}}/lab-tests/{{newLabTestId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "COMPLETED",
+    "resultValues": {
+      "RBC": 5.2,
+      "WBC": 7.8,
+      "Hemoglobin": 15.3,
+      "Hematocrit": 45.2,
+      "Platelets": 250
+    },
+    "labTechnicianNotes": "All values within normal range. No abnormalities detected.",
+    "resultPdfUrl": "https://example.com/reports/cbc-12345.pdf"
+  }
+}
+
+docs {
+  # Update Lab Test
+  
+  Updates an existing lab test with results and additional information.
+  Typically used to:
+  - Update status when results are ready
+  - Add test result values
+  - Attach PDF report URL
+  - Add technician notes
+  
+  ## Common Workflow
+  1. Create lab test with status "PENDING"
+  2. Sample is collected and processed
+  3. Update with "COMPLETED" status and result values
+  4. Attach PDF report URL
+  
+  ## Result Values Format
+  Use JSON object for structured test values:
+  ```json
+  {
+    "RBC": 5.2,
+    "WBC": 7.8,
+    "Hemoglobin": 15.3
+  }
+  ```
+  
+  ## All Fields Optional
+  Only include fields you want to update.
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("Lab Test updated:", res.body.data.status);
+  }
+}

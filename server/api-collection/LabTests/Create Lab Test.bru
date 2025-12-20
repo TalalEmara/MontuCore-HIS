@@ -1,0 +1,64 @@
+meta {
+  name: Create Lab Test
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseURL}}/lab-tests
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 10,
+    "testName": "Complete Blood Count (CBC)",
+    "category": "Hematology",
+    "status": "PENDING",
+    "sampleDate": "2025-12-20T09:00:00.000Z",
+    "cost": 75.00
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.id) {
+    bru.setVar("newLabTestId", res.body.data.id);
+    console.log("Created Lab Test ID:", res.body.data.id);
+  }
+}
+
+docs {
+  # Create Lab Test
+  
+  Creates a new laboratory test order.
+  
+  ## Required Fields
+  - `caseId`: ID of the medical case
+  - `testName`: Name of the lab test (CBC, Lipid Profile, etc.)
+  
+  ## Optional Fields
+  - `category`: Test category (Hematology, Chemistry, Microbiology, etc.)
+  - `status`: PENDING (default), COMPLETED, CANCELLED
+  - `resultPdfUrl`: URL to PDF report
+  - `resultValues`: JSON object with test values
+  - `labTechnicianNotes`: Notes from lab technician
+  - `sampleDate`: When sample was collected (defaults to now)
+  - `cost`: Cost of the test
+  
+  ## Common Test Categories
+  - Hematology: Blood cell counts
+  - Chemistry: Metabolic panels, liver/kidney function
+  - Lipid Profile: Cholesterol tests
+  - Endocrinology: Hormone tests
+  - Immunology: Immune system tests
+  - Microbiology: Infection/culture tests
+  
+  ## Common Test Names
+  - CBC (Complete Blood Count)
+  - Lipid Profile
+  - Blood Glucose
+  - Liver Function Test (LFT)
+  - Kidney Function Test (KFT)
+  - Thyroid Panel
+}

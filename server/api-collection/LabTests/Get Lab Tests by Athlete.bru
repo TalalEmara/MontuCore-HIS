@@ -1,0 +1,39 @@
+meta {
+  name: Get Lab Tests by Athlete
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/lab-tests?athleteId=6&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  athleteId: 6
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Lab Tests by Athlete
+  
+  Retrieves all laboratory tests for a specific athlete.
+  Useful for viewing patient's complete lab history.
+  
+  ## Response
+  Returns paginated list of lab tests including:
+  - Test name and category
+  - Status (PENDING, COMPLETED)
+  - Result values (JSON)
+  - PDF reports
+  - Lab technician notes
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.data?.labTests?.length > 0) {
+    bru.setVar("labTestId", res.body.data.labTests[0].id);
+    console.log("First Lab Test ID:", res.body.data.labTests[0].id);
+  }
+}

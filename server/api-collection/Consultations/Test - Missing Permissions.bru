@@ -1,0 +1,36 @@
+meta {
+  name: Test - Missing Permissions
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseURL}}/consults/share
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "athleteId": 6,
+    "externalEmail": "consultant@hospital.com",
+    "permissions": {}
+  }
+}
+
+docs {
+  # Validation Test - Missing Permissions
+  
+  Expected Response: 400 Bad Request
+  Error: "At least one permission (caseIds, examIds, or labIds) must be provided"
+}
+
+tests {
+  test("should return 400 for empty permissions", function() {
+    expect(res.status).to.equal(400);
+  });
+}

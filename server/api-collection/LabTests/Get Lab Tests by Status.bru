@@ -1,0 +1,31 @@
+meta {
+  name: Get Lab Tests by Status
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseURL}}/lab-tests?status=COMPLETED&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  status: COMPLETED
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Lab Tests by Status
+  
+  Filter lab tests by their current status.
+  
+  ## Status Values (from schema)
+  - **PENDING**: Sample collected, awaiting results
+  - **COMPLETED**: Results available
+  - **CANCELLED**: Test cancelled
+  
+  ## Use Case
+  View all completed lab tests that have results ready for review.
+}

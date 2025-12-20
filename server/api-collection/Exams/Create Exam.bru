@@ -1,0 +1,56 @@
+meta {
+  name: Create Exam
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseURL}}/exams
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 10,
+    "modality": "MRI",
+    "bodyPart": "Knee",
+    "status": "ORDERED",
+    "scheduledAt": "2025-12-22T10:00:00.000Z",
+    "cost": 1500.00
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.id) {
+    bru.setVar("newExamId", res.body.data.id);
+    console.log("Created Exam ID:", res.body.data.id);
+  }
+}
+
+docs {
+  # Create Exam
+  
+  Creates a new imaging exam order.
+  
+  ## Required Fields
+  - `caseId`: ID of the medical case
+  - `modality`: Type of imaging (MRI, CT, X-RAY, Ultrasound, PET, DEXA)
+  - `bodyPart`: Body part to be scanned (Knee, Shoulder, Head, etc.)
+  
+  ## Optional Fields
+  - `status`: ORDERED (default), IMAGING_COMPLETE, REPORTED, CANCELLED
+  - `scheduledAt`: When the exam is scheduled
+  - `performedAt`: When the exam was performed
+  - `radiologistNotes`: Notes from radiologist
+  - `conclusion`: Final diagnosis/conclusion
+  - `cost`: Cost of the exam
+  
+  ## Common Modalities
+  - MRI: Magnetic Resonance Imaging
+  - CT: Computed Tomography
+  - X-RAY: Radiography
+  - Ultrasound: Sonography
+  - PET: Positron Emission Tomography
+  - DEXA: Bone Density Scan
+}

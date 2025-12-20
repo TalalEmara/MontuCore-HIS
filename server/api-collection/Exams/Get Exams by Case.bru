@@ -1,0 +1,27 @@
+meta {
+  name: Get Exams by Case
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/exams?caseId=1&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  caseId: 1
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Exams by Case
+  
+  Retrieves all imaging exams associated with a specific medical case.
+  Useful for viewing all diagnostic imaging for a particular injury or condition.
+  
+  ## Example Use Case
+  View all MRI and X-RAY scans for an ACL tear case.
+}

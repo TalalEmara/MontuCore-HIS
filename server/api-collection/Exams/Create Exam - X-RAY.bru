@@ -1,0 +1,39 @@
+meta {
+  name: Create Exam - X-RAY
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseURL}}/exams
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 1,
+    "modality": "X-RAY",
+    "bodyPart": "Chest",
+    "status": "ORDERED",
+    "scheduledAt": "2025-12-21T08:00:00.000Z",
+    "cost": 200.00
+  }
+}
+
+docs {
+  # Create X-RAY Exam
+  
+  Example of creating an X-RAY imaging order.
+  X-RAYs are commonly used for:
+  - Bone fractures
+  - Chest conditions
+  - Joint problems
+  - Dental issues
+}
+
+script:post-response {
+  if (res.status === 201) {
+    console.log("X-RAY Exam created");
+  }
+}

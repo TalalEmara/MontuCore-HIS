@@ -280,15 +280,251 @@ async function main() {
 
   console.log(`✅ 5 physio programs created\n`);
 
+  // --- 10. CREATE DEDICATED DATA FOR CLINICIAN 2 & ATHLETE 6 (FOR CONSULTATION TESTING) ---
+  console.log('🎯 Creating dedicated data for Clinician ID 2 and Athlete ID 6...\n');
+
+  // Get Clinician 2 (Dr. Ahmed Ali - Orthopedic Surgeon) and Athlete 6 (Olivia Anderson)
+  const clinician2Id = 2; // Dr. Ahmed Ali
+  const athlete6Id = 6; // Olivia Anderson
+
+  // Create 3 appointments between them
+  const consultationAppointments = [];
+  for (let i = 0; i < 3; i++) {
+    const appt = await prisma.appointment.create({
+      data: {
+        athleteId: athlete6Id,
+        clinicianId: clinician2Id,
+        scheduledAt: new Date(now.getTime() - (15 - i * 5) * 24 * 60 * 60 * 1000),
+        height: 168,
+        weight: 62,
+        status: ApptStatus.COMPLETED,
+        diagnosisNotes: `Consultation appointment ${i + 1} - Sports injury assessment`
+      }
+    });
+    consultationAppointments.push(appt);
+  }
+
+  // Create 2 cases linked to these appointments
+  const consultationCases = [];
+
+  // Case 1: ACL Tear
+  const case1 = await prisma.case.create({
+    data: {
+      athleteId: athlete6Id,
+      managingClinicianId: clinician2Id,
+      initialAppointmentId: consultationAppointments[0]!.id,
+      diagnosisName: 'Complete ACL Tear with Meniscus Damage',
+      icd10Code: 'S83.5',
+      injuryDate: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      status: CaseStatus.ACTIVE,
+      severity: Severity.SEVERE,
+      medicalGrade: 'Grade 3'
+    }
+  });
+  consultationCases.push(case1);
+
+  // Case 2: Shoulder Injury
+  const case2 = await prisma.case.create({
+    data: {
+      athleteId: athlete6Id,
+      managingClinicianId: clinician2Id,
+      initialAppointmentId: consultationAppointments[1]!.id,
+      diagnosisName: 'Rotator Cuff Strain',
+      icd10Code: 'S46.0',
+      injuryDate: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      status: CaseStatus.ACTIVE,
+      severity: Severity.MODERATE,
+      medicalGrade: 'Grade 2'
+    }
+  });
+  consultationCases.push(case2);
+
+  // Link follow-up appointment to case 1
+  await prisma.appointment.update({
+    where: { id: consultationAppointments[2]!.id },
+    data: { caseId: case1.id }
+  });
+
+  // Create detailed exams for both cases
+  const consultationExams = [];
+
+  // Exams for Case 1 (ACL Tear)
+  const exam1 = await prisma.exam.create({
+    data: {
+      caseId: case1.id,
+      modality: 'MRI',
+      bodyPart: 'Knee',
+      status: 'IMAGING_COMPLETE',
+      scheduledAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000),
+      performedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000),
+      radiologistNotes: 'Complete rupture of anterior cruciate ligament. Associated medial meniscus tear identified. Moderate joint effusion present.',
+      conclusion: 'Complete ACL tear with medial meniscus damage. Surgical intervention recommended.',
+      cost: 2500.00
+    }
+  });
+  consultationExams.push(exam1);
+
+  const exam2 = await prisma.exam.create({
+    data: {
+      caseId: case1.id,
+      modality: 'X-RAY',
+      bodyPart: 'Knee',
+      status: 'IMAGING_COMPLETE',
+      scheduledAt: new Date(now.getTime() - 19 * 24 * 60 * 60 * 1000),
+      performedAt: new Date(now.getTime() - 19 * 24 * 60 * 60 * 1000),
+      radiologistNotes: 'No fracture identified. Joint space appears normal. Soft tissue swelling noted.',
+      conclusion: 'No bony abnormalities detected.',
+      cost: 300.00
+    }
+  });
+  consultationExams.push(exam2);
+
+  // Exams for Case 2 (Shoulder)
+  const exam3 = await prisma.exam.create({
+    data: {
+      caseId: case2.id,
+      modality: 'MRI',
+      bodyPart: 'Shoulder',
+      status: 'IMAGING_COMPLETE',
+      scheduledAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000),
+      performedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      radiologistNotes: 'Partial thickness tear of supraspinatus tendon. Mild tendinopathy of infraspinatus.',
+      conclusion: 'Rotator cuff strain with partial tear. Conservative management with possible surgical consideration if no improvement.',
+      cost: 2200.00
+    }
+  });
+  consultationExams.push(exam3);
+
+  const exam4 = await prisma.exam.create({
+    data: {
+      caseId: case2.id,
+      modality: 'Ultrasound',
+      bodyPart: 'Shoulder',
+      status: 'IMAGING_COMPLETE',
+      scheduledAt: new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000),
+      performedAt: new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000),
+      radiologistNotes: 'Real-time assessment shows reduced range of motion. Fluid accumulation in subacromial bursa.',
+      conclusion: 'Subacromial bursitis confirmed.',
+      cost: 450.00
+    }
+  });
+  consultationExams.push(exam4);
+
+  // Create lab tests for both cases
+  const consultationLabTests = [];
+
+  // Lab tests for Case 1 (ACL)
+  const lab1 = await prisma.labTest.create({
+    data: {
+      caseId: case1.id,
+      testName: 'Complete Blood Count (CBC)',
+      category: 'Hematology',
+      status: 'COMPLETED',
+      resultValues: {
+        RBC: 5.1,
+        WBC: 7.2,
+        Hemoglobin: 14.8,
+        Hematocrit: 44.5,
+        Platelets: 245,
+        MCV: 88,
+        MCH: 29
+      },
+      labTechnicianNotes: 'All values within normal range. Patient cleared for surgery.',
+      sampleDate: new Date(now.getTime() - 16 * 24 * 60 * 60 * 1000),
+      cost: 85.00
+    }
+  });
+  consultationLabTests.push(lab1);
+
+  const lab2 = await prisma.labTest.create({
+    data: {
+      caseId: case1.id,
+      testName: 'Coagulation Profile',
+      category: 'Hematology',
+      status: 'COMPLETED',
+      resultValues: {
+        PT: 12.5,
+        INR: 1.0,
+        aPTT: 28,
+        Fibrinogen: 320
+      },
+      labTechnicianNotes: 'Normal coagulation parameters. Safe to proceed with surgical intervention.',
+      sampleDate: new Date(now.getTime() - 16 * 24 * 60 * 60 * 1000),
+      cost: 120.00
+    }
+  });
+  consultationLabTests.push(lab2);
+
+  const lab3 = await prisma.labTest.create({
+    data: {
+      caseId: case1.id,
+      testName: 'Inflammatory Markers',
+      category: 'Chemistry',
+      status: 'COMPLETED',
+      resultValues: {
+        CRP: 8.5,
+        ESR: 15
+      },
+      labTechnicianNotes: 'Slightly elevated CRP consistent with acute injury. ESR within normal limits.',
+      sampleDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      cost: 95.00
+    }
+  });
+  consultationLabTests.push(lab3);
+
+  // Lab tests for Case 2 (Shoulder)
+  const lab4 = await prisma.labTest.create({
+    data: {
+      caseId: case2.id,
+      testName: 'Complete Blood Count (CBC)',
+      category: 'Hematology',
+      status: 'COMPLETED',
+      resultValues: {
+        RBC: 4.9,
+        WBC: 6.8,
+        Hemoglobin: 14.2,
+        Hematocrit: 43.1,
+        Platelets: 238
+      },
+      labTechnicianNotes: 'All parameters normal.',
+      sampleDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      cost: 85.00
+    }
+  });
+  consultationLabTests.push(lab4);
+
+  const lab5 = await prisma.labTest.create({
+    data: {
+      caseId: case2.id,
+      testName: 'Vitamin D Level',
+      category: 'Endocrinology',
+      status: 'COMPLETED',
+      resultValues: {
+        VitaminD: 28,
+        Unit: 'ng/mL'
+      },
+      labTechnicianNotes: 'Vitamin D slightly below optimal range. Supplementation recommended.',
+      sampleDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+      cost: 75.00
+    }
+  });
+  consultationLabTests.push(lab5);
+
+  console.log(`✅ Created for Consultation Testing:`);
+  console.log(`   - ${consultationAppointments.length} appointments (Clinician 2 ↔ Athlete 6)`);
+  console.log(`   - ${consultationCases.length} cases (ACL Tear & Rotator Cuff Strain)`);
+  console.log(`   - ${consultationExams.length} exams (2 MRI, 1 X-RAY, 1 Ultrasound)`);
+  console.log(`   - ${consultationLabTests.length} lab tests (CBC, Coagulation, Inflammatory, Vitamin D)\n`);
+
   console.log('🎉 Seeding completed successfully!\n');
   console.log('📊 Summary:');
   console.log(`   - 1 Admin`);
   console.log(`   - ${clinicians.length} Clinicians`);
   console.log(`   - ${athletes.length} Athletes`);
-  console.log(`   - ${appointments.length} Appointments`);
-  console.log(`   - ${cases.length} Cases`);
-  console.log(`   - ${cases.length} Exams`);
-  console.log(`   - 5 Lab Tests`);
+  console.log(`   - ${appointments.length + consultationAppointments.length} Appointments`);
+  console.log(`   - ${cases.length + consultationCases.length} Cases`);
+  console.log(`   - ${cases.length + consultationExams.length} Exams`);
+  console.log(`   - ${5 + consultationLabTests.length} Lab Tests`);
   console.log(`   - 6 Treatments`);
   console.log(`   - 5 Physio Programs\n`);
 }

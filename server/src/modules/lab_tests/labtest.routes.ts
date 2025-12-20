@@ -11,4 +11,25 @@ const router: Router = express.Router();
  */
 router.get('/', labTestController.getLabTests);
 
+/**
+ * @route   POST /api/lab-tests
+ * @desc    Create a new lab test
+ * @access  Public (to be protected with auth in production)
+ */
+router.post('/', labTestController.createLabTest);
+
+/**
+ * @route   GET /api/lab-tests/:id
+ * @desc    Get lab test by ID
+ * @access  Public (to be protected with auth in production)
+ */
+router.get('/:id', labTestController.getLabTestById);
+
+/**
+ * @route   PUT /api/lab-tests/:id
+ * @desc    Update lab test
+ * @access  Public (to be protected with auth in production)
+ */
+router.put('/:id', labTestController.updateLabTest);
+
 export default router;
