@@ -28,8 +28,7 @@
 }
 
 .arrowButton:hover:not(:disabled) {
-  background: hsl(from var(--text-color) h s l / 0.5);
-  color: var(--secondary-color);
+  background-color: var(--primary-color);
 }
 
 .arrowButton:disabled {
@@ -40,8 +39,8 @@
 .arrowLeft,
 .arrowRight {
   display: inline-block;
-  width: 0.4rem;
-  height: 0.4rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-left: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
 }
@@ -59,10 +58,10 @@
 .pageIndicator {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-weight: 900;
+  gap: 0.4rem;
+  font-weight: 600;
   user-select: none;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .current {
