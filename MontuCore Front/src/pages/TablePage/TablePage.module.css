@@ -1,0 +1,32 @@
+.pageContainer {
+  /* 1. Use absolute height so children can inherit it, OR use Flexbox */
+  height: 100vh; 
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevents double scrollbars */
+}
+
+.topBar {
+  /* Ensure TopBar doesn't shrink */
+  flex-shrink: 0;
+}
+
+.contentArea {
+  /* 2. FLEX: 1 makes it fill ALL remaining space automatically */
+  flex: 1; 
+  
+  /* 3. Fix the grid. If you want the table to take full space: */
+  display: grid;
+  grid-template-rows: 2fr 1fr; /* Only 1 row for the 1 child */
+  
+  overflow: hidden; /* accurate scrolling inside the table */
+}
+
+.tableWrapper {
+  /* This ensures the wrapper inside fills the grid cell */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* If you want the footer to stick to the bottom */

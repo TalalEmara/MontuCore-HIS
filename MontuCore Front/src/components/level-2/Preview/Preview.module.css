@@ -1,0 +1,4 @@
+.panel {
+  background-color: var(--primary-color);
+  flex-shrink: 0; /* Don't let footer shrink */
+}

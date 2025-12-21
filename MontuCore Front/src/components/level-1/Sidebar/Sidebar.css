@@ -4,6 +4,7 @@
 }
 
 .sidebar {
+  z-index: 1000;
   background: var(--background-color);
   color: var(--text-color);
   display: flex;

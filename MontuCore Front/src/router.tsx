@@ -17,6 +17,8 @@ import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
+import TablePage from "./pages/TablePage/TablePage";
+import TestTablePage from "./pages/TablePage/test";
 import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
 // 1. The absolute root (No UI, just providers/outlet)
@@ -66,6 +68,11 @@ const athleteViewRoute = createRoute({
   path: "athlete",
   component: AthleteView,
 });
+const cases = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "cases",
+  component: TestTablePage,
+});
 
 // 4. Case Route (No Sidebar, Direct child of Root)
 // Added $caseId parameter
@@ -106,6 +113,7 @@ const routeTree = rootRoute.addChildren([
     physicianViewRoute,
     athleteViewRoute,
     PhysiotherapistViewRoute,
+    cases,
   ]),
   CaseRoute,
   DicomRoute,
