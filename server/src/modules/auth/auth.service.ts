@@ -31,6 +31,7 @@ interface AuthResponse {
   token: string;
 }
 
+
 /**
  * Register (By admin only)
  * Email
@@ -108,13 +109,19 @@ export const reigster = async (registerData : RegisterInput) => {
     const token = generateJWT(newUser.id, newUser.email, newUser.role);
     return {
       "token": token,
-      "sucess": true
+      "success": true,
+      "user" : newUser
     };
   }
   catch(error){
-    throw "Something went wrong during registration process";
+    if (error instanceof Error) {
+      throw error; 
+    }
+    throw new Error('Something went wrong during registration process');
   }
 }
+
+
 
 export const logout = async (token: string, userId: number) => {
   try {
@@ -134,8 +141,92 @@ export const logout = async (token: string, userId: number) => {
     });
 
     return { message: 'Logged out successfully' };
+  
   } catch (error) {
     throw error;
+  }
+};
+
+export const updateAthleteProfile = async (userId: number, position: string, jerseyNumber: number) => {
+  try{
+    const existingAthlete = await prisma.user.findFirst({ 
+      where: { 
+        id: userId,
+        role: 'ATHLETE'
+      } 
+    });
+    if (!existingAthlete){
+      throw new Error('Athlete profile not found for the user');
+    }
+    const duplicateJersey = await prisma.athleteProfile.findFirst({
+      where: {
+        jerseyNumber: jerseyNumber,
+        NOT: {
+          userId: existingAthlete.id
+        }
+      }
+    });
+    if (duplicateJersey){
+      throw new Error('Jersey number already in use by another athlete');
+    }
+    const updatedAthlete = await prisma.athleteProfile.update({
+      where: {
+        userId: existingAthlete.id
+      },
+      data: {
+        position: position,
+        jerseyNumber: jerseyNumber
+      }
+    });
+    return updatedAthlete;
+  }
+
+  catch(error){
+    if (error instanceof Error) {
+      throw error; 
+    }
+    throw "Something went wrong during updating athlete profile";
+  }
+}
+
+
+export const deleteUser = async (userId: number) => {
+  try{
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        athleteProfile: true,
+        clinicianProfile: true,
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (user.athleteProfile) {
+      await prisma.athleteProfile.delete({
+        where: { userId: userId }
+      });
+    }
+
+    if (user.clinicianProfile) {
+      await prisma.clinicianProfile.delete({
+        where: { userId: userId }
+      });
+    }
+    const deletedUser = await prisma.user.delete({
+      where: {
+        id: userId
+      }
+    });
+    return true;
+  }
+  catch(error){
+    if (error instanceof Error) {
+      throw error; 
+    }
+    throw new Error("Something went wrong during deleting user");
   }
 };
 
@@ -156,3 +247,46 @@ export const generateJWT = (userId : number, email: string, role: Role) => {
 
   return token;
 }
+
+
+export const getAllUsers = async () => {
+  try{
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        createdAt: true
+      }
+    });
+    return users;
+  }
+  catch(error){
+    throw "Something went wrong during fetching users";
+  }
+}
+
+export const getUserById = async (userId: number) => {
+  try{
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        createdAt: true
+      }
+    });
+    if (user === null){
+      throw new Error('User not found');
+    }
+    return user;
+  }
+  catch(error){
+    throw "Something went wrong during fetching user by ID";
+  }
+};

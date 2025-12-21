@@ -1,0 +1,20 @@
+meta {
+  name: Get User By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/auth/getUserById/4
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJvcnRob0BzcG9ydHNoaXMuY29tIiwicm9sZSI6IkNMSU5JQ0lBTiIsImlhdCI6MTc2NjI3MzIyMSwiZXhwIjoxNzY2NTMyNDIxfQ.6oHV5cCiFzFoQ934qnePWFDqH9EmkqGjJGnukm2LFNI
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

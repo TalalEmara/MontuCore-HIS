@@ -1,0 +1,20 @@
+meta {
+  name: Get Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/auth/getAllUsers
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2MjcxMTI1LCJleHAiOjE3NjY1MzAzMjV9.xq9heLCqlyztXT8dMZTGYLLSq-_IGwsZgNzOLnN16WY
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
