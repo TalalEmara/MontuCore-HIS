@@ -36,7 +36,7 @@ function TablePage<T extends { id: string | number }>({
   columns,
   ActionHeader,
 }: TablePageProps<T>) {
-  const [doPreview, setDoPreview] = useState(true);
+  const [doPreview, setDoPreview] = useState(false);
   
     const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -51,7 +51,12 @@ function TablePage<T extends { id: string | number }>({
   const tableData = data?.map((item) => {
     return columns.map((col) => col.cell(item));
   });
-
+    const handleRowClick = (index: number) => {
+    if (data && data[index]) {
+    //   setSelectedItem(data[index]); // Save the actual data object
+      setDoPreview(true); // Show the panel
+    }
+  };
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -71,6 +76,7 @@ function TablePage<T extends { id: string | number }>({
           <List
             header={tableHeaders}
             data={tableData}
+            onRowClick={handleRowClick}
             // Pass grid template if needed, or make it dynamic
           />
 

@@ -1,4 +1,100 @@
-.panel {
+.panelContent {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3 , minmax(100px, 1fr));
+  padding: 1.5rem;
   background-color: var(--primary-color);
-  flex-shrink: 0; /* Don't let footer shrink */
+  overflow: auto;
+}
+
+/* --- Header Section --- */
+.headerSection {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center ;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.titleRow h2 {
+  margin: 0;
+  font-size: 1.8rem; /* 4rem was too big for a preview */
+  color: var(--text-color);
+}
+
+.subHeader {
+  color: var(--text-color);
+  font-size: 0.95rem;
+  margin-bottom: auto;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  color: #ccc;
+}
+
+/* --- Divider --- */
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 1rem 0;
+  flex-shrink: 0;
+}
+
+/* --- Details Section --- */
+.detailsSection {
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+  border-left: 1px solid var(--text-color);
+  border-right: 1px solid var(--text-color);
+  padding: 0 1rem;
+  margin: 0 1rem;
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: var(--text-color);
+  letter-spacing: 0.5px;
+  margin: 0 0 0.8rem 0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-template-columns: repeat(2, 1fr); /* 3 columns for Type, Date, Severity */
+  gap: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* --- List Section --- */
+.listSection {
+  flex: 1; /* Key fix: Takes all remaining height */
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Key fix: Allows child scroll to work within flex parent */
+  overflow: hidden; /* Prevents double scrollbars */
 }
