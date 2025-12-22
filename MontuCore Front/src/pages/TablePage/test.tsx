@@ -1,4 +1,5 @@
 // Inside src/router.tsx (or a new file)
+import LabTestDetail from "../../components/level-2/DetailsOverlay/labTestOverlay";
 import TablePage from "./TablePage"; // Ensure this import path is correct
 // OR define the interface locally if you haven't made a types file yet:
 
@@ -27,12 +28,14 @@ const testColumns = [
 // --- 3. The Configuration Wrapper ---
 function TestTablePage() {
   return (
+    <>
+    <LabTestDetail onClose={() => { } } isOpen={true} />
     <TablePage
       title="Test Table Integration"
       useDataHook={useMockUsers}
       columns={testColumns}
       ActionHeader={<button>Test Action</button>}
-    />
+    /></>
   );
 }
 export default TestTablePage;
