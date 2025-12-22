@@ -4,6 +4,11 @@ import List from "../../components/level-0/List/List";
 import Pagination from "../../components/level-0/Pagination/Pagination"; //
 import styles from "./TablePage.module.css"; // You'll need to create this
 import PreviewCase from "../../components/level-2/Preview/Preview";
+import AthletePreview from "../../components/level-2/Preview/AthletePreview";
+import ExamPreview from "../../components/level-2/Preview/ExamPreview";
+import ClinicianPreview from "../../components/level-2/Preview/ClinicianPreview";
+import LabTestPreview from "../../components/level-2/Preview/LabTestPreview";
+import TreatmentPreview from "../../components/level-2/Preview/TreatmentPreview";
 interface ColumnDefinition<T> {
   header: string;
   cell: (item: T) => React.ReactNode;
@@ -81,7 +86,7 @@ function TablePage<T extends { id: string | number }>({
 
           
         </div>
-        {doPreview && <PreviewCase onClose={() => setDoPreview(false)} />}
+        {doPreview && <TreatmentPreview onClose={() => setDoPreview(false)} />}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ interface PreviewProps {
     children?: React.ReactNode;
     onClose?: () => void;
 }
-function Preview({children , onClose}: PreviewProps) {
+export function Preview({children , onClose}: PreviewProps) {
   return (
     <div className={styles.panel}>
       <button className={styles.closeButton} onClick={onClose}>×</button>
