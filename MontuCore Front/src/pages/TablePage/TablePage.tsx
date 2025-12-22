@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import List from "../../components/level-0/List/List";
 import Pagination from "../../components/level-0/Pagination/Pagination"; //
 import styles from "./TablePage.module.css"; // You'll need to create this
-import Preview from "../../components/level-2/Preview/Preview";
 import PreviewCase from "../../components/level-2/Preview/Preview";
 interface ColumnDefinition<T> {
   header: string;

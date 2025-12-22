@@ -6,6 +6,7 @@ import styles from "./PhysiotherapistView.module.css";
 import physiotherapistProfile from "../../assets/images/physiotherapist.webp";
 import Pagination from "../../components/level-0/Pagination/Pagination";
 import RiskNotesPanel from "../../components/level-1/RiskNotesPanel/RiskNotesPanel"; 
+import { usePhysiotherapistDashboard } from "../../hooks/usePhysioDashboard";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 
@@ -26,6 +27,10 @@ const PhysiotherapistView: React.FC = () => {
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 5;
+  // need to replace with real data from hook
+  const physioId = 2; 
+  
+  const { data, isLoading, error } = usePhysiotherapistDashboard(physioId);
 
   const [activeRehabCases] = useState<RehabCase[]>([
     { id: "1", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MILD" },
@@ -46,16 +51,16 @@ const PhysiotherapistView: React.FC = () => {
     { id: "16", athleteName: "Leo Messi", session: "Ankle", severity: "MILD" },
   ]);
 
-  const [todayAppointments] = useState<Appointment[]>([
-    { athleteName: "Cristiano Ronaldo", time: "09:00 AM", status: "completed" },
-    { athleteName: "Mohamed Salah", time: "10:30 AM", status: "upcoming" },
-    { athleteName: "Neymar", time: "12:00 PM", status: "canceled" },
-    { athleteName: "Messi", time: "01:15 PM", status: "upcoming" },
-    { athleteName: "Leo Messi", time: "02:00 PM", status: "upcoming" },
-    { athleteName: "Mbappe", time: "03:30 PM", status: "completed" },
-    { athleteName: "Ronaldo", time: "04:45 PM", status: "upcoming" },
-    { athleteName: "Salah", time: "06:00 PM", status: "upcoming" }
-  ]);
+  const todayAppointments = useMemo(() => {
+    if (!data || !data.data) return []; // Handle loading/error state
+    
+    return data.data.todaysAppointments.map((app) => ({
+      athleteName: app.athlete.fullName,
+      time: new Date(app.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: app.status.toLowerCase(),
+    }));
+  }, [data]);
+
 
   const severityLevels: Severity[] = ["MILD", "MODERATE", "SEVERE", "CRITICAL"];
 
