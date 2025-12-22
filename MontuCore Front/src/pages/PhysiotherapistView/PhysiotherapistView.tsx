@@ -26,31 +26,13 @@ interface Appointment {
 const PhysiotherapistView: React.FC = () => {
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 5;
+  const totalPages = 1;
   // need to replace with real data from hook
   const physioId = 2; 
   
   const { data, isLoading, error } = usePhysiotherapistDashboard(physioId);
 
   
-  // const [activeRehabCases] = useState<RehabCase[]>([
-  //   { id: "1", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MILD" },
-  //   { id: "2", athleteName: "Mohamed Salah", session: "Bone", severity: "MODERATE" },
-  //   { id: "3", athleteName: "Neymar Jr", session: "Arm", severity: "SEVERE" },
-  //   { id: "4", athleteName: "Leo Messi", session: "Ankle", severity: "CRITICAL" },
-  //   { id: "5", athleteName: "Cristiano Ronaldo", session: "Bone", severity: "MODERATE" },
-  //   { id: "6", athleteName: "Mohamed Salah", session: "Arm", severity: "MILD" },
-  //   { id: "7", athleteName: "Neymar Jr", session: "Ankle", severity: "SEVERE" },
-  //   { id: "8", athleteName: "Leo Messi", session: "Bone", severity: "CRITICAL" },
-  //   { id: "9", athleteName: "Cristiano Ronaldo", session: "Arm", severity: "MILD" },
-  //   { id: "10", athleteName: "Mohamed Salah", session: "Ankle", severity: "MODERATE" },
-  //   { id: "11", athleteName: "Neymar Jr", session: "Bone", severity: "SEVERE" },
-  //   { id: "12", athleteName: "Leo Messi", session: "Arm", severity: "MILD" },
-  //   { id: "13", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MODERATE" },
-  //   { id: "14", athleteName: "Mohamed Salah", session: "Bone", severity: "CRITICAL" },
-  //   { id: "15", athleteName: "Neymar Jr", session: "Arm", severity: "SEVERE" },
-  //   { id: "16", athleteName: "Leo Messi", session: "Ankle", severity: "MILD" },
-  // ]);
   const activeRehabCases = useMemo(() => {
     if (!data || !data.data) return []; // Guard against loading/undefined state
 

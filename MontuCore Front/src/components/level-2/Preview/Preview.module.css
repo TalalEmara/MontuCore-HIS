@@ -1,18 +1,40 @@
-.panelContent {
+/* src/components/level-2/Preview/Preview.module.css */
+
+.panel {
+  position: relative; /* Anchor for the absolute close button */
   height: 100%;
-  display: grid;
-  grid-template-columns: repeat(3 , minmax(100px, 1fr));
   padding: 1.5rem;
   background-color: var(--primary-color);
+  box-sizing: border-box; /* Ensures padding stays within 100% height */
   overflow: auto;
 }
 
-/* --- Header Section --- */
+.closeButton {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 10;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.panelContent {
+  display: grid;
+  /* 3 Columns: Overview | Details | List */
+  grid-template-columns: repeat(3, minmax(200px, 1fr)); 
+  height: 100%; /* Fill the panel height */
+  gap: 1.5rem; /* Space between columns */
+  overflow: hidden; /* Prevent the grid itself from scrolling */
+}
+
+/* --- Header Section (Column 1) --- */
 .headerSection {
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: center ;
+  justify-content: center; /* Center content vertically */
 }
 
 .titleRow {
@@ -24,14 +46,14 @@
 
 .titleRow h2 {
   margin: 0;
-  font-size: 1.8rem; /* 4rem was too big for a preview */
+  font-size: 1.8rem;
   color: var(--text-color);
 }
 
 .subHeader {
   color: var(--text-color);
   font-size: 0.95rem;
-  margin-bottom: auto;
+  /* margin-bottom: auto; Removed to allow centering */
 }
 
 .separator {
@@ -39,22 +61,16 @@
   color: #ccc;
 }
 
-/* --- Divider --- */
-.divider {
-  height: 1px;
-  background-color: #eee;
-  margin: 1rem 0;
-  flex-shrink: 0;
-}
-
-/* --- Details Section --- */
+/* --- Details Section (Column 2) --- */
 .detailsSection {
-  flex-shrink: 0;
-  margin-bottom: 1rem;
+  /* Removed margins that were for vertical layout */
   border-left: 1px solid var(--text-color);
   border-right: 1px solid var(--text-color);
-  padding: 0 1rem;
-  margin: 0 1rem;
+  padding: 0 1.5rem;
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
 }
 
 .sectionTitle {
@@ -67,8 +83,7 @@
 
 .infoGrid {
   display: grid;
-  grid-template-rows: repeat(2, auto);
-  grid-template-columns: repeat(2, 1fr); /* 3 columns for Type, Date, Severity */
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
@@ -90,11 +105,20 @@
   color: var(--text-color);
 }
 
-/* --- List Section --- */
+/* --- List Section (Column 3) --- */
 .listSection {
-  flex: 1; /* Key fix: Takes all remaining height */
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Key fix: Allows child scroll to work within flex parent */
-  overflow: hidden; /* Prevents double scrollbars */
+  min-height: 0; /* Allows the inner list to scroll */
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Divider is likely not needed in Column layout, 
+   but keeping the class just in case */
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 1rem 0;
+  flex-shrink: 0;
 }

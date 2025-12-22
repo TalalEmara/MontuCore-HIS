@@ -17,7 +17,7 @@
   
   /* 3. Fix the grid. If you want the table to take full space: */
   display: grid;
-  grid-template-rows: 2fr 1fr; /* Only 1 row for the 1 child */
+  grid-template-rows: 3fr 2fr; /* Only 1 row for the 1 child */
   
   overflow: hidden; /* accurate scrolling inside the table */
 }

@@ -81,7 +81,7 @@ function TablePage<T extends { id: string | number }>({
 
           
         </div>
-        {doPreview && <PreviewCase />}
+        {doPreview && <PreviewCase onClose={() => setDoPreview(false)} />}
       </div>
     </div>
   );

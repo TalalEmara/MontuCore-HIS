@@ -6,11 +6,15 @@ import styles from './Preview.module.css'
 
 interface PreviewProps {
     children?: React.ReactNode;
+    onClose?: () => void;
 }
-function Preview({children}: PreviewProps) {
+function Preview({children , onClose}: PreviewProps) {
   return (
-   <div className={styles.panel} >
+    <div className={styles.panel}>
+      <button className={styles.closeButton} onClick={onClose}>×</button>
+   <div className={styles.panelContent} >
             {children}
+        </div>
         </div>
   )
 }
@@ -27,7 +31,7 @@ export interface CasePreviewData {
   };
   reports: (string | number)[][]; // Matches the List component's data structure
 }
-function PreviewCase() {
+function PreviewCase({ onClose }: { onClose?: () => void }) {
     const caseData: CasePreviewData = {
   id: "22",
   status: "Active" as Status,
@@ -53,7 +57,7 @@ function PreviewCase() {
 };
     
    return (
-    <div className={styles.panelContent}>
+    <Preview onClose={onClose}>
       
       {/* 1. Overview Section: Compact & Clear */}
       <div className={styles.headerSection}>
@@ -97,7 +101,7 @@ function PreviewCase() {
         
       </div>
 
-    </div>
+    </Preview>
   );
 }
 export default PreviewCase
