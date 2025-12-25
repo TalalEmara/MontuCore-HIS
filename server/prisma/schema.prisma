@@ -311,3 +311,14 @@ model Invoice {
 
   @@map("invoices")
 }
+
+
+model RevokedToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int      @map("user_id")
+  revokedAt DateTime @default(now()) @map("revoked_at")
+  expiresAt DateTime @map("expires_at") // When the token would have expired anyway
+
+  @@map("revoked_tokens")
+}

@@ -10,12 +10,24 @@ post {
   auth: none
 }
 
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2Mjc3ODI1LCJleHAiOjE3NjY1MzcwMjV9.SYKdGU2AmdXaBmLxWSycZRWvAsbEtgpslUZHg7gDBIk
+}
+
 body:json {
   {
-    "email": "test@sportshis.com",
-    "password": "Test123!",
-    "fullName": "Test User",
-    "role": "CLINICIAN"
+    "generalData": {
+      "email": "newUser3@sportshis.com",
+      "password": "Test123!",
+      "fullName": "Test register 3",
+      "role": "CLINICIAN",
+      "gender": "Male",
+      "dob": "2001-03-10T00:00:00.000Z"
+    },
+    "userData": {
+      "position": "Forward",
+      "jerseyNumber": 40
+    }
   }
 }
 
