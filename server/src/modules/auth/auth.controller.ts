@@ -6,8 +6,20 @@ import { prisma } from '../../config/db.js';
  * Register a new user
  */
 
+export const verifyToken =  (token: string) => {
+  try{
+    const verified= jwt.verify(token, process.env.JWT_SECRET!)
+    if (verified){
+      return true;
+    }
+    return false;
+  }
+  catch(error){
+    throw error;
+  }
+};
 
-export const isAdmin = async (token: string)=> {
+export const isAdmin =  (token: string)=> {
   try{
     const verified= jwt.verify(token, process.env.JWT_SECRET!);
     if (verified && (verified as any).role === 'ADMIN'){
@@ -20,7 +32,7 @@ export const isAdmin = async (token: string)=> {
   }
 }
 
-export const isAthlete = async (token: string)=> {
+export const isAthlete =  (token: string)=> {
   try{
     const verified= jwt.verify(token, process.env.JWT_SECRET!);
     if (verified && (verified as any).role === 'ATHLETE'){
@@ -33,7 +45,7 @@ export const isAthlete = async (token: string)=> {
   }
 }
 
-export const isClinician = async (token: string)=> {
+export const isClinician =  (token: string)=> {
   try{
     const verified= jwt.verify(token, process.env.JWT_SECRET!);
     if (verified && (verified as any).role === 'CLINICIAN'){
