@@ -97,18 +97,14 @@ const generateInvoiceNumber = async (): Promise<string> => {
 /**
  * Get invoices by Case ID
  */
-export const getInvoicesByCaseId = async (caseId: number) => {
-  return prisma.invoice.findMany({
+export const getInvoiceByCaseId = async (caseId: number) => {
+  return prisma.invoice.findFirst({
     where: { caseId },
-    include: {
-      athlete: { select: { id: true, fullName: true, email: true } },
-      clinician: { select: { id: true, fullName: true, email: true } },
-      appointment: true,
-      case: true,
-    },
-    orderBy: { invoiceDate: "desc" },
+    include: { athlete: true, clinician: true, appointment: true },
   });
 };
+
+
 
 
 
