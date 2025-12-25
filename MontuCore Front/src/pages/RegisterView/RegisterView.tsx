@@ -5,6 +5,7 @@ import Button from "../../components/level-0/Button/Bottom";
 import RadioButton from "../../components/level-0/RadioButton/RadioButton";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import styles from "./RegisterView.module.css";
+import { useAthleteReg, useClinicianReg } from "../../hooks/useRegister";
 
 const generalSchema = z.object({
   fullName: z.string({ message: "This field is required" })
@@ -68,7 +69,59 @@ function RegisterView() {
   const [dicomFiles, setDicomFiles] = useState<File[]>([]);
   const [reportFiles, setReportFiles] = useState<File[]>([]);
   const [labTestFiles, setLabTestFiles] = useState<File[]>([]);
+    
+  
+  
+  
+  const { mutate: registerClinician, isPending: isClinicianPending } = useClinicianReg();
+  const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg();
+  const isSubmitting = isClinicianPending || isAthletePending;
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+
+
+
+  const handleFinalSubmit = () => {
+    const genderFormatted = generalData.gender?.toLowerCase() === 'male' ? 'Male' : 'Female';
+    
+    // Assuming date input gives YYYY-MM-DD, we append time to make it ISO-like
+    const dobFormatted = new Date(generalData.role === 'athlete' ? athleteBasicData.birthDate! : staffData.birthDate!).toISOString();
+
+    // 3. Define Success/Error Callbacks
+    const options = {
+      onSuccess: () => {
+        alert("User registered successfully!");
+        // Optional: redirect
+        
+      },
+      onError: (error: Error) => {
+        alert(`Registration Failed: ${error.message}`);
+      }
+    };
+
+    if (generalData.role === 'athlete') {
+      registerAthlete({
+        email: generalData.email!,
+        password: generalData.password!,
+        fullName: generalData.fullName!,
+        gender: genderFormatted,
+        dob: dobFormatted,
+        position: athleteDetailsData.position!,
+        jerseyNumber: athleteDetailsData.jerseyNumber!
+      }, options);
+      
+    } else {
+      // For Physician or Physio
+      registerClinician({
+        email: generalData.email!,
+        password: generalData.password!,
+        fullName: generalData.fullName!,
+        gender: genderFormatted,
+        dob: dobFormatted,
+        specialty: staffData.position! 
+      }, options);
+    }
+  };
 
   const handleGeneralSubmit = () => {
     try {
@@ -140,43 +193,7 @@ function RegisterView() {
     else setLabTestFiles(labTestFiles.filter((_, i) => i !== idx));
   };
 
-const handleFinalSubmit = async () => {
-    let submissionData: any = {
-      fullName: generalData.fullName,
-      email: generalData.email,
-      password: generalData.password,
-      gender: generalData.gender,
-      role: generalData.role,
-    };
-    
-    if (generalData.role === 'athlete') {
-      submissionData = {
-        ...submissionData,
-        height: athleteBasicData.height,
-        weight: athleteBasicData.weight,
-        birthDate: athleteBasicData.birthDate,
-        status: athleteDetailsData.status,
-        jerseyNumber: athleteDetailsData.jerseyNumber,
-        position: athleteDetailsData.position,
-        files: {
-          dicom: dicomFiles.map(f => f.name),
-          reports: reportFiles.map(f => f.name),
-          labTests: labTestFiles.map(f => f.name),
-        }
-      };
-      
-      console.log('Athlete Registration Data:', submissionData);
-      
-    } else if (generalData.role === 'physician' || generalData.role === 'physiotherapy') {
-    submissionData = {
-      ...submissionData,
-      birthDate: staffData.birthDate, 
-      position: staffData.position,
-    };
-      
-      console.log('Staff Registration Data:', submissionData);
-    }
-  };
+
 
   return (
     <div className={styles.container}>
@@ -339,7 +356,7 @@ const handleFinalSubmit = async () => {
                 </div>
                 <div className={styles.buttonGroup}>
                   <Button variant="secondary" onClick={() => setStep(3)} width="48%">BACK</Button>
-                  <Button variant="primary" onClick={handleFinalSubmit} width="48%">SUBMIT</Button>
+                  <Button variant="primary" onClick={handleFinalSubmit} width="48%">{isSubmitting ? "LOADING..." : "SUBMIT"}</Button>
                 </div>
               </div>
             )}

@@ -70,7 +70,7 @@ export const login = async (loginData : LoginInput) => {
     }
   }
   catch(error){
-    throw "Something went wrong during login process";
+    throw error.message;
   }
 }
 
