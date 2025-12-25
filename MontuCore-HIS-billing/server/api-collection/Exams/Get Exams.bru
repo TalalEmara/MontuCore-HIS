@@ -1,0 +1,49 @@
+meta {
+  name: Get Exams
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/exams?page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  limit: 10
+  ~athleteId: 
+  ~caseId: 
+  ~modality: 
+  ~status: 
+}
+
+docs {
+  # Get Exams
+  
+  Retrieves imaging exams with optional filters and pagination support.
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `athleteId` (optional): Filter by athlete ID
+  - `caseId` (optional): Filter by case ID
+  - `modality` (optional): Filter by modality (MRI, CT, X-RAY, etc.)
+  - `status` (optional): Filter by status (ORDERED, IMAGING_COMPLETE, etc.)
+  
+  ## Response
+  Returns paginated list of exams with:
+  - `exams`: Array of exam objects with images
+  - `pagination`: Object with page info (page, limit, total, totalPages)
+}
+  - athleteId: Filter by athlete
+  - caseId: Filter by case
+  - modality: Filter by modality (MRI, CT, X-RAY, etc.)
+  - status: Filter by status (SCHEDULED, COMPLETED, etc.)
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - startDate: Filter exams after this date
+  - endDate: Filter exams before this date
+  - isToday: Filter today's exams (true/false)
+}

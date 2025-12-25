@@ -1,0 +1,142 @@
+.billButton {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.billButton:hover { background: var(--secondary-color); }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: var(--background-color);
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+
+.modal::-webkit-scrollbar { width: 6px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { 
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+.modal::-webkit-scrollbar-thumb:hover { background: var(--secondary-color); }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4em;
+  position: relative;
+}
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.2em;
+  line-height: 1;
+  position: absolute;
+  right: -0.5rem;
+  top: -0.5rem;
+}
+
+.closeBtn:hover { color: var(--accent); }
+
+.content { 
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.content p {
+  margin: 0.6em 0;
+}
+
+.content p strong {
+  color: var(--primary-color);
+  min-width: 5rem;
+  display: inline-block;
+}
+
+h1 {
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin: 0.5em 0 0.8em 0;
+  font-weight: 700;
+}
+
+h1 span {
+  color: var(--primary-color);
+  margin-left: 0.3em;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 0.8rem;
+}
+
+.table th, .table td {
+  border: 1px solid var(--primary-color);
+  padding: 0.3em 0.5em;
+}
+
+.totals {
+  margin-top: 1em;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.totals div { display: flex; justify-content: space-between; }
+.totals strong { color: var(--accent); }
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5em;
+  margin-top: 1em;
+  padding-top: 0.8em;
+  border-top: 1px solid var(--hover-bg);
+}
+
+.downloadBtn, .closeModalBtn {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.downloadBtn:disabled {
+  background: var(--hover-bg);
+  cursor: default;
+}
+
+.downloadBtn:hover:not(:disabled), .closeModalBtn:hover {
+  background: var(--accent);
+}

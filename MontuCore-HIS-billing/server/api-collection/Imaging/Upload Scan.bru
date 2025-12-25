@@ -1,0 +1,20 @@
+meta {
+  name: Upload Scan (Backend Parse)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/imaging/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  caseId: 1
+  file: @file(D:\Eng\SBE\4th\hcis\dicom_images\0002.DCM)
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000/api
+}

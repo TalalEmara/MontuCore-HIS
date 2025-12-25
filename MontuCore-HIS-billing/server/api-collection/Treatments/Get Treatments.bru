@@ -1,0 +1,43 @@
+meta {
+  name: Get Treatments
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/treatments?page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  limit: 10
+  ~athleteId: 
+  ~caseId: 
+  ~type: 
+}
+
+docs {
+  # Get Treatments
+  
+  Retrieves treatments with optional filters and pagination support.
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `athleteId` (optional): Filter by athlete ID
+  - `caseId` (optional): Filter by case ID
+  - `type` (optional): Filter by treatment type
+  
+  ## Response
+  Returns paginated list of treatments with:
+  - `treatments`: Array of treatment objects
+  - `pagination`: Object with page info (page, limit, total, totalPages)
+}
+  - type: Filter by treatment type
+  - page: Page number (default: 1)
+  - limit: Items per page (default: 10)
+  - startDate: Filter treatments after this date
+  - endDate: Filter treatments before this date
+}
