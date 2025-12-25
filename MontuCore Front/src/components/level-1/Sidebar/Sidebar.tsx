@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
   const physicianTabs = [
     { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physician" },
     { icon: <FaCalendarAlt />, label: "Appointments", to: "/physician/schedule" },
-    { icon: <FaUserInjured />, label: "Athletes", to: "/physician/athletes" },
+    { icon: <FaUserInjured />, label: "Cases", to: "/physician/cases" },
     { icon: <FaFileMedical />, label: "Lab Tests", to: "/physician/labs" }, 
     { icon: <FaMicroscope />, label: "Imaging", to: "/physician/imaging" }, 
   ];
@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
   const physioTabs = [
     { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physio" },
     { icon: <FaCalendarAlt />, label: "Appointments", to: "/physio/schedule" },
-    { icon: <FaUserInjured />, label: "Athletes", to: "/physio/athletes" },
+    { icon: <FaUserInjured />, label: "Cases", to: "/physio/cases" },
     { icon: <FaRunning />, label: "Physio Progress", to: "/physio/progress" },
   ];
 

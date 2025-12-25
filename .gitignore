@@ -1,1 +1,6 @@
 dicom_images/
+/node_modules
+MontuCore Front/pnpm-lock.yaml
+*.json
+pnpm-lock.yaml
+MontuCore Front/pnpm-lock.yaml
