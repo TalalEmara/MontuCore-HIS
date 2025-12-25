@@ -11,7 +11,7 @@
 .sectionTitle {
   font-size: 0.9rem;
   text-transform: uppercase;
-  color: #888;
+  color: var(--accent);
   margin-bottom: 0.8rem;
   letter-spacing: 0.05em;
 }
@@ -35,7 +35,7 @@
 
 .label {
   font-size: 0.75rem;
-  color: #999;
+  color: var(--accent);
   margin-bottom: 0.25rem;
 }
 
