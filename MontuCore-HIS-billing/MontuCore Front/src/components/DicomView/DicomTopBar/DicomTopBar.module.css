@@ -1,0 +1,21 @@
+.divider{
+     width: 2px; 
+    background-color: var(--text-color);
+    margin: 0 8px;
+     height: 30px;
+     border-radius: 9999px;
+}
+.dicomTopBar{
+    display: flex;
+    align-items: center;
+    padding: 2vh 1vw;
+    background: var(--background-color);
+    border-bottom: 1px solid var(--accent);
+    overflow-x: auto;
+}
+.atheleteName{
+    margin-left: auto;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-color);
+}

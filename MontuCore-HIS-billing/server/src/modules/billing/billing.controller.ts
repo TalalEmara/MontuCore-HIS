@@ -1,0 +1,48 @@
+import type { Request, Response } from "express";
+import * as billingService from "./billing.service.js";
+
+export const createInvoice = async (req: Request, res: Response) => {
+  try {
+    const createdBy = (req as any).user.id;
+    const invoice = await billingService.createInvoice({ ...req.body, createdBy });
+
+    res.status(201).json({ success: true, data: invoice });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error instanceof Error ? error.message : "Unknown error" });
+  }
+};
+
+export const getAllInvoices = async (req: Request, res: Response) => {
+  try {
+    const athleteId = req.query.athleteId ? Number(req.query.athleteId) : undefined;
+    const invoices = await billingService.getAllInvoices(athleteId);
+
+    res.status(200).json({ success: true, data: invoices });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error instanceof Error ? error.message : "Unknown error" });
+  }
+};
+
+export const getInvoiceById = async (req: Request, res: Response) => {
+  try {
+    const invoice = await billingService.getInvoiceById(Number(req.params.id));
+    res.status(200).json({ success: true, data: invoice });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error instanceof Error ? error.message : "Invoice not found" });
+  }
+};
+
+export const getInvoiceByCaseId = async (req: Request, res: Response) => {
+  try {
+    const invoice = await billingService.getInvoiceByCaseId(Number(req.params.caseId));
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: "Invoice not found" });
+    }
+    res.status(200).json({ success: true, data: invoice });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error instanceof Error ? error.message : "Unknown error" });
+  }
+};
+
+
+
