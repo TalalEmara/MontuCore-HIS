@@ -1,0 +1,18 @@
+.combo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combo-container select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  background-color: var(--background-color);
+
+}
+
+.combo-container select option {
+  color: var(--text-color);
+}

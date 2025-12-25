@@ -1,0 +1,15 @@
+meta {
+  name: Get Appointment
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/appointments/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 
+}

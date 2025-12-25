@@ -1,0 +1,15 @@
+meta {
+  name: Delete Case
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseURL}}/cases/{{caseId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}

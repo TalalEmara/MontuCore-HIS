@@ -1,0 +1,33 @@
+.text-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-color);
+}
+
+.text-input-wrapper input,
+.text-input-wrapper textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.text-input-wrapper textarea {
+  line-height: 1.5;
+}
+
+.text-input-wrapper input.error,
+.text-input-wrapper textarea.error {
+  border-color: var(--primary-color);
+}
+
+.text-input-wrapper .error-message {
+  font-size: 0.75rem;
+  color: var(--primary-color);
+  margin-top: 2px;
+}
