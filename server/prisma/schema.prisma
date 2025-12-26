@@ -41,6 +41,12 @@ enum CaseStatus {
   RECOVERED
 }
 
+enum ExamStatus {
+  ORDERED
+  COMPLETED
+  CANCELLED
+}
+
 // Generic status for Exams/Labs if needed, or specific ones
 enum LabStatus {
   PENDING
@@ -54,6 +60,32 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+// --- EXTERNAL COLLABORATION ---
+
+model ConsultationShare {
+  id            Int      @id @default(autoincrement())
+  token         String   @unique @default(uuid()) // The secret link
+  accessCode    String   @map("access_code") // Access code for viewing
+  
+  // 1. THE ACTOR (Must be a Clinician)
+  clinicianId   Int      @map("clinician_id")
+  clinician     User     @relation("CreatedShares", fields: [clinicianId], references: [id])
+
+  // 2. THE SUBJECT (The Patient)
+  athleteId     Int      @map("athlete_id")
+  athlete       User     @relation("PatientShares", fields: [athleteId], references: [id])
+
+  // 3. THE DATA (JSON Allow-list)
+  permissions   Json     @map("permissions") // e.g. { "caseIds": [1] }
+
+  expiresAt     DateTime @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  accessedAt    DateTime? @map("accessed_at")
+
+  @@map("consultation_shares")
+}
+
+// Update the User model to match these specific relation names
 // --- USERS & AUTH ---
 
 model User {
@@ -67,7 +99,9 @@ model User {
   role         Role      @default(ATHLETE)
   createdAt    DateTime  @default(now())
 
-  // --- Relations ---
+  // Relations
+  createdShares ConsultationShare[] @relation("CreatedShares") // Only populated if role=CLINICIAN
+  patientShares ConsultationShare[] @relation("PatientShares") // Only populated if role=ATHLETE
 
   // Profiles
   athleteProfile   AthleteProfile?
@@ -168,7 +202,7 @@ model Exam {
 
   modality String // 'MRI', 'CT', 'X-RAY'
   bodyPart String @map("body_part") // 'Knee', 'Shoulder'
-  status   String // 'ORDERED', 'IMAGING_COMPLETE'
+  status   ExamStatus // 'ORDERED', 'COMPLETED', 'CANCELLED'
 
   scheduledAt DateTime? @map("scheduled_at")
   performedAt DateTime? @map("performed_at")
@@ -177,24 +211,13 @@ model Exam {
   conclusion       String?
   cost             Float?
 
-  // 2. The Actual Files
-  images PACSImage[]
+  // DICOM Image (optional - one per exam)
+  dicomFileName     String?   @map("dicom_file_name")
+  dicomSupabasePath String?   @map("dicom_supabase_path")
+  dicomPublicUrl    String?   @map("dicom_public_url")
+  dicomUploadedAt   DateTime? @map("dicom_uploaded_at")
 
   @@map("exams")
-}
-
-model PACSImage {
-  id     Int @id @default(autoincrement())
-  examId Int @map("exam_id")
-
-  fileName     String   @map("file_name") // Original file name
-  supabasePath String   @map("supabase_path") // Internal bucket path
-  publicUrl    String   @map("public_url") // The link for Cornerstone.js
-  uploadedAt   DateTime @default(now()) @map("uploaded_at")
-
-  exam Exam @relation(fields: [examId], references: [id])
-
-  @@map("pacs_images")
 }
 
 // --- LAB SYSTEM (Blood Tests) ---
@@ -282,4 +305,15 @@ model Invoice {
   appointment Appointment? @relation("InvoiceAppointment", fields: [appointmentId], references: [id])
 
   @@map("invoices")
+}
+
+
+model RevokedToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int      @map("user_id")
+  revokedAt DateTime @default(now()) @map("revoked_at")
+  expiresAt DateTime @map("expires_at") // When the token would have expired anyway
+
+  @@map("revoked_tokens")
 }

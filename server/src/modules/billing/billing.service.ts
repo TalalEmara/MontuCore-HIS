@@ -93,6 +93,40 @@ const generateInvoiceNumber = async (): Promise<string> => {
 
   return `INV-${year}${month}-${String(count + 1).padStart(4, "0")}`;
 };
+/**
+ * Get invoices by Case ID
+ */
+export const getInvoiceByCaseId = async (caseId: number) => {
+  const invoice = await prisma.invoice.findFirst({
+    where: { caseId },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      invoiceDate: true,
+      items: true,
+      subtotal: true,
+      athlete: {
+        select: {
+          fullName: true,
+        },
+      },
+    },
+  });
+
+  if (!invoice) return null;
+
+  return {
+    id: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    invoiceDate: invoice.invoiceDate,
+    items: invoice.items,
+    subtotal: invoice.subtotal,
+    athleteName: invoice.athlete.fullName,
+  };
+};
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 import { Severity, CaseStatus } from '@prisma/client';
 import { prisma } from '../../config/db.js';
+import * as billingService from '../billing/billing.service.js';
 import { get } from 'http';
 
 interface CaseData {
@@ -38,6 +39,7 @@ interface GetCasesFilterParams {
  * Create a new case
  */
 export const createCase = async (caseData: CaseData) => {
+  // 1️⃣ Create the case first
   const newCase = await prisma.case.create({
     data: {
       athleteId: caseData.athleteId,
@@ -61,8 +63,30 @@ export const createCase = async (caseData: CaseData) => {
     }
   });
 
+  // 2️⃣ Auto-create invoice for this case
+  if (newCase) {
+    const invoiceData: any = {
+      athleteId: newCase.athleteId,
+      clinicianId: newCase.managingClinicianId,
+      caseId: newCase.id,
+      items: [
+        {
+          quantity: 1,
+          unitPrice: 0,
+          description: 'Case services (covered by insurance)',
+        },
+      ],
+      notes: 'Automatically generated invoice for new case',
+      createdBy: newCase.managingClinicianId,
+    };
+
+    await billingService.createInvoice(invoiceData);
+  }
+
+  // 3️⃣ Return the case
   return newCase;
 };
+
 
 /**
  * Get all cases with pagination and filters
