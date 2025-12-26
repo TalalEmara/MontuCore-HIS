@@ -108,8 +108,11 @@ function AthleteView() {
             stats={{
               id: athleteData.id,
               age: "40 years",
-              height: athleteData.height + " cm",
-              weight: athleteData.weight + " kg",
+              age: user?.dateOfBirth 
+                ? Math.floor((new Date().getTime() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) + " years"
+                : "N/A",
+              // height: athleteData.height + " cm",
+              // weight: athleteData.weight + " kg",
               status: athleteData.status,
               role: athleteData.position,
               jersey: `#${athleteData.jerseyNumber}`,
