@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import Button from "../../components/level-0/Button/Bottom";
@@ -107,7 +107,6 @@ function AthleteView() {
             profileImage={athleteProfile}
             stats={{
               id: athleteData.id,
-              age: "40 years",
               age: user?.dateOfBirth 
                 ? Math.floor((new Date().getTime() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) + " years"
                 : "N/A",
