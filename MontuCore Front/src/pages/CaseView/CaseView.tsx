@@ -21,7 +21,7 @@ function CaseView() {
   const caseId = 2
   const [isReporting, setIsReporting] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
-  const {caseRecord, isLoading, isError} = useCaseRecord(caseId,);
+  const { caseRecord, isLoading } = useCaseRecord(caseId);
 
 
   // const appointments = caseRecord?.
@@ -39,29 +39,7 @@ function CaseView() {
   ])
 
 const physioProgram = caseRecord?.physioPrograms.at(-1);
-  //test bill
-  const InvoiceId = "test-invoice-001";
-    const FetchInvoice = async (id: string) => {
-      return {
-        invoiceNumber: "INV-202512-0001",
-        invoiceDate: "2025-12-08",
-        dueDate: "2025-01-07",
-        patient: { name: "John Doe", email: "john@example.com", id: "PAT-001" },
-        items: [
-          { description: "Physiotherapy session", quantity: 1, unitPrice: 150, total: 150 },
-          { description: "MRI Scan", quantity: 1, unitPrice: 600, total: 600 }
-        ],
-        subtotal: 750,
-        tax: 75,
-        discount: 50,
-        totalAmount: 775,
-        paidAmount: 400,
-        status: "PARTIALLY_PAID" as const,
-        caseId: "CASE-123",
-        notes: "Follow-up session required",
-        createdBy: "Dr. Alphons"
-      };
-    };
+  
   return (
     <div className={styles.caseView}>
       <div className={styles.overview}>
@@ -114,10 +92,7 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
         )}
         <p className={styles.title}>
           case #{caseId} <span>{caseRecord?.managingClinician.fullName}</span>
-          <Bill 
-            invoiceId={InvoiceId}
-            onFetchInvoice={FetchInvoice}
-          />
+         <Bill invoiceId={caseRecord?.id} />
         </p>
         
       </div>

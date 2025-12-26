@@ -1,4 +1,5 @@
 import { prisma } from '../../config/db.js';
+import { uploadFile } from '../../storage/supabase.service.js';
 import { validateRequired, validatePositiveInt, validateEnum } from '../../utils/validation.js';
 import { NotFoundError, ValidationError } from '../../utils/AppError.js';
 
@@ -116,6 +117,10 @@ export interface CreateLabTestData {
   labTechnicianNotes?: string;
   sampleDate?: Date;
   cost?: number;
+  pdfFile?: { // Optional PDF file data
+    buffer: Buffer;
+    originalName: string;
+  };
 }
 
 /**
@@ -147,14 +152,14 @@ export const createLabTest = async (data: CreateLabTestData) => {
     throw new ValidationError('Cost must be a positive number');
   }
 
-  // Create the lab test
+  // Create the lab test first
   const labTest = await prisma.labTest.create({
     data: {
       caseId: data.caseId,
       testName: data.testName,
       category: data.category || null,
-      status: data.status || 'PENDING',
-      resultPdfUrl: data.resultPdfUrl || null,
+      status: (data.status as any) || 'PENDING',
+      resultPdfUrl: null, // Will be updated if PDF is provided
       resultValues: data.resultValues || null,
       labTechnicianNotes: data.labTechnicianNotes || null,
       sampleDate: data.sampleDate || new Date(),
@@ -175,6 +180,26 @@ export const createLabTest = async (data: CreateLabTestData) => {
       }
     }
   });
+
+  // If PDF file is provided, upload it and update the lab test
+  if (data.pdfFile) {
+    try {
+      const uploadResult = await uploadFile('medical-documents', `lab-tests/${labTest.id}_${Date.now()}_${data.pdfFile.originalName}`, data.pdfFile.buffer, 'application/pdf');
+
+      // Update the lab test with the PDF URL
+      await prisma.labTest.update({
+        where: { id: labTest.id },
+        data: { resultPdfUrl: uploadResult.publicUrl }
+      });
+
+      // Update the returned object with the PDF URL
+      labTest.resultPdfUrl = uploadResult.publicUrl;
+    } catch (uploadError) {
+      console.error('Failed to upload PDF for lab test:', uploadError);
+      // Don't fail the entire creation if PDF upload fails
+      // The lab test is created successfully, just without the PDF
+    }
+  }
 
   return labTest;
 };
@@ -238,13 +263,52 @@ export const updateLabTest = async (id: number, data: Partial<CreateLabTestData>
     data: {
       ...(data.testName && { testName: data.testName }),
       ...(data.category !== undefined && { category: data.category }),
-      ...(data.status && { status: data.status }),
+      ...(data.status && { status: data.status as any }),
       ...(data.resultPdfUrl !== undefined && { resultPdfUrl: data.resultPdfUrl }),
       ...(data.resultValues !== undefined && { resultValues: data.resultValues }),
       ...(data.labTechnicianNotes !== undefined && { labTechnicianNotes: data.labTechnicianNotes }),
       ...(data.sampleDate !== undefined && { sampleDate: data.sampleDate }),
       ...(data.cost !== undefined && { cost: data.cost })
     },
+    include: {
+      medicalCase: {
+        select: {
+          diagnosisName: true
+        }
+      }
+    }
+  });
+
+  return updatedLabTest;
+};
+
+/**
+ * Upload PDF result for a lab test
+ */
+export const uploadLabTestPdf = async (id: number, fileBuffer: Buffer, originalName: string) => {
+  validatePositiveInt(id, 'id');
+
+  // Check lab test exists
+  const labTest = await prisma.labTest.findUnique({
+    where: { id },
+    select: { id: true, resultPdfUrl: true }
+  });
+
+  if (!labTest) {
+    throw new NotFoundError('Lab test not found');
+  }
+
+  // Generate unique filename
+  const timestamp = Date.now();
+  const fileName = `lab-tests/${id}_${timestamp}_${originalName}`;
+
+  // Upload to Supabase
+  const uploadResult = await uploadFile('medical-documents', fileName, fileBuffer, 'application/pdf');
+
+  // Update lab test with the URL
+  const updatedLabTest = await prisma.labTest.update({
+    where: { id },
+    data: { resultPdfUrl: uploadResult.publicUrl },
     include: {
       medicalCase: {
         select: {

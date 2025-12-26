@@ -1,0 +1,15 @@
+meta {
+  name: Upload Lab Test PDF
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseURL}}/lab-tests/{{lab_test_id}}/upload-pdf
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  pdf: @file(D:\Eng\SBE\4th\hcis\Lectures\HCIS - SBE4029 - Lecture 1 - Course Overview.pdf)
+}

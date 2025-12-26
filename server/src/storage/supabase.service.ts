@@ -47,17 +47,23 @@ export const generateUploadUrl = async (bucket: string, fileName: string) => {
 };
 
 /**
- * Helper: Delete File
- * Useful when deleting a Case or Exam
+ * Strategy 3: Direct Upload from Backend
+ * Use this when the backend needs to upload the file directly.
  */
-export const deleteFile = async (bucket: string, path: string) => {
-  const { error } = await supabase.storage
+export const uploadFile = async (bucket: string, fileName: string, fileBuffer: Buffer, contentType: string) => {
+  const { data, error } = await supabase.storage
     .from(bucket)
-    .remove([path]);
+    .upload(fileName, fileBuffer, {
+      contentType,
+      upsert: false
+    });
 
   if (error) {
-    console.error(`Failed to delete ${path}:`, error.message);
-    return false;
+    throw new Error(`Supabase Upload Error: ${error.message}`);
   }
-  return true;
+
+  return {
+    path: data.path,
+    publicUrl: getPublicUrl(bucket, data.path)
+  };
 };

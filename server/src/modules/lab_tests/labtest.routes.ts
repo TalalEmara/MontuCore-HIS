@@ -13,10 +13,10 @@ router.get('/', labTestController.getLabTests);
 
 /**
  * @route   POST /api/lab-tests
- * @desc    Create a new lab test
+ * @desc    Create a new lab test (PDF upload optional)
  * @access  Public (to be protected with auth in production)
  */
-router.post('/', labTestController.createLabTest);
+router.post('/', ...labTestController.createLabTest);
 
 /**
  * @route   GET /api/lab-tests/:id
@@ -31,5 +31,12 @@ router.get('/:id', labTestController.getLabTestById);
  * @access  Public (to be protected with auth in production)
  */
 router.put('/:id', labTestController.updateLabTest);
+
+/**
+ * @route   POST /api/lab-tests/:id/upload-pdf
+ * @desc    Upload PDF result for a lab test
+ * @access  Public (to be protected with auth in production)
+ */
+router.post('/:id/upload-pdf', labTestController.uploadLabTestPdf);
 
 export default router;
