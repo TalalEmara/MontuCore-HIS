@@ -63,27 +63,32 @@ const athleteMedicalDataSchema = z.object({
     .min(1, "Notes are required")
     .max(500, "Notes cannot exceed 500 characters"),
 
-  labTests: z.array(
-    z.object({
-      testName: z.string().min(1, "Test name is required"),
-      category: z.string().min(1, "Category is required"),
-      file: z.instanceof(File).refine(file => file instanceof File, {
-        message: "File is required",
-      }),
-    })
-  ).min(1, "At least one lab test is required"), 
+  labTests: z
+    .array(
+      z.object({
+        testName: z.string().min(1, "Test name is required"),
+        category: z.string().min(1, "Category is required"),
+        file: z.instanceof(File).refine(file => file instanceof File, {
+          message: "File is required",
+        }),
+      })
+    )
+    .optional(),
 
-  exams: z.array(
-    z.object({
-      modality: z.string().min(1, "Modality is required"),
-      bodyPart: z.string().min(1, "Body Part is required"),
-      file: z.instanceof(File).refine(file => file instanceof File, {
-        message: "File is required",
-      }),
-      dicomFiles: z.array(z.instanceof(File)).optional()
-    })
-  ).min(1, "At least one exam is required") 
+  exams: z
+    .array(
+      z.object({
+        modality: z.string().min(1, "Modality is required"),
+        bodyPart: z.string().min(1, "Body Part is required"),
+        file: z.instanceof(File).refine(file => file instanceof File, {
+          message: "File is required",
+        }),
+        dicomFiles: z.array(z.instanceof(File)).optional()
+      })
+    )
+    .optional()
 });
+
 
 
 
