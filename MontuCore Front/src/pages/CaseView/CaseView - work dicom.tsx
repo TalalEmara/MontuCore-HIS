@@ -16,6 +16,7 @@ import { useCaseRecord } from "../../hooks/useCaseRecord";
 import Badge from "../../components/level-0/Badge/badge";
 import { success } from "zod";
 import List from "../../components/level-0/List/List";
+import DicomViewerButton from "../../components/level-2/DicomViewerButton/DicomViewerButton";
 
 function CaseView() {
   const caseId = 2
@@ -34,7 +35,14 @@ function CaseView() {
   const exams = caseRecord?.exams.map((exam , indx)=>[
     indx+1,
     `${exam.bodyPart}-${exam.modality}`,
-    <Badge label={exam.status == "IMAGING_COMPLETE"? "Completed" : "pending"} variant={exam.status == "IMAGING_COMPLETE"? "success" : "pending"}/>
+    <Badge label={exam.status == "COMPLETED"? "Completed" : "pending"} variant={exam.status == "COMPLETED"? "success" : "pending"}/>,
+    <DicomViewerButton
+      key={`dicom-${exam.id}`}
+      dicomUrl={exam.dicomPublicUrl}
+      dicomFileName={exam.dicomFileName}
+      examId={exam.id}
+      modality={exam.modality}
+    />
   ])
 
 const physioProgram = caseRecord?.physioPrograms.at(-1);
@@ -86,7 +94,7 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
         {activeTab === "images" && (
           <div className={styles.imagesList}>
            
-            <List header={["#","exam","status"]} data={exams} />
+            <List header={["#","exam","status", "actions"]} data={exams} />
           </div>
         )}
        <p className={styles.title}>

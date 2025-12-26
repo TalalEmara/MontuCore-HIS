@@ -1,10 +1,13 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useSearch, useParams } from "@tanstack/react-router";
 import DicomTopBar, { type ToolMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
-import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer"; 
+import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer";
 import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
-import { Upload, Box, Grid3X3 } from "lucide-react"; 
+import { useDicomUrlHandler } from "../../hooks/DicomViewer/useDicomUrlHandler";
+import { Upload, Box, Grid3X3 } from "lucide-react";
 import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
+import { useDicomURL } from "../../hooks/DicomViewer/useDicomURL";
 
 interface ViewportData {
   id: string;
@@ -12,9 +15,18 @@ interface ViewportData {
   preset?: VoiPreset | null;
 }
 
-function DicomViewPage() {
+interface DicomViewPageRef {
+  loadDicomFromUrls: (urls: string[]) => void;
+}
+
+const DicomViewPage = React.forwardRef<DicomViewPageRef>((props, ref) => {
   const [activeTool, setActiveTool] = useState<ToolMode>("WindowLevel");
   const [isMPR, setIsMPR] = useState<boolean>(false);
+  
+  // Get route parameters
+  const routeParams = useParams({ from: '/dicom/$examId' }) as { examId?: string };
+  const examId = routeParams?.examId;
+  const searchParams = useSearch({ from: '/dicom/$examId' }) as { url?: string };
   
   const [viewports, setViewports] = useState<ViewportData[]>([
     { id: "viewport-0", imageIds: [], preset: null },
@@ -39,7 +51,78 @@ function DicomViewPage() {
   };
 
   const { handleFileChange } = useDicomFileHandler(handleNewDicomFiles);
+  const { handleUrls } = useDicomUrlHandler(handleNewDicomFiles);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const loadedRef = useRef(false);
+
+  // Expose function to load DICOM from URLs (can be called from parent components)
+  React.useImperativeHandle(ref, () => ({
+    loadDicomFromUrls: (urls: string[]) => {
+      handleUrls(urls);
+    }
+  }));
+
+  // Check for URL/route parameters on mount
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    const loadDicom = async () => {
+      // Check route parameter first (higher priority)
+      if (examId) {
+        console.log('Loading DICOM for exam ID from route:', examId);
+        try {
+          const response = await fetch(`http://localhost:3000/api/exams/${examId}`);
+          const examData = await response.json();
+          console.log('Exam data received:', examData);
+          console.log('Exam data.data:', examData.data);
+          if (examData.data && examData.data.dicomPublicUrl) {
+            console.log('Found DICOM URL for exam:', examData.data.dicomPublicUrl);
+            await handleUrls([examData.data.dicomPublicUrl]);
+          } else {
+            console.warn('Exam does not have a DICOM file. Available fields:', Object.keys(examData.data || examData));
+            // Fallback to URL parameter if exam doesn't have DICOM
+            if (searchParams.url) {
+              console.log('Using URL parameter as fallback:', searchParams.url);
+              await handleUrls([searchParams.url]);
+            } else {
+              console.warn('No DICOM URL available for exam', examId);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching exam data:', error);
+        }
+      }
+      // Check search parameter as fallback
+      else if (searchParams.url) {
+        console.log('Loading DICOM from URL parameter:', searchParams.url);
+        await handleUrls([searchParams.url]);
+      }
+      // Fallback to hardcoded exam ID 16 for demo
+      else {
+        console.log('No parameters provided, loading demo exam ID 16');
+        try {
+          const response = await fetch(`http://localhost:3000/api/exams/16`);
+          const examData = await response.json();
+          console.log('Demo exam data received:', examData);
+          if (examData.data && examData.data.dicomPublicUrl) {
+            console.log('Found DICOM URL for demo exam 16:', examData.data.dicomPublicUrl);
+            await handleUrls([examData.data.dicomPublicUrl]);
+          } else {
+            console.warn('Demo exam 16 does not have a DICOM file, trying local file');
+            // Try loading local DICOM file for testing
+            const localUrl = 'http://localhost:5173/dicom_images/demo_pure_acl_6.dcm';
+            console.log('Trying local DICOM file:', localUrl);
+            await handleUrls([localUrl]);
+          }
+        } catch (error) {
+          console.error('Error fetching demo exam data:', error);
+        }
+      }
+    };
+
+    loadDicom();
+  }, [examId, searchParams.url, handleUrls]);
 
   // --- ACTIONS ---
   const handleAddViewport = () => {
@@ -86,22 +169,22 @@ function DicomViewPage() {
 
       {/* Floating Controls: Upload & MPR Toggle */}
       <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
-        <input
+        {/* <input
           ref={fileInputRef}
           type="file"
           multiple
           accept=".dcm"
           onChange={handleFileChange}
           style={{ display: "none" }}
-        />
+        /> */}
         
         {/* Upload Button */}
         <button 
-            onClick={triggerUpload} 
+            onClick={() => fetchDicomUrl(16)} 
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
           <Upload size={16} />
-          Upload ({activeViewportId})
+          Upload 14 ({activeViewportId})
         </button>
 
         
@@ -146,6 +229,8 @@ function DicomViewPage() {
       )}
     </div>
   );
-}
+});
+
+DicomViewPage.displayName = 'DicomViewPage';
 
 export default DicomViewPage;

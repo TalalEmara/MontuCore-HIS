@@ -86,9 +86,16 @@ export const CaseRoute = createRoute({
 
 export const DicomRoute = createRoute({
   getParentRoute: () => rootRoute,
-  // path: "dicom/$dicomId", 
-  path: "dicom", 
+  path: "dicom/$examId",
   component: DicomViewPage,
+  validateSearch: (search) => ({ url: search.url as string | undefined }),
+});
+
+export const DicomViewerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "dicom-viewer",
+  component: DicomViewPage,
+  validateSearch: (search) => ({ url: search.url as string | undefined }),
 });
 
 const registerRoute = createRoute({
@@ -131,6 +138,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   CaseRoute,
   DicomRoute,
+  DicomViewerRoute,
   registerRoute,
   LoginRoute,
   ManagerRoute,

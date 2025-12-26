@@ -23,6 +23,9 @@ interface UserResponse {
   email: string;
   fullName: string;
   role: Role;
+  phoneNumber?: string;
+  dateOfBirth?: Date;
+  gender?: string;
   createdAt?: Date;
 }
 
@@ -64,19 +67,41 @@ export const login = async (loginData : LoginInput) => {
     }
 
     const token = generateJWT(user.id, user.email, user.role);
+    
+    // Initialize profile as null
+    let profile = null;
+    
+    // return athlete profile if role is athlete or clinician profile if role is clinician
+    if (user.role === 'ATHLETE'){
+      profile = await prisma.athleteProfile.findUnique({
+        where: { userId: user.id }
+      });
+    }
+    else if (user.role === 'CLINICIAN'){
+      profile = await prisma.clinicianProfile.findUnique({
+        where: { userId: user.id }
+      });
+    }
+
     return {
       "token": token,
-      "success": true,
+      // return user data except passwordHash
       "user" : {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
         role: user.role,
-      }
+        phoneNumber: user.phoneNumber,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        createdAt: user.createdAt
+      },
+      "profile": profile,
+      "success": true
     }
   }
   catch(error){
-    throw error.message;
+    throw error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }
 
