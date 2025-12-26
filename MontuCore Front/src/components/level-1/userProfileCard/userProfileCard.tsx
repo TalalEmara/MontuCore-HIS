@@ -14,6 +14,7 @@ interface UserStats {
 interface UserProfileCardProps {
   profileImage: string;
   stats: UserStats;
+  title?: string; 
   className?: string;
   width?: string;
   minWidth?: string;
@@ -24,6 +25,7 @@ interface UserProfileCardProps {
 function UserProfileCard({
   profileImage,
   stats,
+  title = "Personal Information", 
   className = "",
   width = "100%",
   minWidth = "0",
@@ -47,22 +49,24 @@ function UserProfileCard({
         }}
       >
         <div className="profile-card-header">
-          <h2 className="profile-card-title">Personal Information</h2>
+          <h2 className="profile-card-title">{title}</h2>
         </div>
 
         <div className="profile-stats-card">
           <div className="stats-content">
             {Object.entries(stats).map(([key, value]) => (
-              <div key={key} className="stat-row">
-                <span className="stat-label">{key}</span>
-                <span
-                  className={`stat-value ${
-                    key === "status" && value === "Fit" ? "status-fit" : ""
-                  }`}
-                >
-                  {value}
-                </span>
-              </div>
+              value && (
+                <div key={key} className="stat-row">
+                  <span className="stat-label">{key}</span>
+                  <span
+                    className={`stat-value ${
+                      key === "status" && value === "Fit" ? "status-fit" : ""
+                    }`}
+                  >
+                    {value}
+                  </span>
+                </div>
+              )
             ))}
           </div>
         </div>

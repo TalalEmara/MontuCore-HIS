@@ -21,7 +21,8 @@ import TablePage from "./pages/TablePage/TablePage";
 import TestTablePage from "./pages/TablePage/test";
 import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
-import ExternalConsultationView from "./pages/ExternalView/ExternalConsultationView";
+import PatientPortalView from "./pages/PatientPortalView/PatientPortalView";
+
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -108,10 +109,16 @@ const ManagerRoute = createRoute({
   component: ManagerDashboard,
 });
 
-const ExternalConsultationRoute = createRoute({
+// const ExternalConsultationRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "external/view/$token",
+//   component: ExternalConsultationView,
+// });
+
+const PatientPortalRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "external/view/$token",
-  component: ExternalConsultationView,
+  path: "patientPortal",
+  component: PatientPortalView,
 });
 
 // 5. Build Tree
@@ -127,7 +134,8 @@ const routeTree = rootRoute.addChildren([
   registerRoute,
   LoginRoute,
   ManagerRoute,
-  ExternalConsultationRoute,
+  // ExternalConsultationRoute,
+  PatientPortalRoute
 ]);
 
 
