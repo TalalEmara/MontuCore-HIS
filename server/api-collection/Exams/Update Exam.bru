@@ -12,10 +12,16 @@ put {
 
 body:json {
   {
-    "status": "IMAGING_COMPLETE",
+    "status": "ORDERED",
     "performedAt": "2025-12-22T14:30:00.000Z",
     "radiologistNotes": "MRI scan completed successfully. High-resolution images captured.",
     "conclusion": "Partial ACL tear confirmed. Grade 2 sprain visible on medial meniscus."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("Exam updated:", res.body.data.status);
   }
 }
 
@@ -36,10 +42,4 @@ docs {
   
   ## All Fields Optional
   Only include fields you want to update.
-}
-
-script:post-response {
-  if (res.status === 200) {
-    console.log("Exam updated:", res.body.data.status);
-  }
 }

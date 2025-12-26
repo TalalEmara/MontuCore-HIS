@@ -1,0 +1,57 @@
+meta {
+  name: Upload DICOM to Exam
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseURL}}/exams/{{newExamId}}/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  dicomFile: @file(D:\Eng\SBE\4th\hcis\MontuCore-HIS\dicom_images\demo_pure_acl_6.dcm)
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("DICOM uploaded successfully to exam:", bru.getVar("newExamId"));
+  } else {
+    console.log("Upload failed with status:", res.status);
+    console.log("Response:", res.body);
+  }
+}
+
+docs {
+  # Upload DICOM to Existing Exam
+  
+  Uploads a DICOM file to an existing exam and auto-completes it.
+  
+  ## URL Parameters
+  - `examId`: ID of the exam to upload DICOM to
+  
+  ## Required Fields
+  - `dicomFile`: DICOM file to upload
+  
+  ## Business Rules
+  - Exam must exist and not already have a DICOM
+  - Only one DICOM file allowed per exam
+  - File must be a valid DICOM format
+  - Exam status will be automatically set to COMPLETED
+  - DICOM metadata will populate exam fields
+  
+  ## DICOM Processing
+  - Extracts metadata like StudyDate, StudyTime, SeriesDescription
+  - Sets performedAt from DICOM timestamp
+  - Populates radiologistNotes from DICOM data
+  - Stores file in Supabase storage with public URL
+  
+  ## Error Responses
+  - 404: Exam not found
+  - 400: Exam already has DICOM or invalid file
+  - 500: DICOM parsing or storage error
+  
+  ## Response
+  Returns updated exam with DICOM information.
+}

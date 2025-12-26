@@ -11,6 +11,7 @@ import ComboBox from "../../level-0/ComboBox/ComboBox";
 
 // Hook
 import { useBookAppointment } from "../../../hooks/useAppointments";
+import { useUsersByRole } from "../../../hooks/useUsers";
 
 // --- Schema Validation ---
 const bookingSchema = z.object({
@@ -27,14 +28,10 @@ interface BookingPanelProps {
   athleteId: number; // Passed from parent (Context or Prop)
 }
 
-// Mock Data for Clinicians (Replace with useClinicians hook if available)
-const CLINICIANS = [
-  { label: "Select a Clinician", value: "" },
-  { label: "Dr. Sarah Smith (Physio)", value: "2" }
-];
 
 export default function BookingPanel({ isOpen, onClose, athleteId }: BookingPanelProps) {
   const { mutate: bookAppointment, isPending, isSuccess, error } = useBookAppointment();
+  const { data: users } = useUsersByRole("CLINICIAN");
   const [successMsg, setSuccessMsg] = useState("");
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm<BookingFormData>({
@@ -45,6 +42,14 @@ export default function BookingPanel({ isOpen, onClose, athleteId }: BookingPane
       time: "",
     }
   });
+
+  
+const CLINICIANS = users
+  ? users.map((clinician) => ({
+      label: clinician.fullName,
+      value: clinician.id,
+    }))
+  : [];
 
   const onSubmit = (data: BookingFormData) => {
     // Combine Date and Time into ISO string
