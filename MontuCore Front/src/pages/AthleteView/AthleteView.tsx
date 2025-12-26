@@ -8,7 +8,6 @@ import athleteProfile from "../../assets/images/Cristiano Ronaldo.webp";
 import Pagination from "../../components/level-0/Pagination/Pagination";
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
-import List from "../../components/level-0/List/List";
 import BookingPanel from "../../components/level-1/BookingPanel/BookingPanel";
 
 function AthleteView() {

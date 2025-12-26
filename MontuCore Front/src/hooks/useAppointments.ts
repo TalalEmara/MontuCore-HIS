@@ -26,12 +26,14 @@ export interface AppointmentsResponse {
 
 const fetchClinicianAppointments = async (clinicianId: number): Promise<AppointmentsResponse> => {
   // Retrieve the token stored during login
-  const token = localStorage.getItem('token');
+  // const token = localStorage.getItem('token');
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
 
   const response = await fetch(`http://localhost:3000/api/appointments/clinician/${clinicianId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -81,12 +83,14 @@ export interface AthleteAppointmentsResponse {
 
 
 const fetchAthleteAppointments = async (athleteId: number): Promise<AthleteAppointmentsResponse> => {
-  const token = localStorage.getItem('token');
+  // const token = localStorage.getItem('token');
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
 
   const response = await fetch(`http://localhost:3000/api/appointments/athlete/${athleteId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -122,8 +126,8 @@ export interface CreateAppointmentResponse {
 }
 
 const bookAppointmentApi = async (data: CreateAppointmentRequest): Promise<CreateAppointmentResponse> => {
-  const token = localStorage.getItem('token');
-
+  // const token = localStorage.getItem('token');
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
   const response = await fetch('http://localhost:3000/api/appointments/create-appointment', {
     method: 'POST',
     headers: {
