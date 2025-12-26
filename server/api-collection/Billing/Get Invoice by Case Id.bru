@@ -1,0 +1,20 @@
+meta {
+  name: Get Invoice by Case Id
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/billing/invoices/case/22
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTMsImVtYWlsIjoidGVzdEBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkNMSU5JQ0lBTiIsImlhdCI6MTc2Njc2NTIxNSwiZXhwIjoxNzY2ODUxNjE1fQ.RLxLPQ07pzMYDBvbhnZH6E-fhbn1fOXqRs7M6ygNzOs
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
