@@ -3,8 +3,8 @@ import "./ComboBox.css";
 
 interface ComboBoxProps {
   label?: string;
-  options: { label: string; value: string }[];
-  value: string;
+  options: { label: string; value: number | string }[];
+  value: number | string;
   onChange: (value: string) => void;
 }
 
