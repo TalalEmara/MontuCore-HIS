@@ -297,11 +297,16 @@ const ExternalConsultationView = () => {
                       </div>
                     )}
 
-                    {/* Images would be displayed here if available */}
-                    {exam.images && exam.images.length > 0 && (
+                    {/* DICOM Image */}
+                    {exam.dicomPublicUrl && (
                       <div className="mt-4">
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">Images ({exam.images.length})</h4>
-                        <p className="text-sm text-gray-500">Images available for review</p>
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">DICOM Image</h4>
+                        <DicomViewerButton
+                          dicomUrl={exam.dicomPublicUrl}
+                          dicomFileName={exam.dicomFileName}
+                          examId={exam.id}
+                          modality={exam.modality}
+                        />
                       </div>
                     )}
                   </div>

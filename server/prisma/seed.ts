@@ -6,7 +6,7 @@ async function main() {
   console.log('🌱 Starting comprehensive seeding...\n');
 
   // Clear existing data
-  await prisma.$executeRaw`TRUNCATE TABLE "pacs_images", "exams", "lab_tests", "treatments", "physio_programs", "cases", "appointments", "athlete_profiles", "clinician_profiles", "users" RESTART IDENTITY CASCADE;`;
+  await prisma.$executeRaw`TRUNCATE TABLE "exams", "lab_tests", "treatments", "physio_programs", "cases", "appointments", "athlete_profiles", "clinician_profiles", "users" RESTART IDENTITY CASCADE;`;
   console.log('🗑️  Cleared existing data\n');
 
   const hashedPassword = await bcrypt.hash('Test123!', 10);
@@ -170,11 +170,15 @@ async function main() {
     // Each completed appointment is the initial appointment for exactly one case
     const initialAppointment = completedAppointments[i];
     
+    if (!initialAppointment) {
+      throw new Error(`No initial appointment found for case ${i}`);
+    }
+    
     const newCase = await prisma.case.create({
       data: {
         athleteId: athletes[athleteIndex]!.id,
         managingClinicianId: clinicians[clinicianIndex]!.id,
-        initialAppointmentId: initialAppointment?.id, // Link to the initial appointment (one-to-one)
+        initialAppointmentId: initialAppointment.id, // Link to the initial appointment (one-to-one)
         diagnosisName: template.diagnosis,
         icd10Code: template.icd10,
         injuryDate: initialAppointment?.scheduledAt || new Date(now.getTime() - (i * 5) * 24 * 60 * 60 * 1000),
@@ -213,6 +217,7 @@ async function main() {
   // --- 7. CREATE EXAMS FOR SOME CASES ---
   
   for (let i = 0; i < cases.length; i++) {
+    const hasDicom = i === 0 || i === 2; // Add DICOM to first and third exams
     await prisma.exam.create({
       data: {
         caseId: cases[i]!.id,
@@ -223,7 +228,13 @@ async function main() {
         performedAt: i < 5 ? new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000) : null,
         radiologistNotes: i < 5 ? `Examination complete - findings documented` : null,
         conclusion: i < 5 ? `${['Normal', 'Abnormal'][i % 2]} findings observed` : null,
-        cost: 200 + (i * 50)
+        cost: 200 + (i * 50),
+        ...(hasDicom && {
+          dicomFileName: `demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          dicomSupabasePath: `dicom_images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          dicomPublicUrl: `https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          dicomUploadedAt: new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000)
+        })
       }
     });
   }
@@ -359,7 +370,11 @@ async function main() {
       performedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000),
       radiologistNotes: 'Complete rupture of anterior cruciate ligament. Associated medial meniscus tear identified. Moderate joint effusion present.',
       conclusion: 'Complete ACL tear with medial meniscus damage. Surgical intervention recommended.',
-      cost: 2500.00
+      cost: 2500.00,
+      dicomFileName: 'knee_mri_acl_tear.dcm',
+      dicomSupabasePath: 'scans/knee_mri_acl_tear.dcm',
+      dicomPublicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/knee_mri_acl_tear.dcm',
+      dicomUploadedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000)
     }
   });
   consultationExams.push(exam1);
@@ -390,7 +405,11 @@ async function main() {
       performedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
       radiologistNotes: 'Partial thickness tear of supraspinatus tendon. Mild tendinopathy of infraspinatus.',
       conclusion: 'Rotator cuff strain with partial tear. Conservative management with possible surgical consideration if no improvement.',
-      cost: 2200.00
+      cost: 2200.00,
+      dicomFileName: 'shoulder_mri_rotator_cuff.dcm',
+      dicomSupabasePath: 'scans/shoulder_mri_rotator_cuff.dcm',
+      dicomPublicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/shoulder_mri_rotator_cuff.dcm',
+      dicomUploadedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     }
   });
   consultationExams.push(exam3);
