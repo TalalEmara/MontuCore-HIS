@@ -4,6 +4,96 @@ import { useAuth } from '../context/AuthContext';
 // ... (Interfaces omitted) ...
 export interface CaseRecordResult { caseRecord: any; message: string; }
 
+// --- 1. Interfaces ---
+
+export interface UserDetail {
+  id: number;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  gender?: string;
+}
+
+export interface Exam {
+  id: number;
+  modality: string;
+  bodyPart: string;
+  status: string;
+  scheduledAt: string;
+  performedAt?: string;
+  radiologistNotes?: string;
+  conclusion?: string;
+  cost: number;
+  dicomFileName?: string;
+  dicomPublicUrl?: string;
+  dicomUploadedAt?: string;
+}
+
+export interface LabTest {
+  id: number;
+  testName: string;
+  category: string;
+  status: string;
+  resultPdfUrl?: string | null;
+  resultValues?: Record<string, number | string>;
+  labTechnicianNotes?: string | null;
+  sampleDate: string;
+  cost: number;
+}
+
+export interface Treatment {
+  id: number;
+  type: string;
+  description: string;
+  providerName: string;
+  date: string;
+  cost: number;
+}
+
+export interface PhysioProgram {
+  id: number;
+  title: string;
+  numberOfSessions: number;
+  sessionsCompleted: number;
+  startDate: string;
+  weeklyRepetition: number;
+  costPerSession: number;
+}
+
+// -- Main Data Structure --
+
+export interface CaseRecordData {
+  id: number;
+  diagnosisName: string;
+  severity: 'MILD' | 'MODERATE' | 'SEVERE';
+  status: string;
+  injuryDate: string;
+  athlete: UserDetail;
+  managingClinician: UserDetail;
+  exams: Exam[];
+  labTests: LabTest[];
+  treatments: Treatment[];
+  physioPrograms: PhysioProgram[];
+}
+
+// -- API Response Wrapper --
+
+export interface CaseRecordResponse {
+  success: boolean;
+  data: CaseRecordData;
+  message?: string;
+}
+
+// -- Hook Return Type --
+
+export interface CaseRecordResult {
+  caseRecord: CaseRecordData | undefined;
+  message: string;
+}
+
+// --- 2. API Fetcher ---
+
 const fetchCaseRecord = async (
   caseId: number,
   token: string,

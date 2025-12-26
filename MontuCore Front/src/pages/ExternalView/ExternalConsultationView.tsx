@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import axios from "axios";
 import { useState } from "react";
+import DicomViewerButton from "../../components/level-2/DicomViewerButton/DicomViewerButton";
 
 interface SharedData {
   meta: {
