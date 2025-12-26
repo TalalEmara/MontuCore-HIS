@@ -3,6 +3,7 @@ import styles from "./PatientPortalView.module.css";
 import ProfileCard from "../../components/level-1/userProfileCard/userProfileCard";
 import InfoCard from "../../components/level-0/InfoCard/InfoCard";
 import List from "../../components/level-0/List/List";
+import Checkbox from "../../components/level-0/CheckBox/CheckBox";
 import userProfileImage from "../../assets/images/Cristiano Ronaldo.webp";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
@@ -18,11 +19,46 @@ interface Prescription { id: number; name: string; date: string; clinician: stri
 
 function PatientPortalView() {
   const [activeTab, setActiveTab] = useState<RecordTab>("cases");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const isConsultant = true;
+
+  const toggleSelect = (cat: string, id: number) => {
+    const key = `${cat}-${id}`;
+    setSelectedIds(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
+  const toggleAll = (cat: string, data: { id: number }[]) => {
+    const keys = data.map(d => `${cat}-${d.id}`);
+    const allIn = keys.every(k => selectedIds.includes(k));
+    setSelectedIds(prev => allIn ? prev.filter(k => !keys.includes(k)) : Array.from(new Set([...prev, ...keys])));
+  };
+
+  const handleConfirm = () => {
+    const selectedRows = selectedIds.map(key => {
+      const [cat, idStr] = key.split("-");
+      const id = parseInt(idStr);
+      let item: any;
+
+      if (cat === "appt") item = appointmentsData.find(d => d.id === id);
+      else if (cat === "cases") item = cases.find(d => d.id === id);
+      else if (cat === "imaging") item = imaging.find(d => d.id === id);
+      else if (cat === "labs") item = labs.find(d => d.id === id);
+      else if (cat === "prescriptions") item = prescriptions.find(d => d.id === id);
+
+      const categoryLabel = cat === "appt" ? "appointments" : cat;
+
+      return {
+        category: categoryLabel,
+        id: item?.id,
+        ...item
+      };
+    });
+
+    console.log("Confirmed Selection:", selectedRows);
+  };
 
   const renderStatusTag = (value: string) => (
-    <div className={`${styles.appointmentStatus} ${styles[value.toLowerCase()]}`}>
-      {value}
-    </div>
+    <div className={`${styles.appointmentStatus} ${styles[value.toLowerCase()]}`}>{value}</div>
   );
 
   const appointmentsData: Appointment[] = [
@@ -99,103 +135,95 @@ function PatientPortalView() {
     jersey: "#7" 
   };
 
- const getListConfig = () => {
+  const getListConfig = () => {
+    const baseData = activeTab === "cases" ? cases : activeTab === "imaging" ? imaging : activeTab === "labs" ? labs : prescriptions;
+    const cat = activeTab;
+    const allChecked = baseData.every(d => selectedIds.includes(`${cat}-${d.id}`));
+    const checkboxHeader = isConsultant ? [<Checkbox label="" checked={allChecked} onChange={() => toggleAll(cat, baseData)} />] : [];
+    
     switch (activeTab) {
       case "cases":
-        return { 
-          header: [`${cases.length} cases`, "Diagnosis", "Severity", "Date", "Status"], 
-          cols: ".7fr 2fr 1.2fr 1.5fr 1fr",
-          data: cases.map(c => [c.id, c.name, renderStatusTag(c.severity), c.date, renderStatusTag(c.status)])
+        return {
+          header: [...checkboxHeader, `${cases.length} cases`, "Diagnosis", "Severity", "Date", "Status"],
+          cols: (isConsultant ? "0.4fr " : "") + ".7fr 2fr 1.2fr 1.5fr 1fr",
+          data: cases.map(c => [
+            ...(isConsultant ? [<Checkbox label="" checked={selectedIds.includes(`cases-${c.id}`)} onChange={() => toggleSelect("cases", c.id)} />] : []),
+            c.id, c.name, renderStatusTag(c.severity), c.date, renderStatusTag(c.status)
+          ])
         };
       case "prescriptions":
-        return { 
-          header: ["#", "Medication", "Date", "Clinician"], 
-          cols: ".7fr 3fr 3fr 1.5fr",
-          data: prescriptions.map(p => [p.id, p.name, p.date, p.clinician])
+        return {
+          header: [...checkboxHeader, "#", "Medication", "Date", "Clinician"],
+          cols: (isConsultant ? "0.4fr " : "") + ".7fr 3fr 3fr 1.5fr",
+          data: prescriptions.map(p => [
+            ...(isConsultant ? [<Checkbox label="" checked={selectedIds.includes(`prescriptions-${p.id}`)} onChange={() => toggleSelect("prescriptions", p.id)} />] : []),
+            p.id, p.name, p.date, p.clinician
+          ])
         };
       case "imaging":
-        return { 
-          header: ["#", "Record", "Date", "Clinician", "Status"], 
-          cols: ".7fr 2fr 1.2fr 1.5fr 1fr",
-          data: imaging.map(i => [i.id, i.name, i.date, i.clinician, renderStatusTag(i.status)])
+        return {
+          header: [...checkboxHeader, "#", "Record", "Date", "Clinician", "Status"],
+          cols: (isConsultant ? "0.4fr " : "") + ".7fr 2fr 1.2fr 1.5fr 1fr",
+          data: imaging.map(i => [
+            ...(isConsultant ? [<Checkbox label="" checked={selectedIds.includes(`imaging-${i.id}`)} onChange={() => toggleSelect("imaging", i.id)} />] : []),
+            i.id, i.name, i.date, i.clinician, renderStatusTag(i.status)
+          ])
         };
       case "labs":
-        return { 
-          header: ["#", "Record", "Date", "Clinician", "Status"], 
-          cols: ".7fr 2fr 1.2fr 1.5fr 1fr",
-          data: labs.map(l => [l.id, l.name, l.date, l.clinician, renderStatusTag(l.status)])
+        return {
+          header: [...checkboxHeader, "#", "Record", "Date", "Clinician", "Status"],
+          cols: (isConsultant ? "0.4fr " : "") + ".7fr 2fr 1.2fr 1.5fr 1fr",
+          data: labs.map(l => [
+            ...(isConsultant ? [<Checkbox label="" checked={selectedIds.includes(`labs-${l.id}`)} onChange={() => toggleSelect("labs", l.id)} />] : []),
+            l.id, l.name, l.date, l.clinician, renderStatusTag(l.status)
+          ])
         };
+      default: return { header: [], cols: "", data: [] };
     }
   };
 
   const { header, cols, data } = getListConfig();
-
   return (
     <div className={styles.patientPortalContainer}>
       <div className={styles.patientPortalMainContent}>
         <div className={styles.patientPortalDashboardGrid}>
-          
-          <ProfileCard
-            className={styles.patientPortalProfileCard}
-            profileImage={userProfileImage}
-            title="Athlete Information"
-            stats={CaseStats}
-          />
-
+          <div className={styles.leftColumn}>
+            <ProfileCard className={styles.patientPortalProfileCard} profileImage={userProfileImage} title="Athlete Information" stats={CaseStats} />
+            {isConsultant && selectedIds.length > 0 && (
+              <button className={styles.leftConfirmBtn} onClick={handleConfirm}>Confirm Selection ({selectedIds.length})</button>
+            )}
+          </div>
           <div className={styles.appointmentsCard}>
             <div className={styles.appointmentsContainer}>
               <div className={styles.appointmentsHeader}>
                 <h2 className={styles.appointmentsTitle}>Appointments</h2>
+                {isConsultant && <Checkbox label="All" checked={appointmentsData.every(d => selectedIds.includes(`appt-${d.id}`))} onChange={() => toggleAll("appt", appointmentsData)} />}
               </div>
               <div className={styles.appointmentsList}>
-                <List 
-                  header={["#", "Clinician", "Date", "Status"]}
+                <List
+                  header={[...(isConsultant ? [""] : []), "#", "Clinician", "Date", "Status"]}
                   data={appointmentsData.map(app => [
+                    ...(isConsultant ? [<Checkbox label="" checked={selectedIds.includes(`appt-${app.id}`)} onChange={() => toggleSelect("appt", app.id)} />] : []),
                     app.id, <div className={styles.appointmentClinician}>{app.clinician}</div>, app.date, renderStatusTag(app.status)
-                  ])} 
-                  gridTemplateColumns=".6fr 2fr 1.2fr 1.2fr"
+                  ])}
+                  gridTemplateColumns={(isConsultant ? "0.4fr " : "") + ".6fr 2fr 1.2fr 1.2fr"}
                 />
               </div>
             </div>
           </div>
-
           <div className={styles.physioCard}>
             <div className={styles.physioContainer}>
-              <div className={styles.physioHeader}>
-                <h2 className={styles.physioTitle}>Physio Progress</h2>
-              </div>
-              <div className={styles.physioContent}>
-                <div className={styles.physioStats}>
-                  <InfoCard label="Sessions" value={20} />
-                  <InfoCard label="Done" value={8} />
-                  <InfoCard label="Weekly" value={3} />
-                </div>
-              </div>
+              <div className={styles.physioHeader}><h2 className={styles.physioTitle}>Physio Progress</h2></div>
+              <div className={styles.physioContent}><div className={styles.physioStats}><InfoCard label="Sessions" value={20} /><InfoCard label="Done" value={8} /><InfoCard label="Weekly" value={3} /></div></div>
             </div>
           </div>
-
           <div className={styles.medicalRecordsCard}>
             <div className={styles.medicalRecordsContainer}>
-              <div className={styles.medicalRecordsHeader}>
-                <h2 className={styles.medicalRecordsTitle}>Medical Records</h2>
-              </div>
-              <div className={styles.recordsTabs}>
-                {(["cases", "imaging", "labs", "prescriptions"] as const).map((tab) => (
-                  <div
-                    key={tab}
-                    className={`${styles.recordsTab} ${activeTab === tab ? styles.activeTab : ""}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </div>
-                ))}
-              </div>
-              <div className={styles.recordsList}>
-                <List header={header} data={data} gridTemplateColumns={cols} />
-              </div>
+              <div className={styles.medicalRecordsHeader}><h2 className={styles.medicalRecordsTitle}>Medical Records</h2></div>
+              <div className={styles.recordsTabs}>{(["cases", "imaging", "labs", "prescriptions"] as const).map((tab) => (<div key={tab} className={`${styles.recordsTab} ${activeTab === tab ? styles.activeTab : ""}`} onClick={() => setActiveTab(tab)}>{tab}</div>))}</div>
+              <div className={styles.recordsList}><List header={header as any} data={data as any} gridTemplateColumns={cols} /></div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
