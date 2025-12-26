@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
 
 // --- 1. Interfaces ---
 
@@ -131,13 +132,14 @@ const fetchAthleteDashboard = async (
   athleteId: number,
   page: number,
   limit: number,
+  token: string,
   API_URL: string = `http://localhost:3000/api` 
 ): Promise<AthleteDashboardResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
   });
-   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
+  //  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
 
   const response = await fetch(`${API_URL}/athlete/dashboard/${athleteId}?${params}`, {
     method: 'GET',
@@ -162,9 +164,10 @@ export const useAthleteDashboard = (
   page: number = 1,
   limit: number = 4
 ) => {
+  const { token } = useAuth();
   const queryInfo = useQuery({
     queryKey: ['dashboard', 'athlete', athleteId, page, limit],
-    queryFn: () => fetchAthleteDashboard(athleteId, page, limit),
+    queryFn: () => fetchAthleteDashboard(athleteId, page, limit , token!),
     
     enabled: !!athleteId,
     placeholderData: keepPreviousData,
