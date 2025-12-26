@@ -7,6 +7,7 @@ import { useDicomUrlHandler } from "../../hooks/DicomViewer/useDicomUrlHandler";
 import { Upload, Box, Grid3X3 } from "lucide-react";
 import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
+import { useDicomURL } from "../../hooks/DicomViewer/useDicomURL";
 
 interface ViewportData {
   id: string;
@@ -168,22 +169,22 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef>((props, ref) => {
 
       {/* Floating Controls: Upload & MPR Toggle */}
       <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
-        <input
+        {/* <input
           ref={fileInputRef}
           type="file"
           multiple
           accept=".dcm"
           onChange={handleFileChange}
           style={{ display: "none" }}
-        />
+        /> */}
         
         {/* Upload Button */}
         <button 
-            onClick={triggerUpload} 
+            onClick={() => fetchDicomUrl(16)} 
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
           <Upload size={16} />
-          Upload ({activeViewportId})
+          Upload 14 ({activeViewportId})
         </button>
 
         

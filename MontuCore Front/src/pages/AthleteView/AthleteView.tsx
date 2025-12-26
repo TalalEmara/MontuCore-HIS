@@ -9,17 +9,19 @@ import Pagination from "../../components/level-0/Pagination/Pagination";
 import "./AthleteView.css";
 import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import BookingPanel from "../../components/level-1/BookingPanel/BookingPanel";
+import { useAuth } from "../../context/AuthContext";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
   const totalPages = 5;
   const [isBooking, setIsBooking] = useState<boolean>(false)
+  const { user,profile } = useAuth();
   const baseAthleteData = {
-    fullName: "Cristiano Ronaldo",
-    position: "Forward",
-    id: 5,
-    jerseyNumber: 7,
+    fullName: user?.fullName || "Not logged",
+    position: profile?.position || "Athlete",
+    id: user?.id || 0,
+    jerseyNumber: profile?.jerseyNumber || 7,
   };
 
   // Fetch Data
