@@ -86,8 +86,7 @@ export const getAllImagingOrders = async ({ page = 1, limit = 10, status, caseId
               }
             }
           }
-        },
-        images: true
+        }
       },
       orderBy: {
         scheduledAt: 'desc'
@@ -118,8 +117,7 @@ export const getImagingOrderById = async (orderId: number) => {
         include: {
           athlete: true
         }
-      },
-      images: true
+      }
     }
   });
 

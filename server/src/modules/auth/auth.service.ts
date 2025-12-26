@@ -70,7 +70,7 @@ export const login = async (loginData : LoginInput) => {
     }
   }
   catch(error){
-    throw error.message;
+    throw error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }
 

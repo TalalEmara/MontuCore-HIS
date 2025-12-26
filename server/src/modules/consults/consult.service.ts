@@ -120,7 +120,20 @@ export const getSharedData = async (token: string, accessCode: string) => {
   const exams = perms.examIds?.length
     ? await prisma.exam.findMany({
         where: { id: { in: perms.examIds } },
-        include: { images: true } // Crucial for viewing scans
+        select: {
+          id: true,
+          modality: true,
+          bodyPart: true,
+          status: true,
+          scheduledAt: true,
+          performedAt: true,
+          radiologistNotes: true,
+          conclusion: true,
+          cost: true,
+          dicomFileName: true,
+          dicomPublicUrl: true,
+          dicomUploadedAt: true
+        }
       })
     : [];
 

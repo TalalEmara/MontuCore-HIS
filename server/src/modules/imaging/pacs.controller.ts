@@ -75,8 +75,7 @@ export const uploadAndProcessScan = async (
         if (examId) {
             // Attach to existing exam
             const existingExam = await prisma.exam.findUnique({
-                where: { id: parseInt(examId) },
-                include: { images: true }
+                where: { id: parseInt(examId) }
             });
 
             if (!existingExam) {
@@ -84,7 +83,7 @@ export const uploadAndProcessScan = async (
             }
 
             // Check if exam already has DICOM
-            if (existingExam.images.length > 0) {
+            if (existingExam.dicomPublicUrl) {
                 return res.status(400).json({ error: 'Exam already has a DICOM file. Only one DICOM per exam is allowed.' });
             }
 
@@ -95,7 +94,11 @@ export const uploadAndProcessScan = async (
                     status: 'COMPLETED',
                     performedAt: parseDicomDate(metadata.studyDate) || existingExam.performedAt,
                     modality: metadata.modality || existingExam.modality,
-                    bodyPart: metadata.bodyPart || existingExam.bodyPart
+                    bodyPart: metadata.bodyPart || existingExam.bodyPart,
+                    dicomFileName: file.originalname,
+                    dicomSupabasePath: uniqueName,
+                    dicomPublicUrl: publicUrl,
+                    dicomUploadedAt: new Date()
                 }
             });
         } else {
@@ -107,24 +110,17 @@ export const uploadAndProcessScan = async (
                     bodyPart: metadata.bodyPart || 'UNKNOWN',
                     status: 'COMPLETED', // DICOM upload auto-completes
                     performedAt: parseDicomDate(metadata.studyDate),
+                    dicomFileName: file.originalname,
+                    dicomSupabasePath: uniqueName,
+                    dicomPublicUrl: publicUrl,
+                    dicomUploadedAt: new Date()
                 }
             });
         }
 
-        // 4. Link the Image
-        const image = await prisma.pACSImage.create({
-            data: {
-                examId: exam.id,
-                fileName: file.originalname,
-                supabasePath: uniqueName,
-                publicUrl: publicUrl
-            }
-        });
-
         res.status(201).json({ 
             message: 'Scan processed and saved', 
-            exam, 
-            image,
+            exam,
             metadata 
         });
 

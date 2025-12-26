@@ -211,24 +211,13 @@ model Exam {
   conclusion       String?
   cost             Float?
 
-  // 2. The Actual Files
-  images PACSImage[]
+  // DICOM Image (optional - one per exam)
+  dicomFileName     String?   @map("dicom_file_name")
+  dicomSupabasePath String?   @map("dicom_supabase_path")
+  dicomPublicUrl    String?   @map("dicom_public_url")
+  dicomUploadedAt   DateTime? @map("dicom_uploaded_at")
 
   @@map("exams")
-}
-
-model PACSImage {
-  id     Int @id @default(autoincrement())
-  examId Int @map("exam_id")
-
-  fileName     String   @map("file_name") // Original file name
-  supabasePath String   @map("supabase_path") // Internal bucket path
-  publicUrl    String   @map("public_url") // The link for Cornerstone.js
-  uploadedAt   DateTime @default(now()) @map("uploaded_at")
-
-  exam Exam @relation(fields: [examId], references: [id])
-
-  @@map("pacs_images")
 }
 
 // --- LAB SYSTEM (Blood Tests) ---
