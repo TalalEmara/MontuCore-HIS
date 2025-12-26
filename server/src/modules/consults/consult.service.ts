@@ -22,15 +22,13 @@ interface SharePermissions {
  * 1. Create a Share Link (Clinician Only)
  */
 export const createShareLink = async (
-  clinicianId: number, 
-  athleteId: number, 
-  externalEmail: string, 
-  permissions: SharePermissions, 
+  clinicianId: number,
+  athleteId: number,
+  permissions: SharePermissions,
   expiryHours: number = 48
 ) => {
   // Input validation
   validateAthleteId(athleteId);
-  validateEmail(externalEmail);
   validatePermissions(permissions);
   validateExpiryHours(expiryHours);
 
@@ -50,6 +48,9 @@ export const createShareLink = async (
   // Verify clinician owns or has access to the data being shared
   await verifyClinicianAccess(clinicianId, athleteId, permissions);
 
+  // Generate a random 6-digit access code
+  const accessCode = Math.floor(100000 + Math.random() * 900000).toString();
+
   // Calculate Expiry
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + expiryHours);
@@ -59,7 +60,7 @@ export const createShareLink = async (
     data: {
       clinicianId,
       athleteId,
-      externalEmail,
+      accessCode,
       permissions: permissions as any, // Cast to JSON
       expiresAt
     }
@@ -70,9 +71,9 @@ export const createShareLink = async (
 
 /**
  * 2. Access Shared Data (Public/External)
- * Validates token and fetches the specific allowed data.
+ * Validates token and access code, then fetches the specific allowed data.
  */
-export const getSharedData = async (token: string) => {
+export const getSharedData = async (token: string, accessCode: string) => {
   // Validate token format
   validateToken(token);
 
@@ -87,6 +88,11 @@ export const getSharedData = async (token: string) => {
 
   if (!share) {
     throw new NotFoundError("Invalid consultation link");
+  }
+
+  // Validate access code
+  if (share.accessCode !== accessCode) {
+    throw new AuthorizationError("Invalid access code");
   }
 
   // Check Expiry

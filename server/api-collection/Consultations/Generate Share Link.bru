@@ -17,7 +17,6 @@ auth:bearer {
 body:json {
   {
     "athleteId": 6,
-    "externalEmail": "external.consultant@hospital.com",
     "permissions": {
       "caseIds": [9, 10],
       "examIds": [9, 10],
@@ -31,6 +30,8 @@ body:json {
 script:post-response {
   if (res.status === 201 && res.body.data?.shareToken) {
     bru.setVar("shareToken", res.body.data.shareToken);
+    bru.setVar("accessCode", res.body.data.accessCode);
     console.log("Share Link:", res.body.data.fullLink);
+    console.log("Access Code:", res.body.data.accessCode);
   }
 }

@@ -1,0 +1,31 @@
+meta {
+  name: Test - Invalid Access Code
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseURL}}/consults/view/{{shareToken}}?accessCode=000000
+  body: none
+  auth: none
+}
+
+docs {
+  # Error Test - Invalid Access Code
+
+  Expected Response: 403 Forbidden
+  Error: "Invalid access code"
+
+  This tests the access code validation with a valid token but wrong access code.
+  Run this after "Generate Share Link" to get a valid token.
+
+  ## Usage
+  1. First run "Generate Share Link" to get a valid token
+  2. Run this test with an incorrect access code (000000)
+}
+
+tests {
+  test("should return 403 for invalid access code", function() {
+    expect(res.status).to.equal(403);
+  });
+}

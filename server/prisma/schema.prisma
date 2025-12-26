@@ -59,7 +59,7 @@ enum InvoiceStatus {
 model ConsultationShare {
   id            Int      @id @default(autoincrement())
   token         String   @unique @default(uuid()) // The secret link
-  externalEmail String   @map("external_email")   // The consultant's email
+  accessCode    String   @map("access_code") // Access code for viewing
   
   // 1. THE ACTOR (Must be a Clinician)
   clinicianId   Int      @map("clinician_id")

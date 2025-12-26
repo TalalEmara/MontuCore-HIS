@@ -22,12 +22,12 @@ export const generateShareLink = async (req: Request, res: Response) => {
     // TESTING ONLY: Hardcoded clinician ID for testing without auth
     const clinicianId = 2; // Replace with actual clinician ID from your database
     
-    const { athleteId, externalEmail, permissions, expiryHours } = req.body;
+    const { athleteId, permissions, expiryHours } = req.body;
 
     // Validate required fields
-    if (!athleteId || !externalEmail || !permissions) {
+    if (!athleteId || !permissions) {
       return res.status(400).json({ 
-        error: "Missing required fields: athleteId, externalEmail, and permissions are required",
+        error: "Missing required fields: athleteId and permissions are required",
         code: 'MISSING_FIELDS'
       });
     }
@@ -36,7 +36,6 @@ export const generateShareLink = async (req: Request, res: Response) => {
     const share = await ConsultService.createShareLink(
       clinicianId, 
       parseInt(athleteId), 
-      externalEmail, 
       permissions, 
       expiryHours ? parseInt(expiryHours) : undefined
     );
@@ -50,6 +49,7 @@ export const generateShareLink = async (req: Request, res: Response) => {
       message: "Consultation link generated successfully",
       data: {
         shareToken: share.token,
+        accessCode: share.accessCode,
         fullLink: link,
         expiresAt: share.expiresAt
       }
@@ -74,12 +74,13 @@ export const generateShareLink = async (req: Request, res: Response) => {
 
 /**
  * View Shared Data
- * GET /api/consults/view/:token
+ * GET /api/consults/view/:token?accessCode=123456
  * Public: No Auth Header needed (The token IS the auth)
  */
 export const viewSharedRecord = async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
+    const { accessCode } = req.query;
 
     if (!token) {
       return res.status(400).json({ 
@@ -88,7 +89,14 @@ export const viewSharedRecord = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await ConsultService.getSharedData(token);
+    if (!accessCode || typeof accessCode !== 'string') {
+      return res.status(400).json({ 
+        error: "Access code is required",
+        code: 'MISSING_ACCESS_CODE'
+      });
+    }
+
+    const result = await ConsultService.getSharedData(token, accessCode);
 
     res.json({
       success: true,

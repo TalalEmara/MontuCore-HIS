@@ -106,7 +106,69 @@
 
 ---
 
-## 💊 Treatments Routes (`/api/treatments`)
+## � Consultation Sharing Routes (`/api/consults`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/share` | Create consultation share link | Required |
+| GET | `/view/:token` | View shared consultation data | Public |
+
+**POST /share Request Body:**
+```json
+{
+  "athleteId": 123,
+  "permissions": {
+    "caseIds": [1, 2, 3],
+    "examIds": [4, 5],
+    "labIds": [6, 7],
+    "notes": "Optional consultation notes"
+  },
+  "expiryHours": 48
+}
+```
+
+**POST /share Response:**
+```json
+{
+  "success": true,
+  "message": "Consultation link generated successfully",
+  "data": {
+    "shareToken": "uuid-token-here",
+    "accessCode": "123456",
+    "fullLink": "http://localhost:5173/external/view/uuid-token-here",
+    "expiresAt": "2025-12-27T12:00:00.000Z"
+  }
+}
+```
+
+**GET /view/:token Query Parameters:**
+- `accessCode`: 6-digit access code (required)
+
+**GET /view/:token Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "meta": {
+      "sharedBy": "Dr. Smith",
+      "patientName": "John Doe",
+      "expiresAt": "2025-12-27T12:00:00.000Z",
+      "notes": "Consultation notes"
+    },
+    "data": {
+      "cases": [...],
+      "exams": [...],
+      "labs": [...]
+    }
+  }
+}
+```
+
+**Bruno Collection:** `Consultations/`
+
+---
+
+## �💊 Treatments Routes (`/api/treatments`)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
