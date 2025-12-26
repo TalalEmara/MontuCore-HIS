@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/appointments
+  url: {{baseURL}}/appointments/:id
   body: none
   auth: none
 }
@@ -13,4 +13,12 @@ get {
 params:query {
   ~date: 2025-12-01
   ~clinicianId: 2
+}
+
+params:path {
+  id: 
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJwaHlzaW9Ac3BvcnRzaGlzLmNvbSIsInJvbGUiOiJDTElOSUNJQU4iLCJpYXQiOjE3NjY3ODI2NTcsImV4cCI6MTc2NzA0MTg1N30.TWtn7jidwAO92sFrDov034CP9fcN6K1zN1b4S7RfcpI
 }

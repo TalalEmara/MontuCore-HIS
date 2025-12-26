@@ -5,15 +5,16 @@ meta {
 }
 
 delete {
-  url: {{baseURL}}/appointments/delete-appointment/:id
+  url: {{baseURL}}/appointments/delete-appointment/7
   body: none
   auth: inherit
 }
 
-params:path {
-  id: 
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2Nzg0MDI1LCJleHAiOjE3NjcwNDMyMjV9.noVvkTbqAATVKgsixGinC_w8A9ylh6jXGHYfhg2fycI
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

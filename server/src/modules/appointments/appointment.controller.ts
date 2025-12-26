@@ -259,7 +259,7 @@ export const getAllAppointmentsByAthelete = async (req: Request, res: Response):
       ? authHeader.substring(7) 
       : authHeader;
     const validToken = await authC.verifyToken(userToken);
-    if (validToken && (authC.isAdmin(userToken) || authC.isAthlete(userToken)) ){
+    if (validToken && (authC.isAdmin(userToken) || authC.isAthlete(userToken)) || authC.isClinician(userToken) ){
       const userId = (validToken as any).id;
       if (authC.isAthlete(userToken)){
 
