@@ -21,7 +21,9 @@ export interface Exam {
   radiologistNotes?: string;
   conclusion?: string;
   cost: number;
-  images: string[];
+  dicomFileName?: string;
+  dicomPublicUrl?: string;
+  dicomUploadedAt?: string;
 }
 
 export interface LabTest {
