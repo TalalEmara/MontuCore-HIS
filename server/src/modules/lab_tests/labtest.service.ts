@@ -200,6 +200,46 @@ export const createLabTest = async (data: CreateLabTestData) => {
       // The lab test is created successfully, just without the PDF
     }
   }
+    try {
+    const existingInvoice = await prisma.invoice.findFirst({
+      where: { caseId: labTest.caseId }
+    });
+
+    if (existingInvoice) {
+      // Add lab test to invoice JSON
+      const items: any = existingInvoice.items || {};
+
+      if (!items.labTests) items.labTests = [];
+
+      items.labTests.push({
+        id: labTest.id,
+        type: 'Lab Test',
+        description: labTest.testName,
+        cost: labTest.cost || 0,
+        status: labTest.status
+      });
+
+      // Recalculate subtotal
+      const subtotal =
+        (items.appointment?.cost || 0) +
+        (items.exams?.reduce((s: any, e: { cost: any; }) => s + (e.cost || 0), 0) || 0) +
+        (items.labTests?.reduce((s: any, l: { cost: any; }) => s + (l.cost || 0), 0) || 0) +
+        (items.treatments?.reduce((s: any, t: { cost: any; }) => s + (t.cost || 0), 0) || 0) +
+        (items.physioPrograms?.reduce((s: any, p: { cost: any; }) => s + (p.cost || 0), 0) || 0);
+
+      await prisma.invoice.update({
+        where: { id: existingInvoice.id },
+        data: {
+          items,
+          subtotal,
+          totalAmount: subtotal
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Failed updating invoice after lab test", err);
+  }
+
 
   return labTest;
 };

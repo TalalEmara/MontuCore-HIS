@@ -32,17 +32,20 @@ export const getInvoiceById = async (req: Request, res: Response) => {
   }
 };
 
-export const getInvoiceByCaseId = async (req: Request, res: Response) => {
+export const getInvoicesByCaseId = async (req: Request, res: Response) => {
   try {
-    const invoice = await billingService.getInvoiceByCaseId(Number(req.params.caseId));
-    if (!invoice) {
-      return res.status(404).json({ success: false, message: "Invoice not found" });
+    const caseId = Number(req.params.caseId);
+    if (isNaN(caseId)) {
+      return res.status(400).json({ success: false, message: "Invalid case ID" });
     }
-    res.status(200).json({ success: true, data: invoice });
+
+    const invoices = await billingService.getInvoicesByCaseId(caseId);
+    res.status(200).json({ success: true, data: invoices });
   } catch (error) {
-    res.status(400).json({ success: false, message: error instanceof Error ? error.message : "Unknown error" });
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "Unknown error" });
   }
 };
+
 
 
 

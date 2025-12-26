@@ -97,7 +97,7 @@ const generateInvoiceNumber = async (): Promise<string> => {
 /**
  * Get invoices by Case ID
  */
-export const getInvoiceByCaseId = async (caseId: number) => {
+export const getInvoicesByCaseId = async (caseId: number) => {
   const invoice = await prisma.invoice.findFirst({
     where: { caseId },
     select: {
@@ -108,21 +108,51 @@ export const getInvoiceByCaseId = async (caseId: number) => {
       subtotal: true,
       athlete: {
         select: {
-          fullName: true,
-        },
-      },
-    },
+          fullName: true
+        }
+      }
+    }
   });
 
   if (!invoice) return null;
+
+  const rawItems: any = invoice.items || {};
+
+  const cleanedItems = {
+    exams: (rawItems.exams ?? []).map((e: any) => ({
+      id: e.id,
+      description: `${e.modality} - ${e.bodyPart}`,
+      cost: e.cost ?? 0,
+    })),
+
+    labTests: (rawItems.labTests ?? []).map((l: any) => ({
+      id: l.id,
+      description: l.testName,
+      cost: l.cost ?? 0,
+      
+    })),
+
+    treatments: (rawItems.treatments ?? []).map((t: any) => ({
+      id: t.id,
+      description: t.description,
+      cost: t.cost ?? 0
+    })),
+
+    physioPrograms: (rawItems.physioPrograms ?? []).map((p: any) => ({
+      id: p.id,
+      description: p.title,
+      sessions: p.sessions,
+      cost: p.cost
+    })),
+  };
 
   return {
     id: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     invoiceDate: invoice.invoiceDate,
-    items: invoice.items,
+    items: cleanedItems,
     subtotal: invoice.subtotal,
-    athleteName: invoice.athlete.fullName,
+    athleteName: invoice.athlete.fullName
   };
 };
 
