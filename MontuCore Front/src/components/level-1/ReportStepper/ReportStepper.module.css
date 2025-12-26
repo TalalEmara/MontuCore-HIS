@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0,0,0,0.6);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,27 +12,27 @@
   display: flex;
   flex-direction: column;
   width: 90%;
-  max-width: 600px;
-  height: 75vh;
+  max-width: 37.5rem;
+  height: auto;
+  max-height: 90vh;
   background-color: var(--background-color);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  font-size: 12px;
+  box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.3);
+  font-size: 0.75rem;
 }
 
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--accent);
+  padding: 0.625rem 1rem;
+  border-bottom: 0.0625rem solid var(--accent);
 }
 
 .header h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-color);
 }
@@ -40,7 +40,7 @@
 .closeButton {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 1.25rem;
   color: var(--text-color);
   cursor: pointer;
   opacity: 0.7;
@@ -51,7 +51,6 @@
   opacity: 1;
 }
 
-/* Main Body & Stepper */
 .mainBody {
   display: flex;
   flex: 1;
@@ -59,25 +58,25 @@
 }
 
 .stepper {
-  width: 80px;
+  width: 5.5rem;
   background-color: var(--hover-bg);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
-  padding: 16px 0;
-  border-right: 1px solid var(--accent);
+  padding: 1.5rem 0;
+  border-right: 0.0625rem solid var(--accent);
   position: relative;
 }
 
 .stepper::before {
   content: "";
   position: absolute;
-  top: 16px;
-  bottom: 16px;
+  top: 1.5rem;
+  bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 2px;
+  width: 0.0625rem;
   background-color: var(--accent);
   opacity: 0.3;
   z-index: 0;
@@ -87,100 +86,98 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0.375rem;
   position: relative;
   z-index: 1;
 }
 
 .stepNumber {
-  width: 28px;
-  height: 28px;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
-  border: 2px solid var(--accent);
+  border: 0.125rem solid var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.813rem;
   color: var(--text-color);
-  background-color: var(--primary-color);
+  background-color: var(--background-color);
   transition: all 0.3s;
 }
 
 .step.completed .stepNumber {
   background-color: var(--success);
   border-color: var(--success);
-  color: black;
-}
-
-.stepLabel {
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-  color: var(--text-color);
-  width: 70px;
+  color: #000;
 }
 
 .step.active .stepNumber {
-  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--background-color);
 }
 
-/* Form Content */
+.stepLabel {
+  font-size: 0.688rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-color);
+  width: 5rem;
+  line-height: 1.2;
+  word-wrap: break-word;
+}
+
 .content {
   flex: 1;
-  padding: 12px;
+  padding: 1.25rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.875rem;
 }
 
-/* Step Container & Titles */
 .stepContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.875rem;
 }
 
 .stepTitle {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-color);
-  margin-bottom: 6px;
-  border-bottom: 1px solid var(--accent);
-  padding-bottom: 4px;
+  margin-bottom: 0.5rem;
+  border-bottom: 0.0625rem solid var(--accent);
+  padding-bottom: 0.375rem;
 }
 
-/* Form Groups */
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5rem;
 }
 
 .label {
-  font-size: 12px;
+  font-size: 0.813rem;
   font-weight: 600;
   color: var(--text-color);
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
-/* Checkbox Grid */
 .checkboxGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 6px;
-  padding: 4px 0;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  padding: 0.375rem 0;
 }
 
-/* Individual Checkbox */
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  padding: 4px 6px;
-  border-radius: 4px;
+  gap: 0.375rem;
+  font-size: 0.813rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
   cursor: pointer;
   background-color: var(--hover-bg);
   transition: all 0.2s;
@@ -192,41 +189,42 @@
 }
 
 .checkboxLabel input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
 }
 
-/* Text Inputs & Sliders */
 input[type="text"],
 input[type="date"],
 textarea {
-  padding: 6px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  border: 1px solid var(--accent);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.813rem;
+  border-radius: 0.25rem;
+  border: 0.0625rem solid var(--accent);
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .sliderWrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.375rem;
 }
 
-/* Action Buttons */
 .actions {
   display: flex;
   justify-content: space-between;
-  padding: 6px 10px;
-  border-top: 1px solid var(--accent);
-  gap: 6px;
+  padding: 0.875rem 1.25rem;
+  border-top: 0.0625rem solid var(--accent);
+  gap: 0.625rem;
+  margin-top: auto;
 }
 
 .backButton,
 .nextButton,
 .submitButton {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.813rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -234,12 +232,18 @@ textarea {
 }
 
 .backButton {
-  background-color: var(--background-color);
+  background-color: var(--hover-bg);
   color: var(--text-color);
 }
 
-.backButton:hover:not(:disabled) { background-color: var(--hover-bg); }
-.backButton:disabled { opacity: 0.4; cursor: not-allowed; }
+.backButton:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.backButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .nextButton,
 .submitButton {
@@ -248,58 +252,87 @@ textarea {
 }
 
 .nextButton:hover,
-.submitButton:hover { opacity: 0.9; transform: translateY(-1px); }
+.submitButton:hover {
+  opacity: 0.9;
+  transform: translateY(-0.0625rem);
+}
 
-/* Error Messages */
 .error {
   color: var(--primary-color);
-  font-size: 10px;
-  margin-top: 2px;
+  font-size: 0.688rem;
+  margin-top: 0.25rem;
   display: block;
 }
 
-/* PDF Report Styles */
 .reportWrapper {
-  width: 800px;
-  padding: 30px;
-  background: var(--text-color);
+  width: 100%;
+  max-width: 50rem;
+  padding: 1.875rem;
+  background: #fff;
   color: #000;
 }
 
 .logo {
-  width: 100px;
+  width: 6.25rem;
   display: block;
-  margin: 0 auto 10px;
+  margin: 0 auto 0.625rem;
 }
 
-h1 { font-size: 24px; margin: 0; }
+h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
 
-.section { margin-bottom: 20px; }
+.section {
+  margin-bottom: 1.25rem;
+}
 
-.section h2 { font-size: 18px; margin-bottom: 10px; padding-bottom: 3px; }
+.section h2 {
+  font-size: 1.125rem;
+  margin-bottom: 0.625rem;
+  padding-bottom: 0.1875rem;
+}
 
 .row {
   display: flex;
   justify-content: space-between;
-  padding: 3px 0;
+  padding: 0.1875rem 0;
 }
 
 footer {
   text-align: center;
-  font-size: 10px;
-  margin-top: 30px;
+  font-size: 0.625rem;
+  margin-top: 1.875rem;
 }
 
-@media (max-width: 768px) {
-  .mainBody { flex-direction: column; }
+@media (max-width: 48rem) {
+  .modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+  .mainBody {
+    flex-direction: column;
+  }
   .stepper {
     flex-direction: row;
     width: 100%;
+    height: auto;
     border-right: none;
-    border-bottom: 1px solid var(--accent);
-    padding: 4px 0;
-    overflow-x: auto;
+    border-bottom: 0.0625rem solid var(--accent);
+    padding: 0.625rem;
+    gap: 1rem;
+    justify-content: center;
   }
-  .content { max-height: 50vh; }
-  .checkboxGrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .stepper::before {
+    display: none;
+  }
+  .stepLabel {
+    display: none;
+  }
+  .content {
+    max-height: 60vh;
+  }
+  .checkboxGrid {
+    grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+  }
 }
