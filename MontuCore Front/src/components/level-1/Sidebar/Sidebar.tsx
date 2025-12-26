@@ -1,13 +1,6 @@
 import React, { useState } from "react";
-import {
-  FaTachometerAlt,
-  FaCalendarAlt,
-  FaNotesMedical,
-  FaDumbbell,
-  FaFileAlt,
-  FaUserCircle,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaTachometerAlt,FaCalendarAlt,FaUserInjured,FaSignOutAlt,FaFileMedical,FaMicroscope,FaRunning,FaClipboardList} from "react-icons/fa";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -16,40 +9,51 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("Dashboard"); 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const currentPath = location.pathname;
+  const currentRole = currentPath.split("/")[1];
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
     if (onToggle) onToggle(!isOpen);
   };
 
-  const navTabs = [
-    { icon: <FaTachometerAlt />, label: "Dashboard" },
-    { icon: <FaCalendarAlt />, label: "Schedule" },
-    { icon: <FaNotesMedical />, label: "Medical Records" },
-    { icon: <FaDumbbell />, label: "Rehab Plan" },
-    { icon: <FaFileAlt />, label: "Reports" },
+  const physicianTabs = [
+    { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physician" },
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physician/schedule" },
+    { icon: <FaUserInjured />, label: "Cases", to: "/physician/cases" },
+    { icon: <FaFileMedical />, label: "Lab Tests", to: "/physician/labs" }, 
+    { icon: <FaMicroscope />, label: "Imaging", to: "/physician/imaging" }, 
   ];
 
-  const footerTabs = [
-    { icon: <FaUserCircle />, label: "Profile" },
-    { icon: <FaSignOutAlt />, label: "Sign Out" },
+  const physioTabs = [
+    { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physio" },
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physio/schedule" },
+    { icon: <FaUserInjured />, label: "Cases", to: "/physio/cases" },
+    { icon: <FaRunning />, label: "Physio Progress", to: "/physio/progress" },
   ];
+
+  const athleteTabs = [
+    { icon: <FaTachometerAlt />, label: "Dashboard", to: "/athlete" },
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/athlete/schedule" },
+    { icon: <FaClipboardList />, label: "My Records", to: "/athlete/records" }, 
+  ];
+
+  let navTabs = athleteTabs; 
+  if (currentRole === "physician") navTabs = physicianTabs;
+  else if (currentRole === "physio") navTabs = physioTabs;
 
   return (
     <div className={`sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}>
       <div className="sidebar-header">
-        
         {isOpen && <div className="sidebar-logo">MontuCore</div>}
-
-        <div
-          className="sidebar-toggle"
-          onClick={toggleSidebar}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 6H20" stroke="var(--primary-color)" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M4 12H20" stroke="var(--primary-color)" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M4 18H20" stroke="var(--primary-color)" strokeWidth="2" strokeLinecap="round"/>
+        <div className="sidebar-toggle" onClick={toggleSidebar}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
       </div>
@@ -58,8 +62,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
         {navTabs.map((tab, idx) => (
           <div
             key={idx}
-            className={`tab-item ${selectedTab === tab.label ? "selected" : ""}`}
-            onClick={() => setSelectedTab(tab.label)}
+            className={`tab-item ${currentPath === tab.to ? "selected" : ""}`}
+            onClick={() => navigate({ to: tab.to })}
           >
             <div className="tab-icon">{tab.icon}</div>
             {isOpen && <span className="tab-label">{tab.label}</span>}
@@ -68,16 +72,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
       </div>
 
       <div className="sidebar-footer">
-        {footerTabs.map((tab, idx) => (
-          <div
-            key={idx}
-            className={`tab-item ${selectedTab === tab.label ? "selected" : ""}`}
-            onClick={() => setSelectedTab(tab.label)}
-          >
-            <div className="tab-icon">{tab.icon}</div>
-            {isOpen && <span className="tab-label">{tab.label}</span>}
-          </div>
-        ))}
+       
+        <div 
+          className="tab-item"
+          onClick={() => navigate({ to: "/login" })}
+        >
+          <div className="tab-icon"><FaSignOutAlt /></div>
+          {isOpen && <span className="tab-label">Sign Out</span>}
+        </div>
       </div>
     </div>
   );

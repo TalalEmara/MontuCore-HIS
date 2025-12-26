@@ -13,7 +13,6 @@
 
 .list {
   width: 100%;
-  border-collapse: collapse;
 }
 
 /* We apply display: grid to the TR elements. 
@@ -24,7 +23,12 @@
 .headerRow {
   display: grid;
   /* Fallback if prop is missing */
-  grid-template-columns: 50px minmax(150px, 3fr) repeat(auto-fit, minmax(100px, 1fr));
+  /* grid-template-columns: 50px minmax(150px, 3fr) repeat(auto-fit, minmax(100px, 1fr)); */
+  grid-template-columns: 50px minmax(150px, 3fr);
+  grid-auto-flow: column;
+  
+  /* 3. Define the width of these automatically added columns */
+  grid-auto-columns: minmax(100px, 1fr);
   column-gap: 8px;
   align-items: center;
   border-bottom: 1px solid var(--accent, #ddd);
@@ -56,6 +60,13 @@
 
 .row:hover {
   /* Using standard filter for robustness over hsl calculations */
+  background-color: var(--secondary-color);
+  filter: brightness(0.95); 
+  transform: scale(1.002);
+}
+.row:active {
+  /* Using standard filter for robustness over hsl calculations */
+  background-color: var(--accent);
   filter: brightness(0.95); 
   transform: scale(1.002);
 }

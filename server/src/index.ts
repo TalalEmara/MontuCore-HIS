@@ -16,6 +16,9 @@ import treatmentRoutes from './modules/treatments/treatment.routes.js';
 import examRoutes from './modules/imaging/exam.routes.js';
 import labTestRoutes from './modules/lab_tests/labtest.routes.js';
 import caseViewRoutes from './modules/aggregators/Case_View/caseview.routes.js';
+import managerDashboardRoutes from './modules/aggregators/Manager_Dashboard/dashboard.routes.js';
+
+
 import cdssRoutes from './modules/cdss/cdss.routes.js';
 import physioDashboardRoutes from './modules/aggregators/PhysioTherapist_Dashboard/dashboard.routes.js';
 import consultRoutes from './modules/consults/consult.routes.js';
@@ -44,6 +47,7 @@ app.use('/api/athlete', athleteDashboardRoutes);
 app.use('/api/cdss', cdssRoutes);
 app.use('/api/physio-therapist', physioDashboardRoutes);
 app.use('/api/consults', consultRoutes);
+app.use('/api/dashboard/manager', managerDashboardRoutes);
 
 // Health Check
 app.get('/', (req, res) => {

@@ -1,0 +1,28 @@
+meta {
+  name: Update Athlete Profile
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/auth/updateAthlete
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2Mjc3ODI1LCJleHAiOjE3NjY1MzcwMjV9.SYKdGU2AmdXaBmLxWSycZRWvAsbEtgpslUZHg7gDBIk
+}
+
+body:json {
+  {
+    "userId":12,
+    "jerseyNumber" : 14,
+    "position" : "Mid Defender"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

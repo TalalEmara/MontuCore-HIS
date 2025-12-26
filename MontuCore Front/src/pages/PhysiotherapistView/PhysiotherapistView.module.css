@@ -91,7 +91,7 @@ cursor: pointer;
   border-color: hsl(from var(--success) h s l / 0.2);
   border-left: 6px solid var(--success);
 }
-.appointmentRow[data-status="upcoming"] {
+.appointmentRow[data-status="scheduled"] {
   background: hsl(from var(--accent) h s l / 0.1);
   border-color: hsl(from var(--accent) h s l / 0.2);
   border-left: 6px solid var(--accent);
@@ -115,7 +115,7 @@ cursor: pointer;
   text-transform: uppercase;
 }
 .status.completed { background: var(--success); color: black; }
-.status.upcoming { background: var(--accent); color: black; }
+.status.scheduled { background: var(--accent); color: black; }
 .status.canceled { background: var(--secondary-color); color: white; }
 
 .rehabContainer {
