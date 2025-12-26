@@ -22,7 +22,6 @@ import TestTablePage from "./pages/TablePage/test";
 import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
 import PatientPortalView from "./pages/PatientPortalView/PatientPortalView";
-import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -87,9 +86,16 @@ export const CaseRoute = createRoute({
 
 export const DicomRoute = createRoute({
   getParentRoute: () => rootRoute,
-  // path: "dicom/$dicomId", 
-  path: "dicom", 
+  path: "dicom/$examId",
   component: DicomViewPage,
+  validateSearch: (search) => ({ url: search.url as string | undefined }),
+});
+
+export const DicomViewerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "dicom-viewer",
+  component: DicomViewPage,
+  validateSearch: (search) => ({ url: search.url as string | undefined }),
 });
 
 const registerRoute = createRoute({
@@ -115,11 +121,6 @@ const ManagerRoute = createRoute({
 //   path: "external/view/$token",
 //   component: ExternalConsultationView,
 // });
-const ProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "profile",
-  component: ProfilePage,
-});
 
 const PatientPortalRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -134,10 +135,10 @@ const routeTree = rootRoute.addChildren([
     athleteViewRoute,
     PhysiotherapistViewRoute,
     cases,
-    ProfileRoute
   ]),
   CaseRoute,
   DicomRoute,
+  DicomViewerRoute,
   registerRoute,
   LoginRoute,
   ManagerRoute,

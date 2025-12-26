@@ -50,7 +50,10 @@ const DicomViewer: React.FC<DicomViewerProps> = ({
     const setup = async () => {
       // (Your existing setup code here... kept brief for readability)
       await coreInit();
-      await dicomImageLoaderInit();
+      if (!(window as any).dicomWorkerRegistered) {
+        await dicomImageLoaderInit();
+        (window as any).dicomWorkerRegistered = true;
+      }
       await cornerstoneTools.init();
 
       cornerstoneTools.addTool(WindowLevelTool);

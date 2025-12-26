@@ -10,8 +10,8 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
       : authHeader;
-    // const validToken = await authC.verifyToken(userToken);
-    // if (validToken && (validToken as any).role in ['ADMIN', 'ATHLETE']){
+      const validToken = await authC.verifyToken(userToken);
+      if (validToken && (validToken as any).role in ['ADMIN', 'ATHLETE']){
       const createdAppointment = await appointmentService.createAppointment(appointmentData);
       if (createdAppointment instanceof Error){
         res.status(400).json({
@@ -25,12 +25,12 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
         message: 'Appointment created successfully',
         data: createdAppointment
       });
-    // }
-    // else{
-    //    res.status(401).json({
-    //     success: false,
-    //   });
-    // }
+    }
+    else{
+      res.status(401).json({
+        success: false,
+      });
+    }
   }
 
   catch(error){

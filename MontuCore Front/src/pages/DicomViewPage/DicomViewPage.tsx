@@ -1,11 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import DicomTopBar, { type ToolMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
-import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer"; 
-import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
-import { Upload, Box, Grid3X3 } from "lucide-react"; 
+import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer";
+import { Download } from "lucide-react";
 import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
-import { useDicomURL } from "../../hooks/DicomViewer/useDicomURL";
+import { useExamLoader } from "../../hooks/DicomViewer/useExamLoader";
+import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D";
 
 interface ViewportData {
   id: string;
@@ -13,10 +13,14 @@ interface ViewportData {
   preset?: VoiPreset | null;
 }
 
-function DicomViewPage() {
+interface DicomViewPageRef {
+  loadDicomFromUrls: (urls: string[]) => void;
+}
+
+const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   const [activeTool, setActiveTool] = useState<ToolMode>("WindowLevel");
   const [isMPR, setIsMPR] = useState<boolean>(false);
-  
+
   const [viewports, setViewports] = useState<ViewportData[]>([
     { id: "viewport-0", imageIds: [], preset: null },
   ]);
@@ -24,10 +28,9 @@ function DicomViewPage() {
   const [activeViewportId, setActiveViewportId] = useState<string>("viewport-0");
 
   const activeViewportData = viewports.find(vp => vp.id === activeViewportId) || viewports[0];
-  
   const hasImages = activeViewportData.imageIds && activeViewportData.imageIds.length > 0;
 
-  // --- HANDLER: Upload ---
+  // --- CALLBACK: Handle new images ---
   const handleNewDicomFiles = (newImageIds: string[]) => {
     setViewports((prev) =>
       prev.map((vp) => {
@@ -39,9 +42,8 @@ function DicomViewPage() {
     );
   };
 
-  // const { handleFileChange } = useDicomFileHandler(handleNewDicomFiles);
-  const { fetchDicomUrl } = useDicomURL(handleNewDicomFiles);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // --- HOOK: Passive Loader (No ID passed here) ---
+  const { loadExam, isLoading } = useExamLoader(handleNewDicomFiles);
 
   // --- ACTIONS ---
   const handleAddViewport = () => {
@@ -62,14 +64,10 @@ function DicomViewPage() {
   };
 
   const handleToolChange = (toolName: ToolMode) => setActiveTool(toolName);
-  const triggerUpload = () => fileInputRef.current?.click();
-
-  // --- Handle Preset Change ---
+  
   const handlePresetChange = (preset: VoiPreset) => {
     setViewports(prev => prev.map(vp => {
-      if (vp.id === activeViewportId) {
-        return { ...vp, preset: preset };
-      }
+      if (vp.id === activeViewportId) return { ...vp, preset: preset };
       return vp;
     }));
   };
@@ -83,37 +81,26 @@ function DicomViewPage() {
         onAddViewport={handleAddViewport}
         onRemoveViewport={handleRemoveViewport}
         onPresetChange={handlePresetChange}
-        onViewSwitch={()=>setIsMPR(!isMPR)}
+        onViewSwitch={() => setIsMPR(!isMPR)}
       />
 
-      {/* Floating Controls: Upload & MPR Toggle */}
-      <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
-        {/* <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".dcm"
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-        /> */}
-        
-        {/* Upload Button */}
+      <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
+        {/* BUTTON: Manually triggers load with ID 16 */}
         <button 
-            onClick={() => fetchDicomUrl(16)} 
+            onClick={() => loadExam(16)} 
+            disabled={isLoading}
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
-          <Upload size={16} />
-          Upload 14 ({activeViewportId})
+          <Download size={16} />
+          {isLoading ? 'Loading...' : `Load Exam 16`}
         </button>
-
-        
       </div>
 
       {/* RENDER AREA */}
       {!isMPR ? (
-        // STACK VIEW (2D)
+        // --- 2D STACK VIEW ---
         <div className={styles.viewportGrid} style={{ '--cols': viewports.length } as React.CSSProperties}>
-          {viewports.map((vp, index) => (
+          {viewports.map((vp) => (
             <div
               key={vp.id}
               onClick={() => setActiveViewportId(vp.id)}
@@ -125,29 +112,28 @@ function DicomViewPage() {
                 activeTool={activeTool}
                 activePreset={vp.preset}
               />
-              
             </div>
           ))}
         </div>
       ) : (
-        // MPR VIEW (3D)
+        // --- 3D MPR VIEW ---
         <div style={{ width: '100%', height: 'calc(100vh - 60px)', padding: '10px' }}>
-             {/* CHECK IF WE HAVE IMAGES BEFORE RENDERING MPR */}
              {hasImages ? (
-                 <MPRViewer
+                 <DicomViewer3D
+                    // Forces re-mount on switch to ensure data transfer
+                    key={`mpr-view-${activeViewportId}`} 
                     imageIds={activeViewportData.imageIds}
-                    activeTool={activeTool}
+                    // activeTool={activeTool}
                  />
-
-                //   <DicomViewer3D
-                //     imageIds={activeViewportData.imageIds}
-                //     // activeTool={activeTool}
-                //  />
-             ) : <></>}
+             ) : (
+                <div style={{color:'white', padding: 20}}>No images loaded to generate MPR.</div>
+             )}
         </div>
       )}
     </div>
   );
-}
+});
 
-export default DicomViewPage;
+DicomViewPage.displayName = 'DicomViewPage';
+
+export default DicomViewPage; 
