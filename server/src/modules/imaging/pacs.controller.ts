@@ -46,11 +46,15 @@ export const uploadAndProcessScan = async (
     }
 
     try {
-        // req.file exists here (added by Multer)
-        const file = req.file; // Type: Express.Multer.File
-        const { caseId } = req.body; // Passed from frontend
+        const file = req.file;
+        const { caseId, examId } = req.body;
 
-        // 1. Parse DICOM Metadata (The "Magic" Step)
+        // Validate that either caseId or examId is provided
+        if (!caseId && !examId) {
+            return res.status(400).json({ error: 'Either caseId or examId must be provided' });
+        }
+
+        // 1. Parse DICOM Metadata
         const metadata = parseDicomMetadata(file.buffer);
         console.log('🩻 Extracted Metadata:', metadata);
 
@@ -66,33 +70,57 @@ export const uploadAndProcessScan = async (
 
         const publicUrl = getPublicUrl('dicoms', uniqueName);
 
-        // 3. Create or Find the Exam Record
-        // We auto-create an Exam based on the file's metadata
-        const exam = await prisma.exam.create({
-            data: {
-                caseId: parseInt(caseId),
-                modality: metadata.modality || 'UNKNOWN',
-                bodyPart: metadata.bodyPart || 'UNKNOWN',
-                status: 'IMAGING_COMPLETE',
-                scheduledAt: new Date(), // It's done now
-                performedAt: parseDicomDate(metadata.studyDate),
-            }
-        });
+        let exam;
 
-        // 4. Link the Image
-        const image = await prisma.pACSImage.create({
-            data: {
-                examId: exam.id,
-                fileName: file.originalname,
-                supabasePath: uniqueName,
-                publicUrl: publicUrl
+        if (examId) {
+            // Attach to existing exam
+            const existingExam = await prisma.exam.findUnique({
+                where: { id: parseInt(examId) }
+            });
+
+            if (!existingExam) {
+                return res.status(404).json({ error: 'Exam not found' });
             }
-        });
+
+            // Check if exam already has DICOM
+            if (existingExam.dicomPublicUrl) {
+                return res.status(400).json({ error: 'Exam already has a DICOM file. Only one DICOM per exam is allowed.' });
+            }
+
+            // Update exam with DICOM metadata and set status to COMPLETED
+            exam = await prisma.exam.update({
+                where: { id: parseInt(examId) },
+                data: {
+                    status: 'COMPLETED',
+                    performedAt: parseDicomDate(metadata.studyDate) || existingExam.performedAt,
+                    modality: metadata.modality || existingExam.modality,
+                    bodyPart: metadata.bodyPart || existingExam.bodyPart,
+                    dicomFileName: file.originalname,
+                    dicomSupabasePath: uniqueName,
+                    dicomPublicUrl: publicUrl,
+                    dicomUploadedAt: new Date()
+                }
+            });
+        } else {
+            // Create new exam (legacy behavior)
+            exam = await prisma.exam.create({
+                data: {
+                    caseId: parseInt(caseId),
+                    modality: metadata.modality || 'UNKNOWN',
+                    bodyPart: metadata.bodyPart || 'UNKNOWN',
+                    status: 'COMPLETED', // DICOM upload auto-completes
+                    performedAt: parseDicomDate(metadata.studyDate),
+                    dicomFileName: file.originalname,
+                    dicomSupabasePath: uniqueName,
+                    dicomPublicUrl: publicUrl,
+                    dicomUploadedAt: new Date()
+                }
+            });
+        }
 
         res.status(201).json({ 
             message: 'Scan processed and saved', 
-            exam, 
-            image,
+            exam,
             metadata 
         });
 

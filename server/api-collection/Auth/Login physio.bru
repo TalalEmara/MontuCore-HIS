@@ -1,19 +1,19 @@
 meta {
-  name: Login
+  name: Login physio
   type: http
-  seq: 2
+  seq: 4
 }
 
 post {
-  url: {{baseURL}}/auth/login
+  url: {{baseURL}}/auth/login/
   body: json
   auth: none
 }
 
 body:json {
   {
-    "email": "mo.salah@liverpool.com",
-    "password": "123456"
+    "email": "physio@sportshis.com",
+    "password": "Test123!"
   }
 }
 

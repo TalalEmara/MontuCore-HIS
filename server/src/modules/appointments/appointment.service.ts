@@ -1,6 +1,7 @@
 import { PrismaClient, ApptStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../index.js'
 import * as billingService from '../billing/billing.service.js';
+import { localToUTC, utcToLocalByTimezone } from '../../utils/timezone.js';
 //const prisma = new PrismaClient();
 
 interface AppointmentData {
@@ -11,6 +12,7 @@ interface AppointmentData {
   weight?: number;
   status?: ApptStatus;
   diagnosisNotes?: string;
+  timezone?: string; // e.g., "Europe/Berlin", "America/New_York"
 }
 
 interface GetAllAppointmentsParams {
@@ -22,11 +24,60 @@ interface GetAllAppointmentsParams {
   date?: string;
 }
 
+
+interface GetAppointmentsFilterParams {
+  clinicianId?: number;
+  athleteId?: number;
+  caseId?: number;
+  status?: ApptStatus;
+  page?: number;
+  limit?: number;
+  isToday?: boolean;
+  dateRange?: { startDate: Date; endDate: Date };
+  timezone?: string | undefined; // User's timezone for date filtering and response formatting
+}
+
+/**
+ * Helper: Get timezone offset in minutes
+ */
+const DEFAULT_TIMEZONE = 'Africa/Cairo'; // Egypt GMT+2
+
+function getTimezoneOffsetInMinutes(timezone: string = DEFAULT_TIMEZONE): number {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const formatted = parts.reduce((acc, part) => {
+    if (part.type === 'literal') return acc;
+    return { ...acc, [part.type]: part.value };
+  }, {} as Record<string, string>);
+
+  const localDate = new Date(
+    `${formatted.year}-${formatted.month}-${formatted.day}T${formatted.hour}:${formatted.minute}:${formatted.second}`
+  );
+
+  return Math.round((now.getTime() - localDate.getTime()) / (1000 * 60));
+}
+
 /**
  * Create a new appointment
  */
 export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
+    // Convert local time (Egypt timezone) to UTC for storage
+    let scheduledDate = new Date(appointmentData.scheduledAt);
+    const offset = getTimezoneOffsetInMinutes();
+    scheduledDate = localToUTC(appointmentData.scheduledAt, offset);
+
     /*
       Some Important Checks
         1-> scheduledAt should be in the future
@@ -35,7 +86,6 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
         4-> at least 30 min between each appointment for the same clinician
     */
     const now = new Date();
-    const scheduledDate = new Date(appointmentData.scheduledAt);
     if (scheduledDate <= now){
       throw new Error('Appointment must be scheduled for a future date and time');
     }
@@ -325,3 +375,187 @@ export const getAllAppointmentsByClinician = async({ page = 1, limit = 10, statu
     return error;
   }
 } 
+
+
+
+/**
+ * FLEXIBLE BASE FUNCTION - Get appointments with multiple filter options
+ * Supports: clinician, athlete, status, pagination, date filtering
+ * @example getAppointments({ clinicianId: 1, isToday: true })
+ * @example getAppointments({ athleteId: 5, status: 'SCHEDULED' })
+ * @example getAppointments({ clinicianId: 1, dateRange: { startDate: new Date(), endDate: new Date() } })
+ */
+export const getAppointments = async (filters: GetAppointmentsFilterParams = {}) => {
+  try {
+    const {
+      clinicianId,
+      athleteId,
+      status,
+      caseId,
+      page = 1,
+      limit = 10,
+      isToday,
+      dateRange,
+      timezone = DEFAULT_TIMEZONE
+    } = filters;
+
+    const where: any = {};
+
+    // Apply filters
+    if (clinicianId) where.clinicianId = clinicianId;
+    if (athleteId) where.athleteId = athleteId;
+    if (status) where.status = status;
+    if (caseId) where.caseId = caseId;
+
+    // Date filtering (timezone-aware, defaults to Egypt)
+    if (isToday) {
+      const now = new Date();
+      const offset = getTimezoneOffsetInMinutes(timezone);
+      // Adjust now to local timezone
+      const localNow = new Date(now.getTime() + offset * 60 * 1000);
+      // Create local start and end of day, then convert back to UTC
+      const localStart = new Date(Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate(),
+        0, 0, 0
+      ));
+      const localEnd = new Date(Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate(),
+        23, 59, 59
+      ));
+      const startOfDay = new Date(localStart.getTime() - offset * 60 * 1000);
+      const endOfDay = new Date(localEnd.getTime() - offset * 60 * 1000);
+
+      where.scheduledAt = {
+        gte: startOfDay,
+        lte: endOfDay
+      };
+    } else if (dateRange) {
+      where.scheduledAt = {
+        gte: dateRange.startDate,
+        lte: dateRange.endDate
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [appointments, total] = await Promise.all([
+      prisma.appointment.findMany({
+        where,
+        select: {
+          id: true,
+          scheduledAt: true,
+          height: true,
+          weight: true,
+          status: true,
+          diagnosisNotes: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          },
+          clinician: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          }
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          scheduledAt: 'asc'
+        }
+      }),
+      prisma.appointment.count({ where })
+    ]);
+
+    // Convert times to local timezone (Egypt by default)
+    const formattedAppointments = appointments.map(apt => ({
+      ...apt,
+      scheduledAt: utcToLocalByTimezone(apt.scheduledAt, timezone)
+    }));
+
+    return {
+      appointments: formattedAppointments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get appointments for clinician for today only
+ */
+export const getTodaysAppointmentsByClinicianId = async (clinicianId: number, timezone?: string) => {
+  try {
+    const result = await getAppointments({
+      clinicianId,
+      isToday: true,
+      timezone
+    });
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTodaysAppointmentsByPhysioId = async (physioId: number, timezone?: string) => {
+  try {
+    const result = await getAppointments({
+      clinicianId: physioId,
+      isToday: true,
+      timezone
+    });
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get upcoming appointments for athlete
+ * Returns: appointment id, scheduled at, physician name and role
+ */
+export const getUpcomingAppointmentsByAthleteId = async (athleteId: number) => {
+  try {
+    const now = new Date();
+    const result = await getAppointments({
+      athleteId,
+      status: ApptStatus.SCHEDULED,
+      dateRange: { startDate: now, endDate: new Date('2100-01-01') } // Far future date
+    });
+    return result.appointments;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * CONVENIENCE WRAPPER - Get all appointments for a specific case
+ * Uses the base getAppointments function for consistent filtering
+ * Returns: appointments related to the case
+ */
+export const getAppointmentsByCaseId = async (caseId: number, page: number = 1, limit: number = 10) => {
+  try {
+    return await getAppointments({
+      caseId,
+      page,
+      limit
+    });
+  } catch (error) {
+    throw error;
+  }
+};

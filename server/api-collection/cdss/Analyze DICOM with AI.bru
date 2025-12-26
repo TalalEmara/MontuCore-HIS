@@ -1,0 +1,116 @@
+meta {
+  name: Analyze DICOM with AI
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/cdss/analyze-dicom
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "dicomUrl": "https://brnitwpxdkwvhlgvfkua.supabase.co/storage/v1/object/public/dicoms/scans/1766255681479_demo_pure_acl_6.dcm",
+    "patientId": 6,
+    "examId": 12
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.success) {
+    console.log("✅ AI Analysis Complete");
+    console.log(`ACL: ${(res.body.data.analysis.acl.probability * 100).toFixed(1)}%`);
+    console.log(`Meniscus: ${(res.body.data.analysis.meniscus.probability * 100).toFixed(1)}%`);
+    if (res.body.data.analysis.abnormalModel) {
+      console.log(`Abnormal Model: ${(res.body.data.analysis.abnormalModel.probability * 100).toFixed(1)}%`);
+    }
+    console.log(`Overall Abnormal: ${res.body.data.analysis.abnormalOverall.detected} (${(res.body.data.analysis.abnormalOverall.probability * 100).toFixed(1)}%)`);
+    
+    // Save heatmap for display
+    if (res.body.data.analysis.acl.heatmap) {
+      bru.setVar("aclHeatmap", res.body.data.analysis.acl.heatmap);
+    }
+  }
+}
+
+tests {
+  test("should return success", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("should have AI analysis data", function() {
+    expect(res.body.data.analysis).to.be.an('object');
+    expect(res.body.data.analysis.acl).to.exist;
+    expect(res.body.data.analysis.meniscus).to.exist;
+  });
+}
+
+docs {
+  # Analyze DICOM with AI Models
+  
+  Sends a DICOM image to the AI service for ACL, Meniscus, and general Abnormality detection.
+  
+  ## Prerequisites
+  1. Python FastAPI service must be running on port 5000
+  2. AI models (acl_model.pth, meniscus_model.pth, abnormal_model.pth) must be loaded
+  3. DICOM file must be accessible via public URL
+  
+  ## Request Body
+  - `dicomUrl` (required): Public URL to the DICOM file
+  - `patientId` (optional): Patient/Athlete ID for tracking
+  - `examId` (optional): Exam ID for database linking
+  
+  ## Response
+  Returns:
+  - ACL tear probability (0-1) with confidence level
+  - Meniscus tear probability (0-1) with confidence level
+  - Abnormal model probability (0-1) with confidence level
+  - Grad-CAM heatmap as Base64 PNG
+  - Overall abnormality detection
+  
+  ## Use Case
+  After uploading a knee MRI DICOM to Supabase:
+  1. Get the public URL
+  2. Call this endpoint
+  3. Display predictions and heatmap to clinician
+  4. Optionally save results to database
+  
+  ## Example Response
+  ```json
+  {
+    "success": true,
+    "data": {
+      "analysis": {
+        "acl": {
+          "probability": 0.8834,
+          "confidence_level": "high",
+          "heatmap": "iVBORw0KGgo..."
+        },
+        "meniscus": {
+          "probability": 0.1245,
+          "confidence_level": "low"
+        },
+        "abnormalModel": {
+          "probability": 0.7523,
+          "confidence_level": "medium"
+        },
+        "abnormalOverall": {
+          "detected": true,
+          "probability": 0.7523,
+          "threshold": 0.5
+        }
+      },
+      "metadata": {
+        "patientId": 6,
+        "examId": 1,
+        "analyzedAt": "2025-12-20T10:30:00.000Z",
+        "modelsUsed": ["acl", "meniscus", "abnormal"]
+      }
+    },
+    "message": "Abnormality detected - Review recommended"
+  }
+  ```
+}

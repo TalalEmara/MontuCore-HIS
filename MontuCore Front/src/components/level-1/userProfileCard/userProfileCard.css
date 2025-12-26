@@ -116,11 +116,12 @@
 }
 
 .status-fit {
-  background:var(--accent);
+  background:var(--success);
   padding: 2px 6px;
   border-radius: 8px;
   font-size: 9px;
   font-weight: 700;
+  color:black;
 }
 
 .status-injured {

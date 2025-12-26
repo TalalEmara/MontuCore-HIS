@@ -1,0 +1,37 @@
+meta {
+  name: Get Exams by Athlete
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/exams?athleteId=6&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  athleteId: 6
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Exams by Athlete
+  
+  Retrieves all imaging exams for a specific athlete.
+  Useful for viewing patient's complete imaging history.
+  
+  ## Response
+  Returns paginated list of exams including:
+  - Exam metadata (modality, body part, status)
+  - Associated PACS images
+  - Radiologist notes and conclusions
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.data?.exams?.length > 0) {
+    bru.setVar("examId", res.body.data.exams[0].id);
+    console.log("First Exam ID:", res.body.data.exams[0].id);
+  }
+}

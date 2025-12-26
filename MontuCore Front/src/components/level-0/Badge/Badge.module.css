@@ -1,6 +1,6 @@
 .badge{
     box-sizing: border-box;
-    width: clamp(20px, 100px, 300px);
+    width: clamp(20px, 100px, auto);
     height: clamp(20px, 3vh, 100px);
 
     font-size: .8rem;

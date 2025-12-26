@@ -1,0 +1,25 @@
+meta {
+  name: Get Mangager Dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/dashboard/manager/dashboard?page=1&limit=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 10
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsImVtYWlsIjoidGVzdEBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkNMSU5JQ0lBTiIsImlhdCI6MTc2NjY4NzgyNywiZXhwIjoxNzY2Nzc0MjI3fQ.DEFhmEeBJ90FUQ5_4AsdQnoJtaBm4a-Vt5yRPyoSLDY
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

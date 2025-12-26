@@ -1,0 +1,27 @@
+meta {
+  name: Get Lab Tests by Case
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/lab-tests?caseId=1&page=1&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  caseId: 1
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Lab Tests by Case
+  
+  Retrieves all lab tests associated with a specific medical case.
+  Useful for viewing all diagnostic lab work for a particular injury or condition.
+  
+  ## Example Use Case
+  View all blood work and lab tests for a concussion case.
+}

@@ -1,14 +1,15 @@
-// List.tsx
 import React from 'react';
 import styles from './List.module.css';
 
 type ListProps = {
   header: string[];
-  data: React.ReactNode[][];
+  data: React.ReactNode[][] | string[][] | undefined;
   gridTemplateColumns?: string;
   listClassName?: string;
   headerClassName?: string;
   rowClassName?: string;
+  // 1. Add this prop
+  onRowClick?: (index: number) => void; 
 };
 
 function List({
@@ -18,29 +19,46 @@ function List({
   listClassName,
   headerClassName,
   rowClassName,
+  onRowClick, // 2. Destructure it
 }: ListProps) {
-  return (
-    <div className={`${styles.list} ${listClassName ?? ''}`}>
-      <div
-        className={`${styles.listHeader} ${headerClassName ?? ''}`}
-        style={{ gridTemplateColumns }}
-      >
-        {header.map((h) => (
-          <div key={h}>{h}</div>
-        ))}
-      </div>
+  
+  const rowStyle = React.useMemo(
+    () => (gridTemplateColumns ? { gridTemplateColumns } : undefined),
+    [gridTemplateColumns]
+  );
+  
+  const safeData = data || [];
 
-      {data.map((row, i) => (
-        <div
-          key={i}
-          className={`${styles.row} ${rowClassName ?? ''}`}
-          style={{ gridTemplateColumns }}
-        >
-          {row.map((cell, j) => (
-            <div key={j}>{cell}</div>
+  return (
+    <div className={`${styles.container} ${listClassName ?? ''}`}>
+      <table className={styles.list}>
+        <thead>
+          <tr className={`${styles.headerRow} ${headerClassName ?? ''}`} style={rowStyle}>
+            {header.map((h, i) => (
+              <th key={i}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {safeData.map((row, i) => (
+            <tr
+              key={i}
+              className={`${styles.row} ${rowClassName ?? ''}`}
+              style={{
+                ...rowStyle,
+                // Optional: Show pointer cursor if clickable
+                cursor: onRowClick ? 'pointer' : 'default' 
+              }}
+              // 3. Attach the click handler, passing the index
+              onClick={() => onRowClick && onRowClick(i)} 
+            >
+              {row.map((cell, j) => (
+                <td key={j}>{cell}</td>
+              ))}
+            </tr>
           ))}
-        </div>
-      ))}
+        </tbody>
+      </table>
     </div>
   );
 }

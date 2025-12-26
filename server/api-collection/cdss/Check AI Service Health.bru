@@ -1,0 +1,53 @@
+meta {
+  name: Check AI Service Health
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5000/health
+  body: none
+  auth: none
+}
+
+docs {
+  # Check AI Service Health
+  
+  Direct health check to the Python FastAPI service.
+  
+  ## What This Tests
+  - Is the AI service running?
+  - Which models are loaded?
+  - Is GPU available?
+  
+  ## Expected Response
+  ```json
+  {
+    "status": "healthy",
+    "models": {
+      "acl": "loaded",
+      "meniscus": "loaded",
+      "abnormal": "loaded"
+    },
+    "device": "cuda",
+    "cuda_available": true
+  }
+  ```
+  
+  ## Troubleshooting
+  - If connection refused: Start FastAPI with `python main.py`
+  - If status "degraded": Check model files exist
+  - If device "cpu": CUDA/GPU not available (slower inference)
+}
+
+tests {
+  test("AI service should be healthy", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.status).to.equal("healthy");
+  });
+  
+  test("Models should be loaded", function() {
+    expect(res.body.models).to.have.property("acl");
+    expect(res.body.models).to.have.property("meniscus");
+  });
+}

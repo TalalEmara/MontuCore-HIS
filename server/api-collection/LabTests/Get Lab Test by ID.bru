@@ -1,0 +1,26 @@
+meta {
+  name: Get Lab Test by ID
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseURL}}/lab-tests/{{newLabTestId}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Lab Test by ID
+  
+  Retrieves detailed information about a specific lab test.
+  
+  ## Response Includes
+  - Complete lab test details
+  - Test results (if available)
+  - Associated medical case info
+  - Athlete information
+  
+  ## Usage
+  Run "Create Lab Test" first to generate a test ID, or manually set {{newLabTestId}}.
+}

@@ -34,4 +34,3 @@ router.get('/invoices/case/:caseId', authenticateToken, billingController.getInv
 
 export default router;
 
-

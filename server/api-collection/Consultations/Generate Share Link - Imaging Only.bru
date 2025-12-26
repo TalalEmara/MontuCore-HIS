@@ -1,0 +1,40 @@
+meta {
+  name: Generate Share Link - Imaging Only
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/consults/share
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "athleteId": 6,
+    "externalEmail": "radiologist@imaging.com",
+    "permissions": {
+      "examIds": [1, 2],
+      "notes": "Second opinion needed on MRI findings"
+    },
+    "expiryHours": 72
+  }
+}
+
+docs {
+  # Share Imaging Only
+  
+  Example of sharing only imaging/exam data (MRI, CT, X-RAY).
+  Useful when consulting with radiologists or imaging specialists.
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.shareToken) {
+    console.log("Imaging Only Link:", res.body.data.fullLink);
+  }
+}

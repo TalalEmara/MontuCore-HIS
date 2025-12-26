@@ -1,0 +1,77 @@
+.paginationContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: fit-content;
+  margin: auto auto 0 auto;
+  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+}
+
+.paginationContainer[data-variant="white"] .current {
+  color: var(--text-color);
+}
+
+.arrowButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: var(--text-color);
+}
+
+.arrowButton:hover:not(:disabled) {
+  background-color: var(--primary-color);
+}
+
+.arrowButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.arrowLeft,
+.arrowRight {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+
+.arrowLeft {
+  transform: rotate(45deg);
+  margin-left: 0.15rem;
+}
+
+.arrowRight {
+  transform: rotate(-135deg);
+  margin-right: 0.15rem;
+}
+
+.pageIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  user-select: none;
+  font-size: 0.9rem;
+}
+
+.current {
+  color: var(--primary-color);
+}
+
+.separator {
+  color: hsl(from var(--text-color) h s l / 0.2);
+}
+
+.total {
+  color: hsl(from var(--text-color) h s l / 0.5);
+}

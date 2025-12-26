@@ -1,0 +1,50 @@
+meta {
+  name: Create Lab Test (No PDF)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseURL}}/lab-tests
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 10,
+    "testName": "Complete Blood Count (CBC)",
+    "category": "Hematology",
+    "status": "PENDING",
+    "sampleDate": "2025-12-20T09:00:00.000Z",
+    "cost": 75.00
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.id) {
+    bru.setVar("newLabTestId", res.body.data.id);
+    console.log("Created Lab Test ID:", res.body.data.id);
+  }
+}
+
+docs {
+  # Create Lab Test (No PDF)
+  
+  Creates a new laboratory test order without PDF upload.
+  
+  ## Required Fields
+  - `caseId`: ID of the medical case
+  - `testName`: Name of the lab test (CBC, Lipid Profile, etc.)
+  
+  ## Optional Fields
+  - `category`: Test category (Hematology, Chemistry, Microbiology, etc.)
+  - `status`: PENDING (default), COMPLETED, CANCELLED
+  - `resultValues`: JSON object with test values
+  - `labTechnicianNotes`: Notes from lab technician
+  - `sampleDate`: When sample was collected (defaults to now)
+  - `cost`: Cost of the test
+  
+  ## Note
+  This creates a lab test without uploading a PDF. The PDF can be uploaded later using the separate upload endpoint.
+}

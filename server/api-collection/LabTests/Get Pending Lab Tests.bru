@@ -1,0 +1,27 @@
+meta {
+  name: Get Pending Lab Tests
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseURL}}/lab-tests?status=PENDING&page=1&limit=20
+  body: none
+  auth: none
+}
+
+params:query {
+  status: PENDING
+  page: 1
+  limit: 20
+}
+
+docs {
+  # Get Pending Lab Tests
+  
+  View all lab tests that are pending results.
+  
+  ## Use Case
+  Laboratory dashboard showing tests that need to be processed.
+  Helps lab staff prioritize their workflow.
+}

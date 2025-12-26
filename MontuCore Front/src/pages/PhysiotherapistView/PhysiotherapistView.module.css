@@ -91,7 +91,7 @@ cursor: pointer;
   border-color: hsl(from var(--success) h s l / 0.2);
   border-left: 6px solid var(--success);
 }
-.appointmentRow[data-status="upcoming"] {
+.appointmentRow[data-status="scheduled"] {
   background: hsl(from var(--accent) h s l / 0.1);
   border-color: hsl(from var(--accent) h s l / 0.2);
   border-left: 6px solid var(--accent);
@@ -115,7 +115,7 @@ cursor: pointer;
   text-transform: uppercase;
 }
 .status.completed { background: var(--success); color: black; }
-.status.upcoming { background: var(--accent); color: black; }
+.status.scheduled { background: var(--accent); color: black; }
 .status.canceled { background: var(--secondary-color); color: white; }
 
 .rehabContainer {
@@ -171,11 +171,14 @@ cursor: pointer;
 .severityHeader { display: flex; justify-content: space-between; align-items: center; padding: 1rem; flex-shrink: 0; }
 .severityColumn[data-severity="MILD"] .severityHeader { background-color: var(--success); }
 .severityColumn[data-severity="MODERATE"] .severityHeader { background-color: var(--accent); }
-.severityColumn[data-severity="SEVERE"] .severityHeader { background-color: var(--primary-color); }
-.severityColumn[data-severity="CRITICAL"] .severityHeader { background-color: var(--secondary-color); }
+.severityColumn[data-severity="SEVERE"] .severityHeader { background-color: hsl(from var(--primary-color) h s l / 0.7) }
+.severityColumn[data-severity="CRITICAL"] .severityHeader { background-color: var(--primary-color); }
+
+.severityColumn[data-severity="SEVERE"] .severityTitle { color: var(--text-color); }
+.severityColumn[data-severity="CRITICAL"] .severityTitle { color: var(--text-color);}
 
 .severityTitle { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--background-color); }
-.caseCount { background: rgba(255, 255, 255, 0.25); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; color: var(--background-color); }
+.caseCount { background: rgba(255, 255, 255, 0.651); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; color: var(--background-color); }
 
 .casesList {
   padding: 0.75rem;
@@ -197,6 +200,26 @@ cursor: pointer;
 
 .caseName { font-size: 0.9rem; font-weight: 800; color: var(--text-color); }
 .caseSession { font-size: 0.75rem; font-weight: 600; opacity: 0.6; }
+
+.cardFooter {
+  margin-top: auto;
+  padding: 1.1rem 0;
+  padding-bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.severityColumn {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.casesList {
+  flex: 1; 
+  overflow-y: auto;
+}
 
 @media (max-width: 48rem) {
   .physiotherapistDashboardGrid { grid-template-columns: 1fr; grid-template-rows: auto; }

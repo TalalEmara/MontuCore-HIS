@@ -4,7 +4,7 @@ import './TopBar.css';
 interface TopBarProps {
   Name?: string;
   Role?: string;
-  jerseyNumber?: string;
+  jerseyNumber?: number;
 }
 
 const TopBar: React.FC<TopBarProps> = ({
@@ -18,7 +18,7 @@ const TopBar: React.FC<TopBarProps> = ({
         <div className="user-summary">
           <div className="user-info">
             <div>
-              Welcome <span className="user-name">{Name}</span>
+             <span className='welcome-text'>Welcome </span><span className="user-name">{Name}</span>
             </div>
             <div className="user-role-jersey">
               <span className="user-role">{Role}</span>

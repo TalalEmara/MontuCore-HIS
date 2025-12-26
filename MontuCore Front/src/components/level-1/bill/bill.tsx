@@ -1,31 +1,24 @@
 import { useState } from "react";
 import styles from "./bill.module.css";
 import { generateBillPDF } from "./billPdfGeneration";
-
-import type { InvoiceData } from "./bills";
+import { useInvoiceByCaseId } from "../../../hooks/useBilling"; 
 
 interface BillProps {
-  invoiceId?: string;
-  onFetchInvoice?: (id: string) => Promise<InvoiceData>;
+  invoiceId?: number; 
 }
 
-export default function Bill({ invoiceId, onFetchInvoice }: BillProps) {
+export default function Bill({ invoiceId }: BillProps) {
   const [open, setOpen] = useState(false);
-  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleView = async () => {
-    if (!invoiceId || !onFetchInvoice) return;
-    setLoading(true);
+  const { 
+    data: invoice, 
+    isLoading, 
+    isError 
+  } = useInvoiceByCaseId(open ? invoiceId : undefined);
+
+  const handleView = () => {
+    if (!invoiceId) return;
     setOpen(true);
-    try {
-      const data = await onFetchInvoice(invoiceId);
-      setInvoice(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const downloadPDF = () => {
@@ -37,7 +30,11 @@ export default function Bill({ invoiceId, onFetchInvoice }: BillProps) {
 
   return (
     <>
-      <button className={styles.billButton} onClick={handleView}>
+      <button 
+        className={styles.billButton} 
+        onClick={handleView} 
+        disabled={!invoiceId}
+      >
         Bill
       </button>
 
@@ -49,8 +46,13 @@ export default function Bill({ invoiceId, onFetchInvoice }: BillProps) {
             </div>
 
             <div className={styles.content}>
-              {loading ? (
-                <div>Loading...</div>
+              {isLoading ? (
+                <div className={styles.loader}>Loading...</div>
+              ) : isError ? (
+                <div className={styles.error}>
+                  <p>Error loading invoice data.</p>
+                  <small>Ensure an invoice exists for Case #{invoiceId}</small>
+                </div>
               ) : invoice ? (
                 <>
                   <h1>
@@ -59,10 +61,9 @@ export default function Bill({ invoiceId, onFetchInvoice }: BillProps) {
                   <p><strong>Status:</strong> {invoice.status.replace("_", " ")}</p>
                   <p><strong>Date:</strong> {invoice.invoiceDate}</p>
                   <p><strong>Due Date:</strong> {invoice.dueDate}</p>
-                  <p><strong>Patient:</strong> {invoice.patient.name} ({invoice.patient.id})</p>
+                  <p><strong>Patient:</strong> {invoice.patient.name} (ID: {invoice.patient.id})</p>
                   <p><strong>Email:</strong> {invoice.patient.email}</p>
                   {invoice.caseId && <p><strong>Case:</strong> {invoice.caseId}</p>}
-                  {invoice.sessionId && <p><strong>Session:</strong> {invoice.sessionId}</p>}
                   {invoice.notes && <p><strong>Notes:</strong> {invoice.notes}</p>}
                   <p><strong>Created By:</strong> {invoice.createdBy || 'Unknown'}</p>
 
@@ -97,15 +98,22 @@ export default function Bill({ invoiceId, onFetchInvoice }: BillProps) {
                   </div>
                 </>
               ) : (
-                <p>No invoice data.</p>
+                <p>No invoice data available.</p>
               )}
             </div>
 
             <div className={styles.footer}>
-              <button className={styles.downloadBtn} onClick={downloadPDF} disabled={!invoice}>
+              <button 
+                className={styles.downloadBtn} 
+                onClick={downloadPDF} 
+                disabled={!invoice}
+              >
                 Download
               </button>
-              <button className={styles.closeModalBtn} onClick={() => setOpen(false)}>
+              <button 
+                className={styles.closeModalBtn} 
+                onClick={() => setOpen(false)}
+              >
                 Close
               </button>
             </div>

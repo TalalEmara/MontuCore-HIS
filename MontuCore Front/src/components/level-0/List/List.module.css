@@ -1,55 +1,101 @@
-.row, .listHeader {
-background-color: var(--background-color);
-  color: var(--text-color);
+/* List.module.css */
 
-    font-size: .7em;
+/* Wrapper to handle scrolling for the table.
+   This ensures the table doesn't overflow the parent layout.
+*/
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+  background-color: var(--background-color);
+}
 
+.list {
+  width: 100%;
+}
 
+/* We apply display: grid to the TR elements. 
+   This allows us to keep using the 'gridTemplateColumns' prop 
+   and features like 'minmax', which standard tables don't support.
+*/
+.row, 
+.headerRow {
   display: grid;
+  /* Fallback if prop is missing */
+  /* grid-template-columns: 50px minmax(150px, 3fr) repeat(auto-fit, minmax(100px, 1fr)); */
+  grid-template-columns: 50px minmax(150px, 3fr);
   grid-auto-flow: column;
-  grid-template-rows: 1fr ;
-  grid-template-columns:
-   50px  minmax(150px, 3fr)  repeat(auto-fit, minmax(100px, 1fr)); 
-
-   justify-items: start;
-   align-items: center;
-   align-content: center;
-
-   column-gap: 8px;
-   padding: 20px 20px;
-   max-height: 40px;
-   overflow: hidden;
-
-   border-bottom: 1px solid var(--accent);
-}
-.row:hover{
-      background-color:hsl(from var(--background-color) h s calc(l * 2));
-      transform: scale(1.01);
-    }
-.listHeader{
-    position: sticky;
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    font-weight: bold;
-    border: 0;
-    padding: clamp(10px, 0.5vw, 20px) 20px;
-    overflow: hidden;
-    
-}
-.list{
-    padding: 1vh 2vw;
-    overflow: auto;
+  
+  /* 3. Define the width of these automatically added columns */
+  grid-auto-columns: minmax(100px, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--accent, #ddd);
 }
 
-@media (min-width: 1024px)  {
+/* Header Specifics */
+.headerRow {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--primary-color, #f0f0f0);
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 0.75em;
+  padding: clamp(10px, 0.5vw, 15px) 20px;
+  border-bottom: 2px solid var(--accent, #ccc);
+}
+
+/* Body Row Specifics */
+.row {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 0.8em;
+  padding: 15px 20px;
+  /* Replaced fixed max-height with min-height for robustness against text wrapping */
+  min-height: 40px; 
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.row:hover {
+  /* Using standard filter for robustness over hsl calculations */
+  background-color: var(--secondary-color);
+  filter: brightness(0.95); 
+  transform: scale(1.002);
+}
+.row:active {
+  /* Using standard filter for robustness over hsl calculations */
+  background-color: var(--accent);
+  filter: brightness(0.95); 
+  transform: scale(1.002);
+}
+
+/* Cell Styling */
+.list th,
+.list td {
+  display: block; /* Required because the parent TR is a grid */
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0;
+  margin: 0;
+}
+
+/* Laptop Adjustment */
+@media (min-width: 1024px) {
   .row {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    max-height: 30px;  /* smaller max height on laptop */
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 }
-/* testing */
-p{
-    margin: 0;
-    padding: 0;
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+.container::-webkit-scrollbar {
+  height: 0; 
 }

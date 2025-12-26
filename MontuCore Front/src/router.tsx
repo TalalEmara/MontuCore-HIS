@@ -16,6 +16,12 @@ import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
+import RegisterView from "./pages/RegisterView/RegisterView";
+import TablePage from "./pages/TablePage/TablePage";
+import TestTablePage from "./pages/TablePage/test";
+import LoginView from "./pages/LoginView/LoginView";
+import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
+import PatientPortalView from "./pages/PatientPortalView/PatientPortalView";
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -64,12 +70,17 @@ const athleteViewRoute = createRoute({
   path: "athlete",
   component: AthleteView,
 });
+const cases = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "cases",
+  component: TestTablePage,
+});
 
 // 4. Case Route (No Sidebar, Direct child of Root)
 // Added $caseId parameter
 export const CaseRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "case/$caseId", 
+  path: "cases/$caseId", 
   component: CaseView,
 });
 
@@ -80,16 +91,53 @@ export const DicomRoute = createRoute({
   component: DicomViewPage,
 });
 
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "register",
+  component: RegisterView,
+});
+
+const LoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "login",
+  component: LoginView,
+});
+
+const ManagerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "manager",
+  component: ManagerDashboard,
+});
+
+// const ExternalConsultationRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "external/view/$token",
+//   component: ExternalConsultationView,
+// });
+
+const PatientPortalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "patientPortal",
+  component: PatientPortalView,
+});
+
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
   sidebarLayoutRoute.addChildren([
-    physicianViewRoute, 
+    physicianViewRoute,
     athleteViewRoute,
-    PhysiotherapistViewRoute
+    PhysiotherapistViewRoute,
+    cases,
   ]),
   CaseRoute,
-  DicomRoute
+  DicomRoute,
+  registerRoute,
+  LoginRoute,
+  ManagerRoute,
+  // ExternalConsultationRoute,
+  PatientPortalRoute
 ]);
+
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const router = createRouter({ routeTree });

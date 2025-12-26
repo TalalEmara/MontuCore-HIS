@@ -1,0 +1,45 @@
+meta {
+  name: Update Exam
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{baseURL}}/exams/{{newExamId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "ORDERED",
+    "performedAt": "2025-12-22T14:30:00.000Z",
+    "radiologistNotes": "MRI scan completed successfully. High-resolution images captured.",
+    "conclusion": "Partial ACL tear confirmed. Grade 2 sprain visible on medial meniscus."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("Exam updated:", res.body.data.status);
+  }
+}
+
+docs {
+  # Update Exam
+  
+  Updates an existing exam with new information.
+  Typically used to:
+  - Update status as exam progresses
+  - Add radiologist notes and conclusions
+  - Record when exam was performed
+  
+  ## Common Workflow
+  1. Create exam with status "ORDERED"
+  2. Update to "IMAGING_COMPLETE" after scan
+  3. Update with radiologist notes and conclusion
+  4. Update to "REPORTED" when final report ready
+  
+  ## All Fields Optional
+  Only include fields you want to update.
+}

@@ -1,0 +1,34 @@
+meta {
+  name: View Shared Record
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/consults/view/{{shareToken}}?accessCode={{accessCode}}
+  body: none
+  auth: none
+}
+
+docs {
+  # View Shared Record
+
+  This endpoint is PUBLIC and does not require authentication.
+  The token in the URL and access code in query parameter act as the authentication mechanism.
+
+  ## Usage
+  1. First run "Generate Share Link" to get a token and access code
+  2. The token and access code will be automatically saved to collection variables
+  3. Run this request to view the shared medical data
+
+  ## Required Parameters
+  - `shareToken`: The consultation token (saved from Generate Share Link)
+  - `accessCode`: The 6-digit access code (saved from Generate Share Link)
+
+  ## Response
+  Returns the shared medical data including:
+  - Meta information (who shared it, patient name, expiry)
+  - Cases (if shared)
+  - Exams with images (if shared)
+  - Lab tests (if shared)
+}

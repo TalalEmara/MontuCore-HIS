@@ -1,0 +1,124 @@
+/* src/components/level-2/Preview/Preview.module.css */
+
+.panel {
+  position: relative; /* Anchor for the absolute close button */
+  height: 100%;
+  padding: 1.5rem;
+  background-color: var(--primary-color);
+  box-sizing: border-box; /* Ensures padding stays within 100% height */
+  overflow: auto;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 10;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.panelContent {
+  display: grid;
+  /* 3 Columns: Overview | Details | List */
+  grid-template-columns: repeat(3, minmax(200px, 1fr)); 
+  height: 100%; /* Fill the panel height */
+  gap: 1.5rem; /* Space between columns */
+  overflow: hidden; /* Prevent the grid itself from scrolling */
+}
+
+/* --- Header Section (Column 1) --- */
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.titleRow h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--text-color);
+}
+
+.subHeader {
+  color: var(--text-color);
+  font-size: 0.95rem;
+  /* margin-bottom: auto; Removed to allow centering */
+}
+
+.separator {
+  margin: 0 0.5rem;
+  color: #ccc;
+}
+
+/* --- Details Section (Column 2) --- */
+.detailsSection {
+  /* Removed margins that were for vertical layout */
+  border-left: 1px solid var(--text-color);
+  border-right: 1px solid var(--text-color);
+  padding: 0 1.5rem;
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: var(--text-color);
+  letter-spacing: 0.5px;
+  margin: 0 0 0.8rem 0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* --- List Section (Column 3) --- */
+.listSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allows the inner list to scroll */
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Divider is likely not needed in Column layout, 
+   but keeping the class just in case */
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 1rem 0;
+  flex-shrink: 0;
+}

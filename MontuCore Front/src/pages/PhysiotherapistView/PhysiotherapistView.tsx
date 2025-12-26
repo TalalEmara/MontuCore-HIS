@@ -4,8 +4,10 @@ import ProfileCard from "../../components/level-1/userProfileCard/userProfileCar
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import styles from "./PhysiotherapistView.module.css";
 import physiotherapistProfile from "../../assets/images/physiotherapist.webp";
-
+import Pagination from "../../components/level-0/Pagination/Pagination";
 import RiskNotesPanel from "../../components/level-1/RiskNotesPanel/RiskNotesPanel"; 
+import { usePhysiotherapistDashboard } from "../../hooks/usePhysioDashboard";
+import { useAuth } from "../../context/AuthContext";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 
@@ -23,37 +25,36 @@ interface Appointment {
 }
 
 const PhysiotherapistView: React.FC = () => {
+  const { user } = useAuth();
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 1;
+ 
   
-  const [activeRehabCases] = useState<RehabCase[]>([
-    { id: "1", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MILD" },
-    { id: "2", athleteName: "Mohamed Salah", session: "Bone", severity: "MODERATE" },
-    { id: "3", athleteName: "Neymar Jr", session: "Arm", severity: "SEVERE" },
-    { id: "4", athleteName: "Leo Messi", session: "Ankle", severity: "CRITICAL" },
-    { id: "5", athleteName: "Cristiano Ronaldo", session: "Bone", severity: "MODERATE" },
-    { id: "6", athleteName: "Mohamed Salah", session: "Arm", severity: "MILD" },
-    { id: "7", athleteName: "Neymar Jr", session: "Ankle", severity: "SEVERE" },
-    { id: "8", athleteName: "Leo Messi", session: "Bone", severity: "CRITICAL" },
-    { id: "9", athleteName: "Cristiano Ronaldo", session: "Arm", severity: "MILD" },
-    { id: "10", athleteName: "Mohamed Salah", session: "Ankle", severity: "MODERATE" },
-    { id: "11", athleteName: "Neymar Jr", session: "Bone", severity: "SEVERE" },
-    { id: "12", athleteName: "Leo Messi", session: "Arm", severity: "MILD" },
-    { id: "13", athleteName: "Cristiano Ronaldo", session: "Ankle", severity: "MODERATE" },
-    { id: "14", athleteName: "Mohamed Salah", session: "Bone", severity: "CRITICAL" },
-    { id: "15", athleteName: "Neymar Jr", session: "Arm", severity: "SEVERE" },
-    { id: "16", athleteName: "Leo Messi", session: "Ankle", severity: "MILD" },
-  ]);
+ const { data, isLoading, error } = usePhysiotherapistDashboard(user?.id || 0);
 
-  const [todayAppointments] = useState<Appointment[]>([
-    { athleteName: "Cristiano Ronaldo", time: "09:00 AM", status: "completed" },
-    { athleteName: "Mohamed Salah", time: "10:30 AM", status: "upcoming" },
-    { athleteName: "Neymar", time: "12:00 PM", status: "canceled" },
-    { athleteName: "Messi", time: "01:15 PM", status: "upcoming" },
-    { athleteName: "Leo Messi", time: "02:00 PM", status: "upcoming" },
-    { athleteName: "Mbappe", time: "03:30 PM", status: "completed" },
-    { athleteName: "Ronaldo", time: "04:45 PM", status: "upcoming" },
-    { athleteName: "Salah", time: "06:00 PM", status: "upcoming" }
-  ]);
+  
+  const activeRehabCases = useMemo(() => {
+    if (!data || !data.data) return []; // Guard against loading/undefined state
+
+    return data.data.activeCases.map((c) => ({
+      id: c.id.toString(),            // Convert number ID to string
+      athleteName: c.athlete.fullName,
+      session: c.diagnosisName,       // Map 'diagnosisName' to 'session'
+      severity: c.severity as Severity, // Cast string to Severity type
+    }));
+  }, [data]);
+
+  const todayAppointments = useMemo(() => {
+    if (!data || !data.data) return []; // Handle loading/error state
+    
+    return data.data.todaysAppointments.map((app) => ({
+      athleteName: app.athlete.fullName,
+      time: new Date(app.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: app.status.toLowerCase(),
+    }));
+  }, [data]);
+
 
   const severityLevels: Severity[] = ["MILD", "MODERATE", "SEVERE", "CRITICAL"];
 
@@ -88,7 +89,7 @@ const PhysiotherapistView: React.FC = () => {
   return (
     <div className={styles.physiotherapistViewerContainer}>
       <div className={styles.physiotherapistMainContent}>
-        <TopBar Name="Mariam Mohamed" Role="Sports Physiotherapist" />
+       <TopBar Name={user?.fullName || "Physio"} Role="Sports Physiotherapist" />
 
         <div className={styles.physiotherapistDashboardGrid}>
           <ProfileCard
@@ -121,6 +122,14 @@ const PhysiotherapistView: React.FC = () => {
                   </div>
                 ))}
               </div>
+              <div className={styles.cardFooter}>
+            {totalPages > 1 && (
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={(page) => setCurrentPage(page)} 
+              /> )}
+            </div>
             </div>
           </AdjustableCard>
 
@@ -138,14 +147,17 @@ const PhysiotherapistView: React.FC = () => {
                 </div>
 
                 <div className={styles.severityColumns}>
-                  {severityLevels.map(severity => (
-                    <SeverityColumn
-                      key={severity}
-                      severity={severity}
-                      cases={casesBySeverity[severity]}
-                    />
-                  ))}
-                </div>
+                {severityLevels.map(severity => (
+                  <SeverityColumn
+                    key={severity}
+                    severity={severity}
+                    cases={casesBySeverity[severity]}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                ))}
+              </div>
               </div>
             </AdjustableCard>
           </div>
@@ -165,7 +177,10 @@ const PhysiotherapistView: React.FC = () => {
 const SeverityColumn = React.memo<{
   severity: Severity;
   cases: RehabCase[];
-}>(({ severity, cases }) => {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}>(({ severity, cases, currentPage, totalPages, onPageChange }) => { // 2. DESTRUCTURE THEM HERE
   return (
     <div className={styles.severityColumn} data-severity={severity}>
       <div className={styles.severityHeader}>
@@ -174,10 +189,20 @@ const SeverityColumn = React.memo<{
       </div>
 
       <div className={styles.casesList}>
-        {cases.map(rehabCase => (
+        {cases.map((rehabCase) => (
           <CaseCard key={rehabCase.id} rehabCase={rehabCase} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className={styles.cardFooter}>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 });

@@ -1,0 +1,67 @@
+meta {
+  name: Create Lab Test
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseURL}}/lab-tests
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  caseId: 10
+  testName: Complete Blood Count (CBC)
+  category: Hematology
+  status: PENDING
+  sampleDate: 2025-12-20T09:00:00.000Z
+  cost: 75.00
+  pdf: @file(D:\Eng\SBE\4th\hcis\Lectures\HCIS - SBE4029 - Lecture 2 - HIS and EMR.pdf)
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.data?.id) {
+    bru.setVar("newLabTestId", res.body.data.id);
+    console.log("Created Lab Test ID:", res.body.data.id);
+  }
+}
+
+docs {
+  # Create Lab Test
+  
+  Creates a new laboratory test order with optional PDF upload.
+  
+  ## Required Fields
+  - `caseId`: ID of the medical case
+  - `testName`: Name of the lab test (CBC, Lipid Profile, etc.)
+  
+  ## Optional Fields
+  - `category`: Test category (Hematology, Chemistry, Microbiology, etc.)
+  - `status`: PENDING (default), COMPLETED, CANCELLED
+  - `resultValues`: JSON object with test values
+  - `labTechnicianNotes`: Notes from lab technician
+  - `sampleDate`: When sample was collected (defaults to now)
+  - `cost`: Cost of the test
+  - `pdf`: PDF file upload (optional)
+  
+  ## PDF Upload
+  The PDF file is uploaded to Supabase storage and the URL is automatically saved to `resultPdfUrl`.
+  If no PDF is provided, the lab test is created without a PDF.
+  
+  ## Common Test Categories
+  - Hematology: Blood cell counts
+  - Chemistry: Metabolic panels, liver/kidney function
+  - Lipid Profile: Cholesterol tests
+  - Endocrinology: Hormone tests
+  - Immunology: Immune system tests
+  - Microbiology: Infection/culture tests
+  
+  ## Common Test Names
+  - CBC (Complete Blood Count)
+  - Lipid Profile
+  - Blood Glucose
+  - Liver Function Test (LFT)
+  - Kidney Function Test (KFT)
+  - Thyroid Panel
+}

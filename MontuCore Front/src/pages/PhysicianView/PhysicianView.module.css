@@ -28,16 +28,17 @@
 
 .urgentContainer,
 .scheduleContainer,
-.physioNotesContainer {
-  padding: 1.375rem;
+.physioNotesContainer,
+.athleteHandlingContainer {
+  padding: 1rem; 
   display: flex;
   flex-direction: column;
   background-color: var(--background-color);
   border: 0.0625rem solid var(--accent);
-  height: 100%;
-  overflow: hidden;
+  height: 100%;    
+  box-sizing: border-box;
+  padding-bottom: 0.5rem;
 }
-
 .athleteHandlingContainer {
   padding: 1rem;
   display: flex;
@@ -97,30 +98,45 @@
 }
 
 .casesList, .scheduleList, .physioNotesList, .athleteHandlingList {
+ flex: 1;            
+  min-height: 0;      
+  overflow-y: auto;  
+  scrollbar-width: none; 
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  overflow-y: auto;
-  scrollbar-width: none;
-  flex: 1;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .caseRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem; 
-  font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+  padding: 0.75rem 1rem;
+  font-size: clamp(0.875rem, 1.2vw, 1rem);
   font-weight: 500;
   color: var(--text-color);
-  border-radius: 0.375rem;
-  transition: transform 0.2s ease;
+  border-radius: 0.75rem;
+  background-color: hsl(from var(--secondary-color) h s l / 0.15); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); 
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 1rem;
 }
 
-.caseRow.urgent { background-color: hsl(from var(--secondary-color) h s l / 0.5); }
-.caseRow.high { background-color: hsl(from var(--primary-color) h s l / 0.2); }
-.caseRow.medium { background-color: hsl(from var(--accent) h s l / 0.2); }
-.caseRow.low { background-color: hsl(from var(--success) h s l / 0.2); }
+.caseRow:hover {
+  transform: translateY(-2px);
+}
+
+.caseName {
+  font-weight: 600;
+  flex: 1;
+}
+
+.caseInjury {
+  font-weight: 600;
+}
+
+
 
 .caseButton {
   padding: 0.3125rem 0.75rem;
@@ -190,16 +206,49 @@
 .status {
   border-radius: 0.3125rem;
   text-transform: uppercase;
-  min-width: 3rem;
+  min-width: 4rem;
   text-align: center;
   font-size: 0.5875rem;
   font-weight: 700;
-  padding: 0.1rem 0.5rem;
+  padding: 0rem 0rem;
   box-shadow: 0 0.125rem 0.5rem hsl(from var(--accent) h s l / 0.1);
 }
 
-.status.completed { background: hsl(from var(--success) h s l / 0.5); color: black; }
-.status.upcoming { background: var(--accent); color: black; }
+.status.SCHEDULED {
+  background-color: hsl(from var(--accent) h s l / 0.7);
+  color: var(--text-color);
+}
+
+.status.COMPLETED {
+  background-color: hsl(from var(--success) h s l / 0.7);
+  color: black;
+}
+
+.status.CANCELLED {
+  background-color: hsl(from var(--secondary-color) h s l / 0.7);
+  color: var(--text-color);
+}
+
+.casesList, 
+.scheduleList, 
+.physioNotesList, 
+.athleteHandlingList {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  height: auto;
+  padding: 1px 0;     
+  margin-top: auto;
+  background: transparent;
+}
+
 
 @media (max-width: 75rem) {
   .physicianDashboardGrid { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
