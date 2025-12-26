@@ -37,7 +37,6 @@ export const createInvoice = async (data: InvoiceData) => {
     status: "PAID",
     notes: data.notes,
     createdBy: data.createdBy,
-    icd10Code: null,
   };
 
   // Only add optional fields if they exist
