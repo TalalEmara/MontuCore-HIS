@@ -72,9 +72,10 @@ function RegisterView() {
     
   
   
+  const adminId =1; // Or get this from your user context
   
   const { mutate: registerClinician, isPending: isClinicianPending } = useClinicianReg();
-  const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg();
+const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(adminId);
   const isSubmitting = isClinicianPending || isAthletePending;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -107,7 +108,10 @@ function RegisterView() {
         gender: genderFormatted,
         dob: dobFormatted,
         position: athleteDetailsData.position!,
-        jerseyNumber: athleteDetailsData.jerseyNumber!
+        jerseyNumber: athleteDetailsData.jerseyNumber!,
+        height: athleteBasicData.height || 0,
+        weight: athleteBasicData.weight || 0,
+        status: athleteDetailsData.status!
       }, options);
       
     } else {
@@ -118,7 +122,7 @@ function RegisterView() {
         fullName: generalData.fullName!,
         gender: genderFormatted,
         dob: dobFormatted,
-        specialty: staffData.position! 
+        specialty: `{${generalData.role}-${staffData.position}}` 
       }, options);
     }
   };

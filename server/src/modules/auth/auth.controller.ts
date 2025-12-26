@@ -210,6 +210,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       "success": true,
+      "id" : registerResult.user.id,
       "token" : registerResult.token
     });
     return;
