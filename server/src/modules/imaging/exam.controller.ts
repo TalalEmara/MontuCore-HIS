@@ -41,6 +41,9 @@ export const createExam = asyncHandler(async (req: Request, res: Response) => {
  */
 export const getExamById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: 'Exam ID is required' });
+  }
   const exam = await ExamService.getExamById(parseInt(id));
   return successResponse(res, exam);
 });
@@ -51,6 +54,9 @@ export const getExamById = asyncHandler(async (req: Request, res: Response) => {
  */
 export const updateExam = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: 'Exam ID is required' });
+  }
   const updates = req.body;
   const exam = await ExamService.updateExam(parseInt(id), updates);
   return successResponse(res, exam, 'Exam updated successfully');
