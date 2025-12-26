@@ -66,7 +66,13 @@ export const login = async (loginData : LoginInput) => {
     const token = generateJWT(user.id, user.email, user.role);
     return {
       "token": token,
-      "sucess": true
+      "success": true,
+      "user" : {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      }
     }
   }
   catch(error){

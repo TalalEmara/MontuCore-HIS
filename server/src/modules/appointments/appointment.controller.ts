@@ -27,7 +27,7 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
       });
     }
     else{
-       res.status(401).json({
+      res.status(401).json({
         success: false,
       });
     }
