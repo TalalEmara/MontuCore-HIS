@@ -41,6 +41,12 @@ enum CaseStatus {
   RECOVERED
 }
 
+enum ExamStatus {
+  ORDERED
+  COMPLETED
+  CANCELLED
+}
+
 // Generic status for Exams/Labs if needed, or specific ones
 enum LabStatus {
   PENDING
@@ -196,7 +202,7 @@ model Exam {
 
   modality String // 'MRI', 'CT', 'X-RAY'
   bodyPart String @map("body_part") // 'Knee', 'Shoulder'
-  status   String // 'ORDERED', 'IMAGING_COMPLETE'
+  status   ExamStatus // 'ORDERED', 'COMPLETED', 'CANCELLED'
 
   scheduledAt DateTime? @map("scheduled_at")
   performedAt DateTime? @map("performed_at")

@@ -22,9 +22,20 @@ body:json {
 }
 
 script:post-response {
-  if (res.status === 201 && res.body.data?.id) {
-    bru.setVar("newExamId", res.body.data.id);
-    console.log("Created Exam ID:", res.body.data.id);
+  if (res.status === 201) {
+    try {
+      const responseData = JSON.parse(res.body);
+      if (responseData.data?.id) {
+        bru.setVar("newExamId", responseData.data.id);
+        console.log("Created Exam ID:", responseData.data.id);
+      }
+    } catch (error) {
+      console.log("Error parsing response:", error);
+      console.log("Raw response:", res.body);
+    }
+  } else {
+    console.log("Request failed with status:", res.status);
+    console.log("Response:", res.body);
   }
 }
 

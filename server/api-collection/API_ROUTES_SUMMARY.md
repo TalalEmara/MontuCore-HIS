@@ -63,28 +63,85 @@
 
 ---
 
-## 📷 Imaging/Exams Routes (`/api/imaging` or `/api/exams`)
+## 📷 Exams & Imaging Routes (`/api/exams` and `/api/imaging`)
+
+### Exams Routes (`/api/exams`)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/upload` | Upload imaging scan (FormData) | Required |
-| POST | `/` | Create a new imaging order | Required |
+| GET | `/` | Get exams with filters and pagination | Public |
+| POST | `/` | Create exam (optional DICOM upload) | Public |
+| GET | `/:id` | Get exam by ID | Public |
+| PUT | `/:id` | Update exam | Public |
+| POST | `/:id/upload` | Upload DICOM to existing exam | Public |
+
+**GET /api/exams Query Parameters:**
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `athleteId`: Filter by athlete ID
+- `caseId`: Filter by case ID
+- `modality`: Filter by modality (MRI, CT, X-RAY, etc.)
+- `status`: Filter by status (ORDERED, COMPLETED, CANCELLED)
+
+**POST /api/exams (Create Exam)**
+```typescript
+Content-Type: multipart/form-data
+
+// Required fields
+caseId: number
+modality: string  // 'MRI', 'CT', 'X-RAY', 'Ultrasound', 'PET', 'DEXA'
+bodyPart: string  // 'Knee', 'Shoulder', 'Head', etc.
+
+// Optional fields
+status: 'ORDERED' | 'COMPLETED' | 'CANCELLED'  // Default: 'ORDERED'
+scheduledAt: Date
+performedAt: Date
+radiologistNotes: string
+conclusion: string
+cost: number
+dicomFile: File  // Optional DICOM file (auto-completes exam)
+```
+
+**POST /api/exams/:id/upload (Upload DICOM)**
+```typescript
+Content-Type: multipart/form-data
+
+dicomFile: File  // Required DICOM file
+// Auto-sets status to COMPLETED
+// Rejects if exam already has DICOM
+```
+
+### Imaging Routes (`/api/imaging`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/upload` | Upload DICOM scan (legacy + enhanced) | Required |
+| POST | `/` | Create imaging order | Required |
 | GET | `/` | Get all imaging orders | Required |
 | GET | `/:id` | Get imaging order by ID | Required |
 | PUT | `/:id` | Update imaging order | Required |
 | POST | `/:id/results` | Upload imaging results | Required |
 
-**Alternative endpoint:** `/api/exams?page=1&limit=10`
+**POST /api/imaging/upload (Enhanced DICOM Upload)**
+```typescript
+Content-Type: multipart/form-data
 
-**Query Parameters:**
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 10)
-- `athleteId` (optional): Filter by athlete ID
-- `caseId` (optional): Filter by case ID
-- `modality` (optional): MRI, CT, X-RAY, etc.
-- `status` (optional): ORDERED, IMAGING_COMPLETE, etc.
+file: File          // DICOM file (required)
+caseId: number      // For new exam creation (optional)
+examId: number      // Attach to existing exam (optional)
 
-**Bruno Collection:** `Imaging/`, `Exams/`
+// Either caseId OR examId must be provided
+// If examId provided: attaches to existing exam
+// If caseId provided: creates new exam
+```
+
+**Business Rules:**
+- **Single DICOM per exam**: Cannot upload multiple DICOMs to same exam
+- **Auto-complete**: DICOM uploads automatically set status to `COMPLETED`
+- **Status validation**: `COMPLETED` exams must have DICOM files
+- **Default status**: `ORDERED` when creating exams without DICOM
+
+**Bruno Collection:** `Exams/`, `Imaging/`
 
 ---
 

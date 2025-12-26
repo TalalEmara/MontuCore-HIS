@@ -1,4 +1,5 @@
 import { prisma } from '../../config/db.js';
+import { ExamStatus } from '@prisma/client';
 
 interface ImagingOrderData {
   caseId: number;
@@ -6,7 +7,7 @@ interface ImagingOrderData {
   bodyPart: string;
   radiologistNotes?: string;
   conclusion?: string;
-  status?: string;
+  status?: ExamStatus;
   cost?: number;
   scheduledAt?: string;
   performedAt?: string;
@@ -163,7 +164,7 @@ export const uploadImagingResults = async (orderId: number, { radiologistNotes, 
     data: {
       radiologistNotes: radiologistNotes ?? null,
       conclusion: conclusion ?? null,
-      status: 'IMAGING_COMPLETE',
+      status: 'COMPLETED',
       performedAt: performedAt || new Date()
     },
     include: {
