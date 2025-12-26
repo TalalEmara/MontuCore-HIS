@@ -37,6 +37,7 @@ export const createInvoice = async (data: InvoiceData) => {
     status: "PAID",
     notes: data.notes,
     createdBy: data.createdBy,
+    icd10Code: null,
   };
 
   // Only add optional fields if they exist
@@ -93,6 +94,16 @@ const generateInvoiceNumber = async (): Promise<string> => {
 
   return `INV-${year}${month}-${String(count + 1).padStart(4, "0")}`;
 };
+/**
+ * Get invoices by Case ID
+ */
+export const getInvoiceByCaseId = async (caseId: number) => {
+  return prisma.invoice.findFirst({
+    where: { caseId },
+    include: { athlete: true, clinician: true, appointment: true },
+  });
+};
+
 
 
 
