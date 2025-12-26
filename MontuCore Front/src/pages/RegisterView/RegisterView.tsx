@@ -58,6 +58,35 @@ const athleteDetailsSchema = z.object({
   path: ["diagnosis"] 
 });
 
+const athleteMedicalDataSchema = z.object({
+  notes: z.string()
+    .min(1, "Notes are required")
+    .max(500, "Notes cannot exceed 500 characters"),
+
+  labTests: z.array(
+    z.object({
+      testName: z.string().min(1, "Test name is required"),
+      category: z.string().min(1, "Category is required"),
+      file: z.instanceof(File).refine(file => file instanceof File, {
+        message: "File is required",
+      }),
+    })
+  ).min(1, "At least one lab test is required"), 
+
+  exams: z.array(
+    z.object({
+      modality: z.string().min(1, "Modality is required"),
+      bodyPart: z.string().min(1, "Body Part is required"),
+      file: z.instanceof(File).refine(file => file instanceof File, {
+        message: "File is required",
+      }),
+      dicomFiles: z.array(z.instanceof(File)).optional()
+    })
+  ).min(1, "At least one exam is required") 
+});
+
+
+
 const staffSchema = z.object({
   birthDate: z.string().min(1, "Birth date is required"),
   position: z.string().min(2, "Position is required"),
@@ -86,6 +115,8 @@ function RegisterView() {
   const [currentLabTest, setCurrentLabTest] = useState({testName: "", category: "", file: null as File | null});
   const [currentExam, setCurrentExam] = useState({modality: "", bodyPart: "", file: null as File | null, dicomFiles: [] as File[]});
       
+  const [notes, setNotes] = useState("");
+
   
   
   const adminId =1; // Or get this from your user context
@@ -184,6 +215,30 @@ const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(a
       }
     }
   };
+
+const handleAthleteMedicalSubmit = () => {
+  try {
+    athleteMedicalDataSchema.parse({ notes, labTests, exams });
+    setErrors({});
+    handleFinalSubmit();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMap: Record<string, string> = {};
+
+      error.issues.forEach((err) => {
+        if (err.path.length === 0) {
+          if (err.message.includes("lab test")) errorMap["labTests"] = err.message;
+          if (err.message.includes("exam")) errorMap["exams"] = err.message;
+        } else {
+          errorMap[err.path[0].toString()] = err.message;
+        }
+      });
+      setErrors(errorMap);
+    }
+  }
+};
+
+
 
   const handleStaffSubmit = () => {
     try {
@@ -358,6 +413,7 @@ const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(a
             <div className={styles.form}>
              <div className={styles.fileUpload}>
             <label className={styles.label}>Lab Tests</label>
+              {errors.labTests && <span className={styles.errorMessage}>{errors.labTests}</span>}
             <div className={styles.uploadBox} onClick={() => setShowLabModal(true)} style={{ cursor: 'pointer' }}>
               <span className={styles.uploadLabel}>+ Add Lab Test</span>
               <div className={styles.fileList}>
@@ -373,6 +429,7 @@ const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(a
 
              <div className={styles.fileUpload}>
               <label className={styles.label}>Imaging Exams</label>
+                {errors.exams && <span className={styles.errorMessage}>{errors.exams}</span>}
               <div className={styles.uploadBox} onClick={() => setShowExamModal(true)} style={{ cursor: 'pointer' }}>
                 <span className={styles.uploadLabel}>+ Add Exam</span>
                 <div className={styles.fileList}>
@@ -384,11 +441,20 @@ const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(a
                   ))}
                 </div>
               </div>
+              <TextInput
+              label="Notes"
+              placeholder="Enter medical notes"
+              value={notes}
+              onChange={(v) => setNotes(v)}
+              error={errors.notes}
+              height={100}
+            />
+
             </div>
 
               <div className={styles.buttonGroup}>
                 <Button variant="secondary" onClick={() => setStep(3)} width="48%">BACK</Button>
-                <Button variant="secondary" onClick={handleFinalSubmit} width="48%">{isSubmitting ? "LOADING..." : "SUBMIT"}</Button>
+                <Button variant="secondary" onClick={handleAthleteMedicalSubmit } width="48%">{isSubmitting ? "LOADING..." : "SUBMIT"}</Button>
               </div>
             </div>
           )}
