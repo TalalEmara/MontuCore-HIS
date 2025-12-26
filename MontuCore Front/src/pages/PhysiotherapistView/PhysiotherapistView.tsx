@@ -7,6 +7,7 @@ import physiotherapistProfile from "../../assets/images/physiotherapist.webp";
 import Pagination from "../../components/level-0/Pagination/Pagination";
 import RiskNotesPanel from "../../components/level-1/RiskNotesPanel/RiskNotesPanel"; 
 import { usePhysiotherapistDashboard } from "../../hooks/usePhysioDashboard";
+import { useAuth } from "../../context/AuthContext";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 
@@ -24,13 +25,13 @@ interface Appointment {
 }
 
 const PhysiotherapistView: React.FC = () => {
+  const { user } = useAuth();
   const [isRiskModalOpen, setRiskModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 1;
-  // need to replace with real data from hook
-  const physioId = 2; 
+ 
   
-  const { data, isLoading, error } = usePhysiotherapistDashboard(physioId);
+ const { data, isLoading, error } = usePhysiotherapistDashboard(user?.id || 0);
 
   
   const activeRehabCases = useMemo(() => {
@@ -88,7 +89,7 @@ const PhysiotherapistView: React.FC = () => {
   return (
     <div className={styles.physiotherapistViewerContainer}>
       <div className={styles.physiotherapistMainContent}>
-        <TopBar Name="Mariam Mohamed" Role="Sports Physiotherapist" />
+       <TopBar Name={user?.fullName || "Physio"} Role="Sports Physiotherapist" />
 
         <div className={styles.physiotherapistDashboardGrid}>
           <ProfileCard

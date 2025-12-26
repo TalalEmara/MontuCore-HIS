@@ -99,11 +99,11 @@ function DicomViewPage() {
         
         {/* Upload Button */}
         <button 
-            onClick={() => fetchDicomUrl(6)} 
+            onClick={() => fetchDicomUrl(16)} 
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
           <Upload size={16} />
-          Upload ({activeViewportId})
+          Upload 14 ({activeViewportId})
         </button>
 
         

@@ -6,6 +6,7 @@ import List from "../../components/level-0/List/List";
 import styles from "./ManagerDashboardView.module.css";
 import { useManagerDashboard } from "../../hooks/useManagerDashboard";
 import { da } from "zod/v4/locales";
+import { useAuth } from "../../context/AuthContext";
 
 // const athlete_data = [
 //   { id: 1, athleteFullName: "Lionel Messi", athleteFieldPosition: "Forward", athleteJerseyNumber: 10, caseStatus: "ACTIVE", Severity: "MILD" },
@@ -26,6 +27,8 @@ import { da } from "zod/v4/locales";
 // ];
 
 const ManagerDashboard: React.FC = () => {
+  const { user } = useAuth();
+
   const [caseSearchQuery, setCaseSearchQuery] = useState("");
   const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [currentPage, setPage] = useState(1);
@@ -108,8 +111,7 @@ const ManagerDashboard: React.FC = () => {
 
   return (
     <div className={styles.managerDashboardContainer}>
-      <TopBar Name="Mohamed Ahmed" Role="Club Manager" />
-
+     <TopBar Name={user?.fullName || "Manager"} Role="Club Manager" />
       <div className={styles.casesAnalysisHeaderGrid}>
         <div className={styles.casesSummaryAnalysisPanel}>
           <div className={styles.totalSpentCard}>

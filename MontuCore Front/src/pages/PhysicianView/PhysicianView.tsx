@@ -7,8 +7,10 @@ import physicianProfile from "../../assets/images/physician.webp";
 import { usePhysicianDashboard } from "../../hooks/usePhysicianDashboard";
 import { Link } from "@tanstack/react-router"; // or 'react-router-dom' depending on your setup
 import Pagination from "../../components/level-0/Pagination/Pagination";
+import { useAuth } from "../../context/AuthContext";
 
 const PhysicianView: React.FC = () => {
+  const { user } = useAuth();
   const physicianData = {
     fullName: "Olivia Black",
     id: 2,
@@ -20,14 +22,11 @@ const PhysicianView: React.FC = () => {
   const totalPages = 3; 
 
   // 1. Destructure isError, error, and refetch from the hook
-  const { 
-    dashboard, 
-    message, 
-    isLoading, 
-    isError, 
-    error,
-    refetch // Useful for a "Try Again" button
-  } = usePhysicianDashboard(physicianData.id, currentPage, 4);
+  const { dashboard, isLoading, isError, error, refetch } = usePhysicianDashboard(
+    user?.id || 0, 
+    currentPage, 
+    4
+  );
 
   // Local state (Static data)
   const [physioNotes] = useState([
@@ -37,13 +36,13 @@ const PhysicianView: React.FC = () => {
     { athleteName: "Leo", note: "Reported minor ankle discomfort" },
   ]);
 
-  const profileStats = { id:physicianData.id, role: "Physician" };
+  const profileStats = { id: user?.id, role: "Physician" };
   const profileImage = physicianProfile;
 
   return (
     <div className={styles.physicianViewerContainer}>
       <div className={styles.physicianMainContent}>
-        <TopBar Name={`Dr. ${physicianData.fullName}`} Role={physicianData.role} />
+        <TopBar Name={`Dr. ${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
 
         {/* 2. LOADING STATE */}
         {isLoading ? (

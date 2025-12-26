@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
 
 // --- 1. Interfaces ---
 
@@ -39,10 +40,9 @@ export interface AthleteRegisterInput extends BaseRegisterData {
 
 const registerClinicianApi = async (
   data: ClinicianRegisterInput,
+  token: string, // <--- Token is now required
   API_URL: string = `http://localhost:3000/api`
 ): Promise<RegisterResponse> => {
-  const token = localStorage.getItem('token'); // Restored token from storage
-//   const token = localStorage.getItem('token'); // Hardcode for testing
   
   const payload = {
     generalData: {
@@ -62,7 +62,7 @@ const registerClinicianApi = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`, // <--- Auth Header Added
     },
     body: JSON.stringify(payload),
   });
@@ -75,13 +75,12 @@ const registerClinicianApi = async (
   return response.json();
 };
 
-const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: number,  API_URL: string = `http://localhost:3000/api`) => {
-
-//   const token = localStorage.getItem('token');
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzA0MTgyLCJleHAiOjE3NjY5NjMzODJ9.FvDW5zzDWD9G86F3E_DjTn8N6Hpf_nzjcp6ryp5jw1E";
-  
-//   Admin ID needed for appointment creation
-
+const registerAthleteChainApi = async (
+  data: AthleteRegisterInput, 
+  adminId: number,  
+  token: string, // <--- Token is now required
+  API_URL: string = `http://localhost:3000/api`
+) => {
 
   // --- STEP 1: Register User ---
   const registerPayload = {
@@ -103,7 +102,7 @@ const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: numb
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`, // <--- Auth Header Added
     },
     body: JSON.stringify(registerPayload),
   });
@@ -115,11 +114,15 @@ const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: numb
 
   const regResult = await regResponse.json();
   
-  
-//   Athelete ID from registration NEEDED FOR APPOINTMENT
-  const newAthleteId = 5;
+  // Use the ID returned from the registration response
+  const newAthleteId = regResult.user?.id; 
 
-  // ---  Create Appointment ---
+  if (!newAthleteId) {
+      console.warn("User registered, but ID not found in response. Skipping appointment creation.");
+      return regResult;
+  }
+
+  // --- STEP 2: Create Appointment ---
   const appointmentPayload = {
     athleteId: newAthleteId,
     clinicianId: adminId, 
@@ -130,38 +133,27 @@ const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: numb
     diagnosisNotes: 'Initial Registration Intake'
   };
 
-  // DEBUG: Log payload before sending
-  console.log("DEBUG [Create Appointment] Payload:", JSON.stringify(appointmentPayload, null, 2));
-  console.log("DEBUG [Create Appointment] Token used:", token);
-
   const apptResponse = await fetch(`${API_URL}/appointments/create-appointment`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`, // <--- Auth Header Added
     },
     body: JSON.stringify(appointmentPayload),
   });
 
   // If appointment fails, we just log it but don't crash because user is already registered
   if (!apptResponse.ok) {
-    // DEBUG: Log failure details
     const errorText = await apptResponse.text();
-    console.error("DEBUG [Create Appointment] FAILED");
-    console.error("DEBUG [Create Appointment] Status:", apptResponse.status);
-    console.error("DEBUG [Create Appointment] Response:", errorText);
-
+    console.error("DEBUG [Create Appointment] FAILED", errorText);
     console.warn("User registered, but appointment creation failed.");
     return regResult;
   }
 
   const apptResult = await apptResponse.json();
-  // DEBUG: Log success
-  console.log("DEBUG [Create Appointment] SUCCESS. ID:", apptResult.data?.id);
-  
   const newAppointmentId = apptResult.data.id;
 
-  // ---  Create Case (If Injured) ---
+  // --- STEP 3: Create Case (If Injured) ---
   if (data.status === 'injured') {
     const casePayload = {
       athleteId: newAthleteId,
@@ -175,24 +167,18 @@ const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: numb
       medicalGrade: 'Pending'
     };
 
-    // DEBUG: Log case payload
-    console.log("DEBUG [Create Case] Payload:", JSON.stringify(casePayload, null, 2));
-
     const caseResponse = await fetch(`${API_URL}/cases`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`, // <--- Auth Header Added
       },
       body: JSON.stringify(casePayload),
     });
 
     if (!caseResponse.ok) {
-        // DEBUG: Log case failure
         const caseErrorText = await caseResponse.text();
-        console.error("DEBUG [Create Case] FAILED");
-        console.error("DEBUG [Create Case] Status:", caseResponse.status);
-        console.error("DEBUG [Create Case] Response:", caseErrorText);
+        console.error("DEBUG [Create Case] FAILED", caseErrorText);
     } else {
         console.log("DEBUG [Create Case] SUCCESS");
     }
@@ -205,8 +191,13 @@ const registerAthleteChainApi = async (data: AthleteRegisterInput, adminId: numb
 
 export const useClinicianReg = () => {
   const queryClient = useQueryClient();
+  const { token } = useAuth(); // <--- Get Token from Context
+
   return useMutation({
-    mutationFn: (data: ClinicianRegisterInput) => registerClinicianApi(data),
+    mutationFn: (data: ClinicianRegisterInput) => {
+        if (!token) throw new Error("Authentication required to register clinicians");
+        return registerClinicianApi(data, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['clinicians'] });
@@ -216,8 +207,13 @@ export const useClinicianReg = () => {
 
 export const useAthleteReg = (adminId: number) => {
   const queryClient = useQueryClient();
+  const { token } = useAuth(); // <--- Get Token from Context
+
   return useMutation({
-    mutationFn: (data: AthleteRegisterInput) => registerAthleteChainApi(data, adminId),
+    mutationFn: (data: AthleteRegisterInput) => {
+        if (!token) throw new Error("Authentication required to register athletes");
+        return registerAthleteChainApi(data, adminId, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['athletes'] });
