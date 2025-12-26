@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import * as ConsultService from './consult.service.js';
 import { AppError } from '../../utils/AppError.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
 /**
  * Generate a Share Link

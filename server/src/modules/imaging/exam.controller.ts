@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import * as ExamService from './exam.service.js';
 import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
 // Extend Request for file uploads
 interface MulterRequest extends Request {

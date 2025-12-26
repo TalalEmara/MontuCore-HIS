@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
 import * as TreatmentService from './treatment.service.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
 /**
  * Get treatments with filters

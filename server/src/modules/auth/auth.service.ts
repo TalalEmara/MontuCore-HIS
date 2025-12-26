@@ -76,7 +76,10 @@ export const login = async (loginData : LoginInput) => {
     }
   }
   catch(error){
-    throw error.message;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Invalid credentials');
   }
 }
 
