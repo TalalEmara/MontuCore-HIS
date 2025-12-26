@@ -1,1 +1,3 @@
 dicom_images/
+server/package.json
+server/pnpm-lock.yaml
