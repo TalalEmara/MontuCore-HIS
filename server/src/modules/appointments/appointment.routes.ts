@@ -20,6 +20,13 @@ router.put('/update-appointment-status/', appointmentController.updateAppointmen
 
 /***
  * @route PUT /api/appointments
+ * @desc Update Appointment Details
+ * @access Public
+ */
+router.post('/update-appointment-details/:appointmentId', appointmentController.updateAppointment);
+
+/***
+ * @route PUT /api/appointments
  * @desc Update Appointment Status
  * @access Public
  */

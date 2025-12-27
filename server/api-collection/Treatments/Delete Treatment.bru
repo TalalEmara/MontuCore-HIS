@@ -1,0 +1,23 @@
+meta {
+  name: Delete Treatment
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseURL}}/treatments/7
+  body: none
+  auth: bearer
+}
+
+docs {
+  # Delete Treatment
+  
+  Deletes a treatment record from the system.
+  
+  ## Path Parameters
+  - `treatmentId`: The treatment's ID (replace 789 with actual ID)
+  
+  ## Response
+  Returns success confirmation with no data.
+}

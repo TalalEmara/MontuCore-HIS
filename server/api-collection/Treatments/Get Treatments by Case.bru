@@ -1,0 +1,32 @@
+meta {
+  name: Get Treatments by Case
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/treatments/case/5?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Treatments by Case
+  
+  Retrieves all treatments for a specific medical case with pagination.
+  
+  ## Path Parameters
+  - `caseId`: The case's ID (replace 456 with actual ID)
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  
+  ## Response
+  Returns paginated list of treatments for the case.
+}

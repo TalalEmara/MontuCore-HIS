@@ -28,7 +28,7 @@ def create_dicom(image_path, output_name, patient_id="6"):
     ds = pydicom.Dataset()
 
     # Required DICOM attributes
-    ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+    ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage (corrected for MR modality)
     ds.SOPInstanceUID = pydicom.uid.generate_uid()
     ds.StudyInstanceUID = pydicom.uid.generate_uid()
     ds.SeriesInstanceUID = pydicom.uid.generate_uid()
@@ -75,7 +75,7 @@ def create_dicom(image_path, output_name, patient_id="6"):
 
     # Create file dataset (proper DICOM file structure)
     file_meta = pydicom.Dataset()
-    file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+    file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
     file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
     file_meta.ImplementationClassUID = pydicom.uid.generate_uid()
     # Use Explicit VR Little Endian for better Cornerstone.js compatibility
@@ -163,6 +163,6 @@ def create_dicom(image_path, output_name, patient_id="6"):
 # --- USAGE ---
 # Use the .npy file that gave you 86% in the Kaggle notebook
 img_path = "D:/Eng/SBE/4th/hcis/MontuCore-HIS/dicom_images/demo_pure_acl_1177_Abn68_Acl86_Men16.npy"
-output_path = "D:/Eng/SBE/4th/hcis/MontuCore-HIS/dicom_images/demo_pure_acl_6.dcm"
+output_path = "D:/Eng/SBE/4th/hcis/MontuCore-HIS/dicom_images/demo_pure_acl_1177_Abn68_Acl86_Men16.dcm"
 
 create_dicom(img_path, output_path, "6")

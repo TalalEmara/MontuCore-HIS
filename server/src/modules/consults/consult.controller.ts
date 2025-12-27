@@ -10,17 +10,25 @@ import { AppError } from '../../utils/AppError.js';
 export const generateShareLink = async (req: Request, res: Response) => {
   try {
     // TODO: Uncomment for production - Role Check
-    // const userRole = (req as any).user?.role;
-    // if (userRole !== 'CLINICIAN' && userRole !== 'ADMIN') {
-    //   return res.status(403).json({ 
-    //     error: "Only clinicians can share medical records",
-    //     code: 'INSUFFICIENT_PERMISSIONS'
-    //   });
-    // }
+    // get the clinician ID from the authenticated user token
     // const clinicianId = (req as any).user.id;
+    const userRole = (req as any).user?.role;
+    if (userRole !== 'CLINICIAN' && userRole !== 'ADMIN') {
+      return res.status(403).json({ 
+        error: "Only clinicians can share medical records",
+        code: 'INSUFFICIENT_PERMISSIONS'
+      });
+    }
+    const clinicianId = (req as any).user.id;
 
+    if (!clinicianId) {
+      return res.status(401).json({ 
+        error: "Unauthorized: Clinician ID not found",
+        code: 'UNAUTHORIZED'
+      });
+    }
     // TESTING ONLY: Hardcoded clinician ID for testing without auth
-    const clinicianId = 2; // Replace with actual clinician ID from your database
+    // const clinicianId = 2; // Replace with actual clinician ID from your database
     
     const { athleteId, permissions, expiryHours } = req.body;
 
