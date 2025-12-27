@@ -11,11 +11,23 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
-// Configure for multiple files
+// Configure for multiple files with form fields
 const uploadMultiple = multer({
   storage: storage,
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit per file
-});
+}).fields([
+  { name: 'dicomFiles', maxCount: 50 }, // Max 50 files
+  { name: 'caseId', maxCount: 1 },
+  { name: 'examId', maxCount: 1 },
+  { name: 'modality', maxCount: 1 },
+  { name: 'bodyPart', maxCount: 1 },
+  { name: 'status', maxCount: 1 },
+  { name: 'scheduledAt', maxCount: 1 },
+  { name: 'performedAt', maxCount: 1 },
+  { name: 'radiologistNotes', maxCount: 1 },
+  { name: 'conclusion', maxCount: 1 },
+  { name: 'cost', maxCount: 1 }
+]);
 
 /**
  * @route   GET /api/exams
@@ -37,7 +49,7 @@ router.post('/', upload.single('dicomFile'), examController.createExam);
  * @desc    Create a new exam with multiple DICOM uploads
  * @access  Public (to be protected with auth in production)
  */
-router.post('/with-multiple-dicoms', uploadMultiple.array('dicomFiles', 20), examController.createExamWithMultipleDicoms);
+router.post('/with-multiple-dicoms', uploadMultiple, examController.createExamWithMultipleDicoms);
 
 /**
  * @route   GET /api/exams/:id
