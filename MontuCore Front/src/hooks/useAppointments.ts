@@ -45,6 +45,10 @@ export interface CreateAppointmentRequest {
   athleteId: number;
   clinicianId: number;
   scheduledAt: string;
+  height?: number;
+  weight?: number;
+  status?: string; 
+  diagnosisNotes?: string;
 }
 
 export interface CreateAppointmentResponse {
@@ -88,7 +92,7 @@ const fetchAthleteAppointments = async (athleteId: number, token: string): Promi
 };
 
 // Fixed: Token is now an argument, NOT fetched via hook inside here
-const bookAppointmentApi = async (data: CreateAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
+export const bookAppointmentApi = async (data: CreateAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
   const response = await fetch('http://localhost:3000/api/appointments/create-appointment', {
     method: 'POST',
     headers: {
