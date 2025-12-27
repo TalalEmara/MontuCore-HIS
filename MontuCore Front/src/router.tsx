@@ -16,6 +16,7 @@ import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
+// import DicomTestPage from "./components/DicomViewer/DicomTestPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
 import TablePage from "./pages/TablePage/TablePage";
 import TestTablePage from "./pages/TablePage/test";
@@ -23,6 +24,7 @@ import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
 import PatientPortalView from "./pages/PatientPortalView/PatientPortalView";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import ExternalConsultationView from "./pages/ExternalView/ExternalConsultationView";
 
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
@@ -92,6 +94,12 @@ export const DicomRoute = createRoute({
   component: DicomViewPage,
 });
 
+// export const DicomTestRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "dicom-test",
+//   component: DicomTestPage,
+// });
+
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "register",
@@ -110,11 +118,12 @@ const ManagerRoute = createRoute({
   component: ManagerDashboard,
 });
 
-// const ExternalConsultationRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "external/view/$token",
-//   component: ExternalConsultationView,
-// });
+const ExternalConsultationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "external/view/$token",
+  component: ExternalConsultationView,
+});
+
 const ProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "profile",
@@ -138,10 +147,11 @@ const routeTree = rootRoute.addChildren([
   ]),
   CaseRoute,
   DicomRoute,
+  // DicomTestRoute,
   registerRoute,
   LoginRoute,
   ManagerRoute,
-  // ExternalConsultationRoute,
+  ExternalConsultationRoute,
   PatientPortalRoute
 ]);
 

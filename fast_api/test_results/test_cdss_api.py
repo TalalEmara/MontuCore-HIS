@@ -43,25 +43,25 @@ def print_results_summary(response_data):
     print("📊 CDSS ANALYSIS RESULTS")
     print("="*80)
     
-    # Primary Diagnosis (if available and corresponds to highest probability model)
-    if 'diagnosis' in response_data and response_data['diagnosis']:
+    # Primary Diagnosis (if available from Express backend)
+    if 'diagnosis' in response_data:
         diag = response_data['diagnosis']
         severity_emoji = {
             'normal': '✅',
             'low': '⚠️ ',
             'moderate': '🟠',
             'high': '🔴'
-        }.get(diag.get('severity', ''), '❓')
+        }.get(diag['severity'], '❓')
         
-        print(f"\n🩺 PRIMARY DIAGNOSIS: {severity_emoji} {diag.get('primary', 'Unknown').upper()}")
-        print(f"   Severity: {diag.get('severity', 'Unknown').upper()}")
-        print(f"   Confidence: {diag.get('confidence', 0):.4f} ({diag.get('confidence', 0)*100:.2f}%)")
-        print(f"   Details: {diag.get('details', 'No details')}")
-    else:
-        print("\n🩺 PRIMARY DIAGNOSIS: Not determined (diagnosis doesn't match highest probability model)")
+        print(f"\n🩺 PRIMARY DIAGNOSIS: {severity_emoji} {diag['primary'].upper()}")
+        print(f"   Severity: {diag['severity'].upper()}")
+        print(f"   Confidence: {diag['confidence']:.4f} ({diag['confidence']*100:.2f}%)")
+        print(f"   Details: {diag['details']}")
     
+    # Check if data is nested under 'analysis' (Express format) or root level (FastAPI format)
+    analysis_data = response_data.get('analysis', response_data)
     
-    # Metadata (if available)
+    # Metadata
     if 'metadata' in response_data:
         print("\n📋 Metadata:")
         for key, value in response_data['metadata'].items():
@@ -70,43 +70,40 @@ def print_results_summary(response_data):
         if 'modelsUsed' in response_data['metadata']:
             print(f"  Models Used: {', '.join(response_data['metadata']['modelsUsed'])}")
     
-    # Get diagnosis data for model results
-    diagnosis_data = response_data.get('diagnosis', {})
-    
     # ACL Results
-    if 'acl' in diagnosis_data and diagnosis_data['acl']:
+    if 'acl' in analysis_data:
         print("\n🦵 ACL Tear Detection:")
-        print(f"  Probability: {diagnosis_data['acl']['probability']:.4f} ({diagnosis_data['acl']['probability']*100:.2f}%)")
-        print(f"  Confidence: {diagnosis_data['acl']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
-    else:
-        print("\n🦵 ACL Tear Detection: No full results (lower probability model)")
+        print(f"  Probability: {analysis_data['acl']['probability']:.4f} ({analysis_data['acl']['probability']*100:.2f}%)")
+        print(f"  Confidence: {analysis_data['acl']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if analysis_data['acl'].get('heatmap') else '❌ Not available'}")
     
     # Meniscus Results
-    if 'meniscus' in diagnosis_data and diagnosis_data['meniscus']:
+    if 'meniscus' in analysis_data:
         print("\n🔍 Meniscus Tear Detection:")
-        print(f"  Probability: {diagnosis_data['meniscus']['probability']:.4f} ({diagnosis_data['meniscus']['probability']*100:.2f}%)")
-        print(f"  Confidence: {diagnosis_data['meniscus']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
-    else:
-        print("\n🔍 Meniscus Tear Detection: No full results (lower probability model)")
+        print(f"  Probability: {analysis_data['meniscus']['probability']:.4f} ({analysis_data['meniscus']['probability']*100:.2f}%)")
+        print(f"  Confidence: {analysis_data['meniscus']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if analysis_data['meniscus'].get('heatmap') else '❌ Not available'}")
     
     # Abnormal Model Results
-    if 'abnormal' in diagnosis_data and diagnosis_data['abnormal']:
+    if 'abnormalModel' in analysis_data:
         print("\n⚠️  General Abnormality Detection:")
-        print(f"  Probability: {diagnosis_data['abnormal']['probability']:.4f} ({diagnosis_data['abnormal']['probability']*100:.2f}%)")
-        print(f"  Confidence: {diagnosis_data['abnormal']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
-    else:
-        print("\n⚠️  General Abnormality Detection: No full results (lower probability model)")
+        print(f"  Probability: {analysis_data['abnormalModel']['probability']:.4f} ({analysis_data['abnormalModel']['probability']*100:.2f}%)")
+        print(f"  Confidence: {analysis_data['abnormalModel']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if analysis_data['abnormalModel'].get('heatmap') else '❌ Not available'}")
+    elif 'abnormal' in analysis_data:
+        print("\n⚠️  General Abnormality Detection:")
+        print(f"  Probability: {analysis_data['abnormal']['probability']:.4f} ({analysis_data['abnormal']['probability']*100:.2f}%)")
+        print(f"  Confidence: {analysis_data['abnormal']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if analysis_data['abnormal'].get('heatmap') else '❌ Not available'}")
     
     # Overall Assessment
-    if 'abnormal_detected' in response_data:
+    if 'abnormalOverall' in analysis_data:
         print("\n🎯 Overall Assessment:")
-        print(f"  Abnormal Detected: {'⚠️  YES' if response_data['abnormal_detected'] else '✅ NO'}")
-        print(f"  Overall Abnormality: {response_data['abnormal_probability']:.4f} ({response_data['abnormal_probability']*100:.2f}%)")
-        if 'threshold' in response_data:
-            print(f"  Threshold: {response_data['threshold']}")
+        print(f"  Abnormal Detected: {'⚠️  YES' if analysis_data['abnormalOverall']['detected'] else '✅ NO'}")
+        print(f"  Overall Abnormality: {analysis_data['abnormalOverall']['probability']:.4f} ({analysis_data['abnormalOverall']['probability']*100:.2f}%)")
+    elif 'abnormalDetected' in response_data:
+        print("\n🎯 Overall Assessment:")
+        print(f"  Abnormal Detected: {'⚠️  YES' if response_data['abnormalDetected'] else '✅ NO'}")
         if 'abnormalProbability' in response_data:
             print(f"  Overall Abnormality: {response_data['abnormalProbability']:.4f} ({response_data['abnormalProbability']*100:.2f}%)")
     
@@ -118,7 +115,9 @@ def test_express_endpoint(dicom_urls, patient_id=6, exam_id=1):
     print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrls": dicom_urls
+        "dicomUrls": dicom_urls,
+        "patientId": patient_id,
+        "examId": exam_id
     }
     
     try:
@@ -136,24 +135,27 @@ def test_express_endpoint(dicom_urls, patient_id=6, exam_id=1):
         # Print summary
         print_results_summary(actual_data)
         
-        # Save heatmaps (handle flat structure for Express, nested for direct FastAPI)
-        analysis_data = actual_data
+        # Save heatmaps (handle nested structure)
+        analysis_data = actual_data.get('analysis', actual_data)
         print("\n💾 Saving Heatmaps...")
         
-        # Heatmap is now an array, save the first one (for highest probability model)
-        if analysis_data.get('heatmap') and len(analysis_data['heatmap']) > 0:
-            decode_and_save_heatmap(analysis_data['heatmap'][0], 'highest_probability_model')
+        if analysis_data.get('acl', {}).get('heatmap'):
+            decode_and_save_heatmap(analysis_data['acl']['heatmap'], 'acl')
+        
+        if analysis_data.get('meniscus', {}).get('heatmap'):
+            decode_and_save_heatmap(analysis_data['meniscus']['heatmap'], 'meniscus')
+        
+        if analysis_data.get('abnormalModel', {}).get('heatmap'):
+            decode_and_save_heatmap(analysis_data['abnormalModel']['heatmap'], 'abnormal')
+        elif analysis_data.get('abnormal', {}).get('heatmap'):
+            decode_and_save_heatmap(analysis_data['abnormal']['heatmap'], 'abnormal')
+            decode_and_save_heatmap(data['abnormal']['heatmap'], 'abnormal')
         
         # Save full JSON (without base64)
         clean_data = json.loads(json.dumps(data))
         for model in ['acl', 'meniscus', 'abnormal']:
-            if 'diagnosis' in clean_data and model in clean_data['diagnosis']:
-                # No heatmap in individual models anymore
-                pass
-        
-        # Clean heatmap array
-        if 'heatmap' in clean_data and isinstance(clean_data['heatmap'], list):
-            clean_data['heatmap'] = [f"<base64 image data - {len(h)} chars>" for h in clean_data['heatmap']]
+            if model in clean_data and 'heatmap' in clean_data[model]:
+                clean_data[model]['heatmap'] = f"<base64 image data - {len(data[model]['heatmap'])} chars>"
         
         os.makedirs("./test_results", exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -178,7 +180,9 @@ def test_fastapi_endpoint(dicom_urls):
     print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrls": dicom_urls
+        "dicomUrls": dicom_urls,
+        "patientId": 999,
+        "examId": 999
     }
     
     try:
@@ -192,22 +196,14 @@ def test_fastapi_endpoint(dicom_urls):
         
         # Save heatmaps
         print("\n💾 Saving Heatmaps...")
-        # Heatmap is now an array, save the first one (for highest probability model)
-        if data.get('heatmap') and len(data['heatmap']) > 0:
-            decode_and_save_heatmap(data['heatmap'][0], 'highest_probability_model_direct')
+        if data.get('acl', {}).get('heatmap'):
+            decode_and_save_heatmap(data['acl']['heatmap'], 'acl_direct')
         
-        # Save full JSON (without base64)
-        clean_data = json.loads(json.dumps(data))
-        # Clean heatmap array
-        if 'heatmap' in clean_data and isinstance(clean_data['heatmap'], list):
-            clean_data['heatmap'] = [f"<base64 image data - {len(h)} chars>" for h in clean_data['heatmap']]
+        if data.get('meniscus', {}).get('heatmap'):
+            decode_and_save_heatmap(data['meniscus']['heatmap'], 'meniscus_direct')
         
-        os.makedirs("./test_results", exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        json_file = f"./test_results/analysis_{timestamp}_direct.json"
-        with open(json_file, 'w') as f:
-            json.dump(clean_data, f, indent=2)
-        print(f"✅ Saved full response to: {json_file}")
+        if data.get('abnormal', {}).get('heatmap'):
+            decode_and_save_heatmap(data['abnormal']['heatmap'], 'abnormal_direct')
         
         return data
         

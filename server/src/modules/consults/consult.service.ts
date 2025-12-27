@@ -130,9 +130,14 @@ export const getSharedData = async (token: string, accessCode: string) => {
           radiologistNotes: true,
           conclusion: true,
           cost: true,
-          dicomFileName: true,
-          dicomPublicUrl: true,
-          dicomUploadedAt: true
+          pacsImages: {
+            select: {
+              id: true,
+              fileName: true,
+              publicUrl: true,
+              uploadedAt: true
+            }
+          }
         }
       })
     : [];

@@ -96,6 +96,7 @@ export const getExams = async (filters: ExamFilters = {}) => {
       where,
       select: {
         id: true,
+        caseId: true,
         modality: true,
         bodyPart: true,
         status: true,
@@ -103,6 +104,7 @@ export const getExams = async (filters: ExamFilters = {}) => {
         performedAt: true,
         radiologistNotes: true,
         conclusion: true,
+        cost: true,
         pacsImages: {
           select: {
             id: true,

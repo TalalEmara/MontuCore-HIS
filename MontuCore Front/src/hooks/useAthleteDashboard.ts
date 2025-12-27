@@ -126,6 +126,13 @@ export interface AthleteDashboardResult {
   message: string;
 }
 
+const TAB_ENDPOINTS: Record<string, string> = {
+  prescriptions: 'treatments',
+  imaging: 'exams',
+  'Lab tests': 'lab-tests',
+  reports: 'cases',
+};
+
 // --- 2. API Fetcher ---
 
 const fetchAthleteDashboard = async (
@@ -133,15 +140,25 @@ const fetchAthleteDashboard = async (
   page: number,
   limit: number,
   token: string,
-  API_URL: string = `http://localhost:3000/api` 
+  activeTab: string, 
+  API_URL: string = `http://localhost:3000/api`
 ): Promise<AthleteDashboardResponse> => {
+  
+  // Logic: Use dashboard for page 1, dedicated endpoint for page 2+
+  let url = `${API_URL}/athlete/dashboard/${athleteId}`;
+  
+  if (page > 1) {
+    const segment = TAB_ENDPOINTS[activeTab] || 'treatments';
+    url = `${API_URL}/${segment}`;
+  }
+
   const params = new URLSearchParams({
+    athleteId: athleteId.toString(),
     page: page.toString(),
     limit: limit.toString(),
   });
-  //  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2NzE0OTcxLCJleHAiOjE3NjY5NzQxNzF9.VxkUskovzCmRIyOwHfFlrF6RLb2k794pIgGf4VSJ7Z0";
 
-  const response = await fetch(`${API_URL}/athlete/dashboard/${athleteId}?${params}`, {
+  const response = await fetch(`${url}?${params}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -149,89 +166,105 @@ const fetchAthleteDashboard = async (
     },
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to fetch athlete dashboard');
-  }
-
+  if (!response.ok) throw new Error('Failed to fetch data');
   return response.json();
 };
 
 // --- 3. Custom Hook ---
-
 export const useAthleteDashboard = (
   athleteId: number,
   page: number = 1,
-  limit: number = 4
+  limit: number = 1,
+  activeTab: string
 ) => {
   const { token } = useAuth();
   const queryInfo = useQuery({
-    queryKey: ['dashboard', 'athlete', athleteId, page, limit],
-    queryFn: () => fetchAthleteDashboard(athleteId, page, limit , token!),
-    
-    enabled: !!athleteId,
+    queryKey: ['dashboard', 'athlete', athleteId, page, activeTab],
+    queryFn: () => fetchAthleteDashboard(athleteId, page, limit, token!, activeTab),
+    enabled: !!athleteId && !!token,
     placeholderData: keepPreviousData,
 
     select: (response): AthleteDashboardResult => {
       const data = response.data;
 
-      // 1. Sort Cases by Time (Most recent first)
-      const sortedCases = [...data.report.cases].sort((a, b) => 
+      //  PAGE 2+
+      if (page > 1) {
+        return {
+          dashboard: {
+            // Keep vital keys as empty arrays to prevent "undefined" errors in UI
+            upcomingAppointments: { appointments: [] },
+            latestVitals: { height: null, weight: null, status: 'Loading...' },
+            // Populate ONLY the active tab's data
+            report: { cases: activeTab === 'reports' ? (data as any).cases || [] : [] },
+            prescriptions: { 
+              treatments: activeTab === 'prescriptions' ? (data as any).treatments || [] : [], 
+              pagination: (data as any).pagination 
+            },
+            imaging: { 
+              exams: activeTab === 'imaging' ? (data as any).exams || [] : [], 
+              pagination: (data as any).pagination 
+            },
+            tests: { 
+              labTests: activeTab === 'Lab tests' ? (data as any).labTests || [] : [], 
+              pagination: (data as any).pagination 
+            },
+          } as any,
+          message: "Page loaded",
+        };
+      }
+
+      
+      const fixMeta = (items: any[], meta: PaginationMeta) => ({
+        ...meta,
+        totalPages: Math.max(meta?.totalPages || 1, Math.ceil(items.length / limit))
+      });
+
+      const sortedCases = [...(data.report?.cases || [])].sort((a, b) => 
         new Date(b.injuryDate).getTime() - new Date(a.injuryDate).getTime()
       );
 
-      // 2. Determine Status (Fit if no cases, otherwise status of most recent case)
-      const latestStatus = sortedCases.length > 0 ? sortedCases[0].status : 'Fit';
-
-      // 3. Sort Appointments by Time (Most recent first)
-      const sortedAppointments = [...data.upcomingAppointments.appointments].sort((a, b) => 
-        new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
-      );
+     const sortedAppointments = [...data.upcomingAppointments.appointments].sort((a, b) => 
+        new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 
       // 4. Find latest Height and Weight
       // We iterate through the sorted appointments to find the most recent non-null value for each
       let lastHeight: number | null = null;
       let lastWeight: number | null = null;
-
       for (const appt of sortedAppointments) {
-        if (lastHeight === null && appt.height !== undefined && appt.height !== null) {
-          lastHeight = appt.height;
-        }
-        if (lastWeight === null && appt.weight !== undefined && appt.weight !== null) {
-          lastWeight = appt.weight;
-        }
-        // If we found both, stop looking
-        if (lastHeight !== null && lastWeight !== null) break;
+        if (lastHeight === null && appt.height) lastHeight = appt.height;
+        if (lastWeight === null && appt.weight) lastWeight = appt.weight;
+        if (lastHeight && lastWeight) break;
       }
 
-      // 5. Construct the Augmented Dashboard Object
-      const augmentedDashboard: AthleteDashboardData = {
-        ...data,
-        report: {
-          ...data.report,
-          cases: sortedCases, // Return the sorted cases
-        },
-        upcomingAppointments: {
-            ...data.upcomingAppointments,
-            appointments: sortedAppointments // Return sorted appointments
-        },
-        latestVitals: {
-          height: lastHeight,
-          weight: lastWeight,
-          status: latestStatus,
-        },
-      };
-
       return {
-        dashboard: augmentedDashboard,
-        message: response.message || 'Dashboard loaded successfully',
+        dashboard: {
+          ...data,
+          report: { 
+            ...data.report, 
+            cases: sortedCases 
+          },
+          prescriptions: {
+            ...data.prescriptions,
+            pagination: fixMeta(data.prescriptions.treatments, data.prescriptions.pagination)
+          },
+          imaging: {
+            ...data.imaging,
+            pagination: fixMeta(data.imaging.exams, data.imaging.pagination)
+          },
+          tests: {
+            ...data.tests,
+            pagination: fixMeta(data.tests.labTests, data.tests.pagination)
+          },
+          latestVitals: {
+            height: lastHeight,
+            weight: lastWeight,
+            status: sortedCases[0]?.status || 'Fit',
+          },
+        },
+        message: response.message || 'Success',
       };
     },
   });
 
-  return {
-    ...queryInfo,
-    dashboard: queryInfo.data?.dashboard,
-    message: queryInfo.data?.message,
-  };
+  return { ...queryInfo, dashboard: queryInfo.data?.dashboard };
 };

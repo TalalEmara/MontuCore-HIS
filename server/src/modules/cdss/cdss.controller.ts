@@ -13,26 +13,26 @@ const AI_SERVICE_TIMEOUT = 60000; // 60 seconds
  */
 interface AIAnalysisResult {
   success: boolean;
-  acl?: {
-    probability: number;
-    confidence_level: string;
-    heatmap?: string;
+  diagnosis: {
+    acl?: {
+      probability: number;
+      confidence_level: string;
+    };
+    meniscus?: {
+      probability: number;
+      confidence_level: string;
+    };
+    abnormal?: {
+      probability: number;
+      confidence_level: string;
+    };
   };
-  meniscus?: {
-    probability: number;
-    confidence_level: string;
-    heatmap?: string;
-  };
-  abnormal?: {
-    probability: number;
-    confidence_level: string;
-    heatmap?: string;
-  };
-  abnormal_probability: number;
+  heatmap?: string[];
   abnormal_detected: boolean;
+  abnormal_probability: number;
   threshold: number;
-  message?: string;
   metadata?: any;
+  message?: string;
 }
 
 // Note: analyzeImaging and getSportRisks methods removed as they are not implemented in cdss.service.ts
@@ -45,31 +45,31 @@ interface AIAnalysisResult {
  * @access Public (add auth in production)
  */
 export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => {
-  const { dicomUrl, patientId, examId } = req.body;
+  const { dicomUrls } = req.body;
 
   // Validation
-  if (!dicomUrl) {
-    throw new ValidationError('dicomUrl is required');
+  if (!dicomUrls || !Array.isArray(dicomUrls) || dicomUrls.length !== 3) {
+    throw new ValidationError('dicomUrls must be an array of exactly 3 URLs');
   }
 
-  // Optional: Validate URL format
-  try {
-    new URL(dicomUrl);
-  } catch (error) {
-    throw new ValidationError('Invalid dicomUrl format');
+  // Validate each URL
+  for (let i = 0; i < dicomUrls.length; i++) {
+    try {
+      new URL(dicomUrls[i]);
+    } catch (error) {
+      throw new ValidationError(`Invalid dicomUrl at index ${i}`);
+    }
   }
 
-  console.log(`🔍 Analyzing DICOM for Patient ${patientId || 'N/A'}, Exam ${examId || 'N/A'}`);
-  console.log(`📥 DICOM URL: ${dicomUrl}`);
+  console.log(`🔍 Analyzing DICOM with ${dicomUrls.length} sagittal slices`);
+  console.log(`📥 DICOM URLs: ${dicomUrls.join(', ')}`);
 
   try {
     // Call AI Service
     const response = await axios.post<AIAnalysisResult>(
       `${AI_SERVICE_URL}/analyze`,
       {
-        dicomUrl: dicomUrl,
-        patientId: patientId,
-        examId: examId
+        dicomUrls: dicomUrls
       },
       {
         timeout: AI_SERVICE_TIMEOUT,
@@ -82,31 +82,44 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
     const aiResult = response.data;
 
     console.log('✅ AI Analysis complete');
-    console.log(`📊 ACL: ${aiResult.acl?.probability.toFixed(4)} (${aiResult.acl?.confidence_level})`);
-    console.log(`📊 Meniscus: ${aiResult.meniscus?.probability.toFixed(4)} (${aiResult.meniscus?.confidence_level})`);
-    console.log(`📊 Abnormal Model: ${aiResult.abnormal?.probability.toFixed(4)} (${aiResult.abnormal?.confidence_level})`);
+    console.log(`📊 ACL: ${aiResult.diagnosis.acl?.probability.toFixed(4)} (${aiResult.diagnosis.acl?.confidence_level})`);
+    console.log(`📊 Meniscus: ${aiResult.diagnosis.meniscus?.probability.toFixed(4)} (${aiResult.diagnosis.meniscus?.confidence_level})`);
+    console.log(`📊 Abnormal Model: ${aiResult.diagnosis.abnormal?.probability.toFixed(4)} (${aiResult.diagnosis.abnormal?.confidence_level})`);
     console.log(`🎯 Overall Abnormal: ${aiResult.abnormal_detected} (${aiResult.abnormal_probability.toFixed(4)})`);
 
-    // Determine primary diagnosis based on highest probability
+    // Determine which model has the highest probability (matching Python logic)
+    const modelProbabilities = {
+      acl: aiResult.diagnosis.acl?.probability || 0,
+      meniscus: aiResult.diagnosis.meniscus?.probability || 0,
+      abnormal: aiResult.diagnosis.abnormal?.probability || 0
+    };
+
+    // Find the model with highest probability
+    const highestModel = Object.entries(modelProbabilities)
+      .reduce((a, b) => modelProbabilities[a[0] as keyof typeof modelProbabilities] > modelProbabilities[b[0] as keyof typeof modelProbabilities] ? a : b)[0];
+
+    console.log(`🏆 Highest probability model: ${highestModel} (${modelProbabilities[highestModel as keyof typeof modelProbabilities].toFixed(4)})`);
+
+    // Determine diagnosis only if it corresponds to the highest probability model
+    let diagnosis = null;
+    let severity = null;
+    let diagnosisDetails = null;
+
     const THRESHOLD = aiResult.threshold || 0.5;
     const findings = [
-      { type: 'ACL Tear', probability: aiResult.acl?.probability || 0, model: 'acl' },
-      { type: 'Meniscus Tear', probability: aiResult.meniscus?.probability || 0, model: 'meniscus' }
+      { type: 'ACL Tear', probability: aiResult.diagnosis.acl?.probability || 0, model: 'acl' },
+      { type: 'Meniscus Tear', probability: aiResult.diagnosis.meniscus?.probability || 0, model: 'meniscus' }
     ];
-    
+
     // Sort by probability (highest first)
     findings.sort((a, b) => b.probability - a.probability);
-    
-    let diagnosis = 'Normal';
-    let diagnosisDetails = 'No significant abnormality detected';
-    let severity: 'normal' | 'low' | 'moderate' | 'high' = 'normal';
-    
-    // Check if highest probability exceeds threshold
+
+    // Check if highest probability exceeds threshold and matches the AI's highest model
     const highestFinding = findings[0];
-    if (highestFinding && highestFinding.probability >= THRESHOLD) {
+    if (highestFinding && highestFinding.probability >= THRESHOLD && highestFinding.model === highestModel) {
       diagnosis = highestFinding.type;
       const percentage = (highestFinding.probability * 100).toFixed(1);
-      
+
       // Determine severity
       if (highestFinding.probability >= 0.8) {
         severity = 'high';
@@ -118,26 +131,43 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
         severity = 'low';
         diagnosisDetails = `Possible ${highestFinding.type} detected (${percentage}%). Further evaluation recommended.`;
       }
-      
+
       // Add secondary findings if also above threshold
       const secondaryFindings = findings.slice(1).filter(f => f.probability >= THRESHOLD);
       if (secondaryFindings.length > 0) {
         const secondaryNames = secondaryFindings.map(f => `${f.type} (${(f.probability * 100).toFixed(1)}%)`).join(', ');
         diagnosisDetails += ` Additionally: ${secondaryNames}.`;
       }
-    } else if (aiResult.abnormal_detected) {
-      // Abnormal model detected something but specific findings are below threshold
+    } else if (aiResult.abnormal_detected && highestModel === 'abnormal') {
+      // Abnormal model detected something and it's the highest probability model
       diagnosis = 'General Abnormality';
       severity = 'low';
       diagnosisDetails = `General abnormality detected (${(aiResult.abnormal_probability * 100).toFixed(1)}%), but specific pathology unclear. Clinical review recommended.`;
-    } else {
-      const aclProb = aiResult.acl?.probability ?? 0;
-      const meniscusProb = aiResult.meniscus?.probability ?? 0;
-      diagnosisDetails = `All findings within normal limits. ACL: ${(aclProb * 100).toFixed(1)}%, Meniscus: ${(meniscusProb * 100).toFixed(1)}%.`;
     }
 
-    console.log(`🩺 Diagnosis: ${diagnosis} (${severity})`);
-    console.log(`📝 Details: ${diagnosisDetails}`);
+    if (diagnosis) {
+      console.log(`🩺 Diagnosis: ${diagnosis} (${severity})`);
+      console.log(`📝 Details: ${diagnosisDetails}`);
+    }
+
+    // Create analysis object with only the highest probability model having full results
+    const analysis: any = {};
+
+    // Only include full results for the highest probability model
+    if (highestModel === 'acl' && aiResult.diagnosis.acl) {
+      analysis.acl = aiResult.diagnosis.acl;
+    }
+    if (highestModel === 'meniscus' && aiResult.diagnosis.meniscus) {
+      analysis.meniscus = aiResult.diagnosis.meniscus;
+    }
+    if (highestModel === 'abnormal' && aiResult.diagnosis.abnormal) {
+      analysis.abnormal = aiResult.diagnosis.abnormal;
+    }
+
+    // Add abnormal overall results
+    analysis.abnormal_probability = aiResult.abnormal_probability;
+    analysis.abnormal_detected = aiResult.abnormal_detected;
+    analysis.threshold = aiResult.threshold;
 
     // Optional: Save results to database
     // if (examId) {
@@ -150,37 +180,30 @@ export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => 
     //   });
     // }
 
-    // Return structured response
-    res.status(200).json({
+    // Return structured response matching Python FastAPI structure
+    const result: any = {
       success: true,
-      data: {
-        diagnosis: {
-          primary: diagnosis,
-          severity: severity,
-          details: diagnosisDetails,
-          confidence: highestFinding?.probability || 0
-        },
-        analysis: {
-          acl: aiResult.acl,
-          meniscus: aiResult.meniscus,
-          abnormalModel: aiResult.abnormal, // Dedicated abnormal model prediction
-          abnormalOverall: {
-            detected: aiResult.abnormal_detected,
-            probability: aiResult.abnormal_probability,
-            threshold: aiResult.threshold
-          }
-        },
-        metadata: {
-          patientId: patientId,
-          examId: examId,
-          analyzedAt: new Date().toISOString(),
-          aiServiceUrl: AI_SERVICE_URL,
-          modelsUsed: ['acl', 'meniscus', aiResult.abnormal ? 'abnormal' : null].filter(Boolean),
-          ...aiResult.metadata
-        }
+      diagnosis: {
+        acl: analysis.acl,
+        meniscus: analysis.meniscus,
+        abnormal: analysis.abnormal,
       },
-      message: diagnosisDetails
-    });
+      heatmap: aiResult.heatmap,
+      abnormal_probability: analysis.abnormal_probability,
+      abnormal_detected: analysis.abnormal_detected,
+      threshold: analysis.threshold
+    };
+
+    // Only include diagnosis information if it corresponds to the highest probability model
+    if (diagnosis) {
+      result.diagnosis.primary = diagnosis;
+      result.diagnosis.severity = severity;
+      result.diagnosis.details = diagnosisDetails;
+      result.diagnosis.confidence = highestFinding?.probability || 0;
+      result.message = diagnosisDetails;
+    }
+
+    res.status(200).json(result);
 
   } catch (error) {
     if (axios.isAxiosError(error)) {
