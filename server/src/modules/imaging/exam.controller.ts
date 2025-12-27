@@ -3,6 +3,7 @@ import * as ExamService from './exam.service.js';
 import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
 import * as authC from '../auth/auth.controller.js';
 import { prisma } from '../../config/db.js';
+import e from 'express';
 
 // Extend Request for single file uploads
 interface MulterRequest extends Request {
@@ -33,8 +34,9 @@ export const getExams = asyncHandler(async (req: Request, res: Response) => {
   if (status) filters.status = status as string;
 
   const result = await ExamService.getExams(filters);
-
   return paginatedResponse(res, result.exams, result.pagination);
+  
+  
 });
 
 /**
@@ -51,8 +53,30 @@ export const createExam = asyncHandler(async (req: MulterRequest, res: Response)
     dicomFile: req.file // Add the uploaded file if present
   };
 
-  const exam = await ExamService.createExam(examData);
-  return createdResponse(res, exam, 'Exam created successfully');
+  // Make sure that only the admin or the related clinician can create an exam
+  const authHeader = req.headers['authorization'] || '';
+  const userToken = authHeader.startsWith('Bearer ')  
+    ? authHeader.substring(7) 
+    : authHeader;
+  const verified = await authC.verifyToken(userToken);
+  if (verified || ['ADMIN', 'CLINICIAN'].includes((verified as any).role)) {
+    if ((verified as any).role === 'CLINICIAN') {
+      const currentCase = await prisma.case.findUnique({
+        where: { id: examData.caseId }
+      });
+      const clinician = await prisma.clinicianProfile.findUnique({
+        where: { userId: (verified as any).id }
+      });
+      if (currentCase?.managingClinicianId !== clinician?.id) {
+        return res.status(403).json({ message: 'Forbidden: You can only create exams for your own cases' });
+      }
+    }
+    const exam = await ExamService.createExam(examData);
+    return createdResponse(res, exam, 'Exam created successfully');
+  }
+  else{
+    return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action' });
+  }
 });
 
 /**
@@ -80,8 +104,29 @@ export const createExamWithMultipleDicoms = asyncHandler(async (req: MulterMulti
     });
   }
 
-  const exam = await ExamService.createExamWithMultipleDicoms(examData);
-  return createdResponse(res, exam, 'DICOM files processed successfully');
+  const authHeader = req.headers['authorization'] || '';
+  const userToken = authHeader.startsWith('Bearer ')  
+    ? authHeader.substring(7) 
+    : authHeader;
+  const verified = await authC.verifyToken(userToken);
+  if (verified || ['ADMIN', 'CLINICIAN'].includes((verified as any).role)) {
+    if ((verified as any).role === 'CLINICIAN') {
+      const currentCase = await prisma.case.findUnique({
+        where: { id: examData.caseId }
+      });
+      const clinician = await prisma.clinicianProfile.findUnique({
+        where: { userId: (verified as any).id }
+      });
+      if (examData.caseId && currentCase?.managingClinicianId !== clinician?.id) {
+        return res.status(403).json({ message: 'Forbidden: You can only create exams for your own cases' });
+      }
+    const exam = await ExamService.createExamWithMultipleDicoms(examData);
+    return createdResponse(res, exam, 'DICOM files processed successfully');
+    }
+  }
+  else {
+    return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action' });
+  }
 });
 
 /**
@@ -93,8 +138,26 @@ export const getExamById = asyncHandler(async (req: Request, res: Response) => {
   if (!id) {
     return res.status(400).json({ message: 'Exam ID is required' });
   }
-  const exam = await ExamService.getExamById(parseInt(id));
-  return successResponse(res, exam);
+  const authHeader = req.headers['authorization'] || '';
+  const userToken = authHeader.startsWith('Bearer ')  
+    ? authHeader.substring(7) 
+    : authHeader;
+  const verified = await authC.verifyToken(userToken);
+  if (verified || ['ADMIN', 'CLINICIAN'].includes((verified as any).role)) {
+    const exam = await ExamService.getExamById(parseInt(id));
+    if ((verified as any).role === 'CLINICIAN') {
+      const clinician = await prisma.clinicianProfile.findUnique({
+        where: { userId: (verified as any).id }
+      });
+      if (exam?.medicalCase && (exam.medicalCase as any).managingClinicianId !== clinician?.id) {
+        return res.status(403).json({ message: 'Forbidden: You do not have permission to access this exam' });
+      }
+    }
+    return successResponse(res, exam);
+  }
+  else{
+    return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action' });
+  }
 });
 
 /**
