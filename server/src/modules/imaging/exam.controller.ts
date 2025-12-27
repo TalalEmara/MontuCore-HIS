@@ -2,6 +2,11 @@ import type { Request, Response } from 'express';
 import * as ExamService from './exam.service.js';
 import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
 
+// Extend Request for single file uploads
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
+
 // Extend Request for multiple file uploads
 interface MulterMultipleRequest extends Request {
   files?: Express.Multer.File[];
@@ -49,21 +54,32 @@ export const createExam = asyncHandler(async (req: MulterRequest, res: Response)
 });
 
 /**
- * Create a new exam with multiple DICOM uploads
+ * Create a new exam with multiple DICOM uploads or add DICOMs to existing exam
  * @route POST /api/exams/with-multiple-dicoms
  */
 export const createExamWithMultipleDicoms = asyncHandler(async (req: MulterMultipleRequest, res: Response) => {
+  // With .fields() configuration, files are in req.files.fieldname
+  const dicomFiles = req.files && 'dicomFiles' in req.files ? req.files.dicomFiles : [];
+
   const examData = {
     ...req.body,
     caseId: req.body.caseId ? parseInt(req.body.caseId) : undefined,
+    examId: req.body.examId ? parseInt(req.body.examId) : undefined,
     cost: req.body.cost ? parseFloat(req.body.cost) : undefined,
     scheduledAt: req.body.scheduledAt ? new Date(req.body.scheduledAt) : undefined,
     performedAt: req.body.performedAt ? new Date(req.body.performedAt) : undefined,
-    dicomFiles: req.files // Add the uploaded files if present
+    dicomFiles: Array.isArray(dicomFiles) ? dicomFiles : dicomFiles ? [dicomFiles] : [] // Ensure it's an array
   };
 
+  // Validate that either caseId or examId is provided, but not both
+  if ((!examData.caseId && !examData.examId) || (examData.caseId && examData.examId)) {
+    return res.status(400).json({
+      message: 'Either caseId (for new exam) or examId (for existing exam) must be provided, but not both'
+    });
+  }
+
   const exam = await ExamService.createExamWithMultipleDicoms(examData);
-  return createdResponse(res, exam, 'Exam created with multiple DICOMs successfully');
+  return createdResponse(res, exam, 'DICOM files processed successfully');
 });
 
 /**

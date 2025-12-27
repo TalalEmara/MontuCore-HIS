@@ -43,13 +43,17 @@ script:post-response {
 docs {
   # Create Exam with Multiple DICOM Files
   
-  Creates a new imaging exam order with multiple DICOM files uploaded simultaneously.
-  
-  ## Required Fields
-  - `caseId`: ID of the medical case
+  Creates a new imaging exam order with multiple DICOM files uploaded simultaneously, OR adds DICOM files to an existing exam.
+
+  ## New Exam Creation
+  - `caseId`: ID of the medical case (required for new exams)
   - `modality`: Type of imaging (MRI, CT, X-RAY, Ultrasound, PET, DEXA)
   - `bodyPart`: Body part to be scanned (Knee, Shoulder, Head, etc.)
-  
+
+  ## Add to Existing Exam
+  - `examId`: ID of existing exam (alternative to caseId)
+  - Cannot provide both caseId and examId
+
   ## Optional Fields
   - `status`: ORDERED (default), COMPLETED, CANCELLED
   - `scheduledAt`: When the exam is scheduled
@@ -57,30 +61,21 @@ docs {
   - `radiologistNotes`: Notes from radiologist
   - `conclusion`: Final diagnosis/conclusion
   - `cost`: Cost of the exam
-  - `dicomFiles`: Array of DICOM files to upload (optional, will auto-complete exam if provided)
-  
-  ## Multiple DICOM Upload Behavior
-  - If DICOM files are provided, exam status will be set to COMPLETED automatically
-  - DICOM metadata from the first file will populate exam fields (performedAt, modality, bodyPart, etc.)
-  - All DICOM files are uploaded to Supabase storage with organized paths
-  - Creates PACS image records for all uploaded files
-  - Files are stored in: scans/case_{caseId}/exam_{timestamp}/{filename}
-  - Supports batch upload of entire DICOM series at exam creation time
-  
+  - `dicomFiles`: Array of DICOM files to upload
+
+  ## DICOM Upload Behavior
+  - Files are uploaded directly to Supabase storage by the backend
+  - DICOM metadata from the first file populates exam fields (modality, bodyPart, performedAt)
+  - For new exams: status set to COMPLETED automatically
+  - For existing exams: status updated to COMPLETED if DICOMs added
+  - Files stored in: scans/case_{caseId}/exam_{examId}_{timestamp}/{filename}
+
   ## File Requirements
   - Multiple files can be selected using the same field name 'dicomFiles'
   - Each file must be a valid DICOM format
   - Files are processed in parallel for efficiency
   - Failed file uploads are logged but don't stop the entire operation
-  
-  ## Common Modalities
-  - MRI: Magnetic Resonance Imaging
-  - CT: Computed Tomography
-  - X-RAY: X-ray Radiography
-  - Ultrasound: Ultrasonic Imaging
-  - PET: Positron Emission Tomography
-  - DEXA: Dual-Energy X-ray Absorptiometry
-  
+
   ## Response
-  Returns the created exam with all uploaded DICOM information including PACS image records.
+  Returns the exam with all uploaded DICOM information including PACS image records with public URLs for Cornerstone.js viewer.
 }
