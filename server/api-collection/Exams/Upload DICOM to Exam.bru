@@ -26,7 +26,7 @@ script:post-response {
 docs {
   # Upload DICOM to Existing Exam
   
-  Uploads a DICOM file to an existing exam and auto-completes it.
+  Uploads a DICOM file to an existing exam. Multiple DICOM files can be added to the same exam.
   
   ## URL Parameters
   - `examId`: ID of the exam to upload DICOM to
@@ -35,23 +35,24 @@ docs {
   - `dicomFile`: DICOM file to upload
   
   ## Business Rules
-  - Exam must exist and not already have a DICOM
-  - Only one DICOM file allowed per exam
+  - Exam must exist
+  - Multiple DICOM files allowed per exam (creates separate PACS image records)
   - File must be a valid DICOM format
   - Exam status will be automatically set to COMPLETED
-  - DICOM metadata will populate exam fields
+  - DICOM metadata will populate/update exam fields
   
   ## DICOM Processing
   - Extracts metadata like StudyDate, StudyTime, SeriesDescription
   - Sets performedAt from DICOM timestamp
-  - Populates radiologistNotes from DICOM data
+  - Updates modality and bodyPart if not already set
   - Stores file in Supabase storage with public URL
+  - Creates a new PACS image record for this file
   
   ## Error Responses
   - 404: Exam not found
-  - 400: Exam already has DICOM or invalid file
+  - 400: Invalid file format
   - 500: DICOM parsing or storage error
   
   ## Response
-  Returns updated exam with DICOM information.
+  Returns updated exam with all associated PACS images.
 }

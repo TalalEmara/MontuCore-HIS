@@ -211,13 +211,24 @@ model Exam {
   conclusion       String?
   cost             Float?
 
-  // DICOM Image (optional - one per exam)
-  dicomFileName     String?   @map("dicom_file_name")
-  dicomSupabasePath String?   @map("dicom_supabase_path")
-  dicomPublicUrl    String?   @map("dicom_public_url")
-  dicomUploadedAt   DateTime? @map("dicom_uploaded_at")
+  // DICOM Images (multiple per exam)
+  pacsImages PACSImage[]
 
   @@map("exams")
+}
+
+// 2. The DICOM Images (Multiple per Exam)
+model PACSImage {
+  id          Int  @id @default(autoincrement())
+  examId      Int  @map("exam_id")
+  exam        Exam @relation(fields: [examId], references: [id])
+
+  fileName       String
+  supabasePath   String    @map("supabase_path")
+  publicUrl      String    @map("public_url")
+  uploadedAt     DateTime  @default(now()) @map("uploaded_at")
+
+  @@map("pacs_images")
 }
 
 // --- LAB SYSTEM (Blood Tests) ---

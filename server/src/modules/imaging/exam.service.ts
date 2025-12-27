@@ -11,7 +11,7 @@ interface MulterRequest extends Request {
 }
 
 // DICOM parsing helpers
-const parseDicomDate = (dateString: string | undefined): Date => {
+const parseDicomDate = (dateString: string | null | undefined): Date => {
   if (!dateString || dateString.length !== 8) {
     return new Date(); // Fallback to "now" if missing or invalid
   }
@@ -103,9 +103,14 @@ export const getExams = async (filters: ExamFilters = {}) => {
         performedAt: true,
         radiologistNotes: true,
         conclusion: true,
-        dicomFileName: true,
-        dicomPublicUrl: true,
-        dicomUploadedAt: true,
+        pacsImages: {
+          select: {
+            id: true,
+            fileName: true,
+            publicUrl: true,
+            uploadedAt: true
+          }
+        },
         medicalCase: {
           select: { diagnosisName: true }
         }
@@ -187,11 +192,6 @@ export const createExam = async (data: CreateExamData) => {
     finalStatus = 'COMPLETED'; // DICOM upload auto-completes
   }
 
-  // Validate status rules
-  if (finalStatus === 'COMPLETED' && !data.dicomFile) {
-    throw new ValidationError('COMPLETED exams must have a DICOM file');
-  }
-
   // Create the exam
   const exam = await prisma.exam.create({
     data: {
@@ -228,7 +228,8 @@ export const createExam = async (data: CreateExamData) => {
       const metadata = parseDicomMetadata(data.dicomFile.buffer);
 
       // Upload to Supabase
-      const uniqueName = `scans/exam_${exam.id}_${Date.now()}.dcm`;
+      const timestamp = Date.now();
+      const uniqueName = `scans/case_${data.caseId}/exam_${timestamp}/${data.dicomFile.originalname}`;
       const { error: uploadError } = await supabase.storage
         .from('dicoms')
         .upload(uniqueName, data.dicomFile.buffer, {
@@ -239,14 +240,20 @@ export const createExam = async (data: CreateExamData) => {
 
       const publicUrl = getPublicUrl('dicoms', uniqueName);
 
-      // Update exam with DICOM data
+      // Create PACS image record
+      await prisma.pACSImage.create({
+        data: {
+          examId: exam.id,
+          fileName: data.dicomFile.originalname,
+          supabasePath: uniqueName,
+          publicUrl: publicUrl
+        }
+      });
+
+      // Update exam with metadata from DICOM
       await prisma.exam.update({
         where: { id: exam.id },
         data: {
-          dicomFileName: data.dicomFile.originalname,
-          dicomSupabasePath: uniqueName,
-          dicomPublicUrl: publicUrl,
-          dicomUploadedAt: new Date(),
           performedAt: parseDicomDate(metadata.studyDate) || exam.performedAt,
           modality: metadata.modality || exam.modality,
           bodyPart: metadata.bodyPart || exam.bodyPart
@@ -263,6 +270,14 @@ export const createExam = async (data: CreateExamData) => {
   return await prisma.exam.findUnique({
     where: { id: exam.id },
     include: {
+      pacsImages: {
+        select: {
+          id: true,
+          fileName: true,
+          publicUrl: true,
+          uploadedAt: true
+        }
+      },
       medicalCase: {
         select: {
           id: true,
@@ -294,17 +309,13 @@ export const uploadDicomToExam = async (examId: number, dicomFile: Express.Multe
     throw new NotFoundError('Exam not found');
   }
 
-  // Check if exam already has a DICOM (reject as per requirements)
-  if (exam.dicomPublicUrl) {
-    throw new ValidationError('Exam already has a DICOM file. Only one DICOM per exam is allowed.');
-  }
-
   try {
     // Parse DICOM metadata
     const metadata = parseDicomMetadata(dicomFile.buffer);
 
     // Upload to Supabase
-    const uniqueName = `scans/exam_${examId}_${Date.now()}.dcm`;
+    const timestamp = Date.now();
+    const uniqueName = `scans/case_${exam.caseId}/exam_${timestamp}/${dicomFile.originalname}`;
     const { error: uploadError } = await supabase.storage
       .from('dicoms')
       .upload(uniqueName, dicomFile.buffer, {
@@ -315,18 +326,46 @@ export const uploadDicomToExam = async (examId: number, dicomFile: Express.Multe
 
     const publicUrl = getPublicUrl('dicoms', uniqueName);
 
-    // Update exam with DICOM data and status
+    // Create PACS image record
+    await prisma.pACSImage.create({
+      data: {
+        examId: examId,
+        fileName: dicomFile.originalname,
+        supabasePath: uniqueName,
+        publicUrl: publicUrl
+      }
+    });
+
+    // Update exam with metadata and status
     const updatedExam = await prisma.exam.update({
       where: { id: examId },
       data: {
         status: 'COMPLETED',
         performedAt: parseDicomDate(metadata.studyDate) || exam.performedAt,
         modality: metadata.modality || exam.modality,
-        bodyPart: metadata.bodyPart || exam.bodyPart,
-        dicomFileName: dicomFile.originalname,
-        dicomSupabasePath: uniqueName,
-        dicomPublicUrl: publicUrl,
-        dicomUploadedAt: new Date()
+        bodyPart: metadata.bodyPart || exam.bodyPart
+      },
+      include: {
+        pacsImages: {
+          select: {
+            id: true,
+            fileName: true,
+            publicUrl: true,
+            uploadedAt: true
+          }
+        },
+        medicalCase: {
+          select: {
+            id: true,
+            diagnosisName: true,
+            athlete: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -334,6 +373,81 @@ export const uploadDicomToExam = async (examId: number, dicomFile: Express.Multe
   } catch (error) {
     throw new ValidationError('Failed to process DICOM file: ' + (error as Error).message);
   }
+};
+
+/**
+ * Mark exam as completed
+ */
+export const markExamCompleted = async (examId: number) => {
+  validatePositiveInt(examId, 'examId');
+
+  // Check if exam exists
+  const exam = await prisma.exam.findUnique({
+    where: { id: examId },
+    include: {
+      pacsImages: {
+        select: {
+          id: true,
+          fileName: true,
+          publicUrl: true,
+          uploadedAt: true
+        }
+      },
+      medicalCase: {
+        select: {
+          id: true,
+          diagnosisName: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  if (!exam) {
+    throw new NotFoundError('Exam not found');
+  }
+
+  if (exam.status === 'COMPLETED') {
+    throw new ValidationError('Exam is already completed');
+  }
+
+  // Update exam status to COMPLETED
+  const updatedExam = await prisma.exam.update({
+    where: { id: examId },
+    data: {
+      status: 'COMPLETED',
+      performedAt: exam.performedAt || new Date() // Set performedAt if not already set
+    },
+    include: {
+      pacsImages: {
+        select: {
+          id: true,
+          fileName: true,
+          publicUrl: true,
+          uploadedAt: true
+        }
+      },
+      medicalCase: {
+        select: {
+          id: true,
+          diagnosisName: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  return updatedExam;
 };
 
 /**
@@ -355,9 +469,14 @@ export const getExamById = async (id: number) => {
       radiologistNotes: true,
       conclusion: true,
       cost: true,
-      dicomFileName: true,
-      dicomPublicUrl: true,
-      dicomUploadedAt: true,
+      pacsImages: {
+        select: {
+          id: true,
+          fileName: true,
+          publicUrl: true,
+          uploadedAt: true
+        }
+      },
       medicalCase: {
         select: {
           id: true,
@@ -429,4 +548,144 @@ export const updateExam = async (id: number, data: Partial<CreateExamData>) => {
   });
 
   return updatedExam;
+};
+
+/**
+ * Create exam with multiple DICOM files
+ */
+export const createExamWithMultipleDicoms = async (data: {
+  caseId: number;
+  modality?: string;
+  bodyPart?: string;
+  status?: string;
+  scheduledAt?: Date;
+  performedAt?: Date;
+  radiologistNotes?: string;
+  conclusion?: string;
+  cost?: number;
+  dicomFiles?: Express.Multer.File[];
+}) => {
+  // Validate required fields
+  validateRequired(data, ['caseId']);
+
+  // Determine final status
+  let finalStatus = data.status || 'ORDERED';
+  if (data.dicomFiles && data.dicomFiles.length > 0) {
+    finalStatus = 'COMPLETED'; // DICOM uploads auto-complete
+  }
+
+  // Create the exam
+  const exam = await prisma.exam.create({
+    data: {
+      caseId: data.caseId,
+      modality: data.modality || 'UNKNOWN',
+      bodyPart: data.bodyPart || 'UNKNOWN',
+      status: finalStatus,
+      scheduledAt: data.scheduledAt || null,
+      performedAt: data.performedAt || null,
+      radiologistNotes: data.radiologistNotes || null,
+      conclusion: data.conclusion || null,
+      cost: data.cost || null
+    },
+    include: {
+      medicalCase: {
+        select: {
+          id: true,
+          diagnosisName: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Process DICOM files if provided
+  if (data.dicomFiles && data.dicomFiles.length > 0) {
+    // Use metadata from the first file for the exam
+    const firstFile = data.dicomFiles[0];
+    let examMetadata = { modality: 'MRI', bodyPart: 'UNKNOWN', studyDate: null };
+
+    try {
+      examMetadata = parseDicomMetadata(firstFile.buffer);
+    } catch (error) {
+      console.warn('Failed to parse DICOM metadata from first file, using defaults:', error);
+    }
+
+    // Update exam with metadata from first DICOM
+    await prisma.exam.update({
+      where: { id: exam.id },
+      data: {
+        performedAt: parseDicomDate(examMetadata.studyDate) || exam.performedAt,
+        modality: examMetadata.modality || exam.modality,
+        bodyPart: examMetadata.bodyPart || exam.bodyPart
+      }
+    });
+
+    // Process all DICOM files
+    const timestamp = Date.now();
+    const pacsImagesData = [];
+
+    for (const file of data.dicomFiles) {
+      try {
+        const uniqueName = `scans/case_${data.caseId}/exam_${timestamp}/${file.originalname}`;
+        const { error: uploadError } = await supabase.storage
+          .from('dicoms')
+          .upload(uniqueName, file.buffer, {
+            contentType: 'application/dicom'
+          });
+
+        if (uploadError) throw uploadError;
+
+        const publicUrl = getPublicUrl('dicoms', uniqueName);
+
+        pacsImagesData.push({
+          examId: exam.id,
+          fileName: file.originalname,
+          supabasePath: uniqueName,
+          publicUrl: publicUrl
+        });
+      } catch (error) {
+        console.error(`Failed to process DICOM file ${file.originalname}:`, error);
+        // Continue with other files
+      }
+    }
+
+    // Batch insert PACS images
+    if (pacsImagesData.length > 0) {
+      await prisma.pACSImage.createMany({
+        data: pacsImagesData
+      });
+    }
+  }
+
+  // Return the exam with updated images
+  return await prisma.exam.findUnique({
+    where: { id: exam.id },
+    include: {
+      pacsImages: {
+        select: {
+          id: true,
+          fileName: true,
+          publicUrl: true,
+          uploadedAt: true
+        }
+      },
+      medicalCase: {
+        select: {
+          id: true,
+          diagnosisName: true,
+          athlete: {
+            select: {
+              id: true,
+              fullName: true
+            }
+          }
+        }
+      }
+    }
+  });
 };

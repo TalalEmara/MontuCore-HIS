@@ -1,0 +1,93 @@
+meta {
+  name: Link DICOM Series to Case
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/imaging/link-series
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 7,
+    "images": [
+      {
+        "fileName": "demo_pure_acl_6.dcm",
+        "supabasePath": "scans/case_7/exam_1735320000000/demo_pure_acl_6.dcm"
+      },
+      {
+        "fileName": "demo_dual_injury_1178_Abn96_Acl92_Men85.npy",
+        "supabasePath": "scans/case_7/exam_1735320000000/demo_dual_injury_1178_Abn96_Acl92_Men85.npy"
+      }
+    ]
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    try {
+      const responseData = JSON.parse(res.body);
+      if (responseData.exam?.id) {
+        bru.setVar("linkedSeriesExamId", responseData.exam.id);
+        console.log("Linked DICOM series to exam ID:", responseData.exam.id);
+        console.log("Extracted metadata:", responseData.metadata);
+      }
+    } catch (error) {
+      console.log("Error parsing response:", error);
+      console.log("Raw response:", res.body);
+    }
+  } else {
+    console.log("Request failed with status:", res.status);
+    console.log("Response:", res.body);
+  }
+}
+
+docs {
+  # Link DICOM Series to Case
+
+  Links a series of pre-uploaded DICOM images to a medical case, creating a new exam record.
+
+  ## Required Fields
+  - `caseId`: ID of the medical case to link images to
+  - `images`: Array of image objects with:
+    - `fileName`: Original filename of the DICOM image
+    - `supabasePath`: Full path to the file in Supabase storage (scans/case_{caseId}/exam_{timestamp}/{filename})
+
+  ## Automatic Processing
+  - Downloads the first DICOM file to extract metadata
+  - Creates a new exam record with COMPLETED status
+  - Extracts modality, body part, and study date from DICOM
+  - Batch creates PACS image records for all files
+  - Generates public URLs for all images
+
+  ## Path Format Requirements
+  - Must follow: `scans/case_{caseId}/exam_{timestamp}/{filename}`
+  - Case ID in path must match the provided caseId
+  - Timestamp should be when the series was uploaded
+
+  ## Business Rules
+  - Case must exist
+  - All images must have valid paths
+  - First DICOM file must be parseable for metadata extraction
+  - Falls back to defaults (MRI, UNKNOWN) if parsing fails
+
+  ## Response
+  - Returns created exam, all PACS images, and extracted metadata
+
+  ## Error Responses
+  - 400: Invalid caseId, missing images, or invalid path format
+  - 404: Case not found
+  - 500: DICOM parsing failed or database error
+
+  ## Use Cases
+  - Batch upload of MRI/CT series from external systems
+  - Linking pre-processed DICOM files to patient cases
+  - Integration with PACS systems that upload directly to Supabase
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000/api
+}
