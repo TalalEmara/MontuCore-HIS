@@ -54,7 +54,7 @@ export const useCDSS = (apiUrl: string = 'http://localhost:3000') => {
       }
 
       console.log(`Sending ${selectedUrls.length} slices for analysis...`);
-
+      console.log(selectedUrls);
       // --- API Request ---
       const cleanBase = apiUrl.replace(/\/$/, '');
       const response = await fetch(`${cleanBase}/api/cdss/analyze-dicom`, {
