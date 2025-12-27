@@ -57,6 +57,17 @@ export interface CreateAppointmentResponse {
   data: Appointment;
 }
 
+// Updated Interface for Reschedule to include data needed for the new booking
+export interface RescheduleAppointmentRequest {
+  appointmentId: number; // ID of the appointment to cancel
+  athleteId: number;     // ID for the new appointment
+  clinicianId: number;   // ID for the new appointment
+  scheduledAt: string;   // New time
+  diagnosisNotes?: string;
+  height?: number;
+  weight?: number;
+}
+
 // --- API Fetchers (Pure Functions) ---
 
 const fetchClinicianAppointments = async (clinicianId: number, token: string): Promise<AppointmentsResponse> => {
@@ -91,7 +102,6 @@ const fetchAthleteAppointments = async (athleteId: number, token: string): Promi
   return response.json();
 };
 
-// Fixed: Token is now an argument, NOT fetched via hook inside here
 export const bookAppointmentApi = async (data: CreateAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
   const response = await fetch('http://localhost:3000/api/appointments/create-appointment', {
     method: 'POST',
@@ -109,10 +119,50 @@ export const bookAppointmentApi = async (data: CreateAppointmentRequest, token: 
   return response.json();
 };
 
-// --- Custom Hooks (Where useAuth belongs) ---
+// [NEW] API Call for Canceling (uses update status)
+export const cancelAppointmentApi = async (appointmentId: number, token: string): Promise<any> => {
+  const response = await fetch('http://localhost:3000/api/appointments/update-appointment-status/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ 
+      id: appointmentId, 
+      status: 'CANCELLED' 
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to cancel appointment');
+  }
+  return response.json();
+};
+
+// [NEW] API Call for Rescheduling (Cancel Old -> Book New)
+export const rescheduleAppointmentApi = async (data: RescheduleAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
+  // 1. Cancel the existing appointment
+  await cancelAppointmentApi(data.appointmentId, token);
+
+  // 2. Create the new appointment with the same IDs
+  const newData: CreateAppointmentRequest = {
+    athleteId: data.athleteId,
+    clinicianId: data.clinicianId,
+    scheduledAt: data.scheduledAt,
+    diagnosisNotes: data.diagnosisNotes,
+    height: data.height,
+    weight: data.weight,
+    status: 'SCHEDULED' // Ensure the new one is scheduled
+  };
+
+  return bookAppointmentApi(newData, token);
+};
+
+// --- Custom Hooks ---
 
 export const useClinicianAppointments = (clinicianId: number) => {
-  const { token } = useAuth(); // Get token here
+  const { token } = useAuth();
   return useQuery({
     queryKey: ['appointments', 'clinician', clinicianId],
     queryFn: () => fetchClinicianAppointments(clinicianId, token!),
@@ -122,7 +172,7 @@ export const useClinicianAppointments = (clinicianId: number) => {
 };
 
 export const useAthleteAppointments = (athleteId: number | undefined) => {
-  const { token } = useAuth(); // Get token here
+  const { token } = useAuth();
   return useQuery({
     queryKey: ['appointments', 'athlete', athleteId],
     queryFn: () => fetchAthleteAppointments(athleteId!, token!),
@@ -133,10 +183,9 @@ export const useAthleteAppointments = (athleteId: number | undefined) => {
 
 export const useBookAppointment = () => {
   const queryClient = useQueryClient();
-  const { token } = useAuth(); // Get token here
+  const { token } = useAuth();
 
   return useMutation({
-    // Pass the token to the API function
     mutationFn: (data: CreateAppointmentRequest) => bookAppointmentApi(data, token!),
     onSuccess: (response) => {
       console.log(response.message);
@@ -144,6 +193,40 @@ export const useBookAppointment = () => {
     },
     onError: (error) => {
       console.error('Booking failed:', error);
+    },
+  });
+};
+
+// [NEW] Hook for Rescheduling
+export const useRescheduleAppointment = () => {
+  const queryClient = useQueryClient();
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (data: RescheduleAppointmentRequest) => rescheduleAppointmentApi(data, token!),
+    onSuccess: (response) => {
+      console.log('Reschedule successful: Old cancelled, New created.');
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+    onError: (error) => {
+      console.error('Reschedule failed:', error);
+    },
+  });
+};
+
+// [NEW] Hook for Canceling
+export const useCancelAppointment = () => {
+  const queryClient = useQueryClient();
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (appointmentId: number) => cancelAppointmentApi(appointmentId, token!),
+    onSuccess: (response) => {
+      console.log('Cancellation successful');
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+    onError: (error) => {
+      console.error('Cancellation failed:', error);
     },
   });
 };
