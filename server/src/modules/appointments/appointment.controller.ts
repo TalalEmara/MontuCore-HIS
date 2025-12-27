@@ -210,7 +210,7 @@ export const deleteAppointment = async (req: Request, res: Response): Promise<vo
 
 export const getAllAppointments = async (req: Request, res: Response): Promise<void> => {
   try{
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date } = req.query;
+    const { page = 1, limit = 10, status, athleteName, clinicianName, date, caseId } = req.query;
     const authHeader = req.headers['authorization'] || '';
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
@@ -223,7 +223,8 @@ export const getAllAppointments = async (req: Request, res: Response): Promise<v
         status: status as any,
         athleteName: athleteName as string,
         clinicianName: clinicianName as string,
-        date: date as string
+        date: date as string,
+        caseId: caseId ? Number(caseId) : undefined
       });
       if (allAppointments instanceof Error){
         res.status(400).json({
@@ -251,10 +252,10 @@ export const getAllAppointments = async (req: Request, res: Response): Promise<v
 
 }
 
-export const getAllAppointmentsByAthelete = async (req: Request, res: Response): Promise<void> => {
+export const getAppointmentsByAthleteId = async (req: Request, res: Response): Promise<void> => {
   try{
     const { athleteId } = req.params;
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date } = req.query;
+    const { page = 1, limit = 10, status, caseId } = req.query;
     const authHeader = req.headers['authorization'] || '';
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
@@ -273,15 +274,17 @@ export const getAllAppointmentsByAthelete = async (req: Request, res: Response):
         }
       }
       
-      const appointments = await appointmentService.getAllAppointmentsByAthelete({
+      const filters: any = {
         page: Number(page),
         limit: Number(limit),
-        status: status as any,
-        athleteName: athleteName as string,
-        clinicianName: clinicianName as string,
-        date: date as string
-      },
-      Number(athleteId));
+      };
+      if (status) filters.status = status as any;
+      if (caseId) filters.caseId = Number(caseId);
+      
+      const appointments = await appointmentService.getAppointmentsByAthleteId(
+        Number(athleteId),
+        filters
+      );
 
       if (appointments instanceof Error){
         res.status(400).json({
@@ -307,10 +310,10 @@ export const getAllAppointmentsByAthelete = async (req: Request, res: Response):
   }
 }
 
-export const getAllAppointmentsByClinician = async (req: Request, res: Response): Promise<void> => {
+export const getAppointmentsByClinicianId = async (req: Request, res: Response): Promise<void> => {
   try{
     const { clinicianId } = req.params;
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date } = req.query;
+    const { page = 1, limit = 10, status, caseId } = req.query;
 
     const authHeader = req.headers['authorization'] || '';
     const userToken = authHeader.startsWith('Bearer ')
@@ -328,15 +331,17 @@ export const getAllAppointmentsByClinician = async (req: Request, res: Response)
         }
       }
 
-      const appointments = await appointmentService.getAllAppointmentsByClinician({
+      const filters: any = {
         page: Number(page),
         limit: Number(limit),
-        status: status as any,
-        athleteName: athleteName as string,
-        clinicianName: clinicianName as string,
-        date: date as string
-      },
-      Number(clinicianId));
+      };
+      if (status) filters.status = status as any;
+      if (caseId) filters.caseId = Number(caseId);
+      
+      const appointments = await appointmentService.getAppointmentsByClinicianId(
+        Number(clinicianId),
+        filters
+      );
 
       if (appointments instanceof Error){
         res.status(400).json({

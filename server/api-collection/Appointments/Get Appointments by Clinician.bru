@@ -1,11 +1,11 @@
 meta {
-  name: Get Appointments (Schedule)
+  name: Get Appointments by Clinician
   type: http
-  seq: 1
+  seq: 5
 }
 
 get {
-  url: {{baseURL}}/appointments?page=1&limit=10
+  url: {{baseURL}}/appointments/clinician/2?page=1&limit=10
   body: none
   auth: bearer
 }
@@ -14,8 +14,6 @@ params:query {
   page: 1
   limit: 10
   ~status: SCHEDULED
-  ~clinicianId: 2
-  ~athleteId: 1
   ~caseId: 7
 }
 
@@ -24,18 +22,19 @@ auth:bearer {
 }
 
 docs {
-  # Get Appointments (Schedule)
+  # Get Appointments by Clinician
   
-  Retrieves appointments with optional filtering and pagination.
+  Retrieves all appointments for a specific clinician with optional filtering.
+  
+  ## Path Parameters
+  - `clinicianId`: The clinician's ID (replace 2 with actual ID)
   
   ## Query Parameters
   - `page`: Page number (default: 1)
   - `limit`: Items per page (default: 10)
-  - `status`: Filter by appointment status (SCHEDULED, COMPLETED, CANCELLED)
-  - `clinicianId`: Filter by clinician ID
-  - `athleteId`: Filter by athlete ID
+  - `status`: Filter by appointment status
   - `caseId`: Filter by case ID
   
   ## Response
-  Returns paginated list of appointments with athlete and clinician details.
+  Returns paginated list of appointments for the specified clinician.
 }
