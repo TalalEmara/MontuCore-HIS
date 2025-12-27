@@ -1,0 +1,27 @@
+meta {
+  name: Create Treatment
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/treatments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "caseId": 28,
+    "type": "Surgery",
+    "description": "ACL Reconstruction",
+    "providerName": "Cairo Orthopedic Center",
+    "cost": 15000,
+    "date": "2025-01-05"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
