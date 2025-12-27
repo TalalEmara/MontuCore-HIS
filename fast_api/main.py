@@ -211,24 +211,20 @@ def generate_heatmap(model: nn.Module, tensor: torch.Tensor, original_img: np.nd
 # --- REQUEST/RESPONSE MODELS ---
 class AnalysisRequest(BaseModel):
     dicomUrls: list[str]  # Exactly 3 URLs for sagittal slices
-    patientId: Optional[int] = None
-    examId: Optional[int] = None
 
 class PredictionResult(BaseModel):
     probability: float
     confidence_level: str  # 'low', 'medium', 'high'
-    heatmap: Optional[str] = None
 
 class AnalysisResponse(BaseModel):
     success: bool
-    acl: Optional[PredictionResult] = None
-    meniscus: Optional[PredictionResult] = None
-    abnormal: Optional[PredictionResult] = None
-    abnormal_probability: float
+    diagnosis: Optional[Dict[str, PredictionResult]] = None
+    heatmap: Optional[list[str]] = None
     abnormal_detected: bool
+    abnormal_probability: float
     threshold: float = 0.5
-    message: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
+    message: Optional[str] = None
 
 def get_confidence_level(probability: float) -> str:
     """Categorize prediction confidence."""
@@ -319,14 +315,17 @@ async def analyze_scan(request: AnalysisRequest):
         
         results = {
             'success': True,
+            'diagnosis': {},
+            'heatmap': [],
             'metadata': {
                 'total_file_size_bytes': total_file_size,
                 'tensor_shape': list(input_tensor.shape),
-                'patient_id': request.patientId,
-                'exam_id': request.examId,
                 'dicom_urls': request.dicomUrls
             }
         }
+        
+        # Store model probabilities for comparison
+        model_probabilities = {}
         
         # 3. Run ACL Model
         if 'acl' in models_dict:
@@ -336,15 +335,7 @@ async def analyze_scan(request: AnalysisRequest):
                 acl_prob = torch.sigmoid(acl_out).item()
             
             logger.info(f"📊 ACL probability: {acl_prob:.4f}")
-            
-            # Generate Heatmap for ACL
-            heatmap_b64 = generate_heatmap(models_dict['acl'], input_tensor, original_img)
-            
-            results['acl'] = PredictionResult(
-                probability=round(acl_prob, 4),
-                confidence_level=get_confidence_level(acl_prob),
-                heatmap=heatmap_b64 if heatmap_b64 else None
-            )
+            model_probabilities['acl'] = acl_prob
         
         # 4. Run Meniscus Model
         if 'meniscus' in models_dict:
@@ -354,15 +345,9 @@ async def analyze_scan(request: AnalysisRequest):
                 men_prob = torch.sigmoid(men_out).item()
             
             logger.info(f"📊 Meniscus probability: {men_prob:.4f}")
-            
-            results['meniscus'] = PredictionResult(
-                probability=round(men_prob, 4),
-                confidence_level=get_confidence_level(men_prob),
-                heatmap=None  # Optional: generate heatmap for meniscus too
-            )
+            model_probabilities['meniscus'] = men_prob
 
         # 5. Run Abnormal Model (if exists)
-        abnormal_prob = 0.0
         if 'abnormal' in models_dict:
             logger.info("🧠 Running Abnormality model on {device}...")
             with torch.no_grad(), torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
@@ -370,23 +355,49 @@ async def analyze_scan(request: AnalysisRequest):
                 abnormal_prob = torch.sigmoid(abn_out).item()
             
             logger.info(f"📊 Abnormality probability: {abnormal_prob:.4f}")
-            
-            results['abnormal'] = PredictionResult(
-                probability=round(abnormal_prob, 4),
-                confidence_level=get_confidence_level(abnormal_prob),
-                heatmap=None
-            )
+            model_probabilities['abnormal'] = abnormal_prob
         else:
             # Fallback: use max of ACL and Meniscus if abnormal model not available
-            if 'acl' in results and 'meniscus' in results:
+            if 'acl' in model_probabilities and 'meniscus' in model_probabilities:
                 abnormal_prob = max(
-                    results['acl'].probability,
-                    results['meniscus'].probability
+                    model_probabilities['acl'],
+                    model_probabilities['meniscus']
                 )
-            elif 'acl' in results:
-                abnormal_prob = results['acl'].probability
-            elif 'meniscus' in results:
-                abnormal_prob = results['meniscus'].probability
+            elif 'acl' in model_probabilities:
+                abnormal_prob = model_probabilities['acl']
+            elif 'meniscus' in model_probabilities:
+                abnormal_prob = model_probabilities['meniscus']
+            else:
+                abnormal_prob = 0.0
+        
+        # Determine which model has the highest probability
+        if model_probabilities:
+            highest_model = max(model_probabilities, key=model_probabilities.get)
+            highest_prob = model_probabilities[highest_model]
+            logger.info(f"🏆 Highest probability model: {highest_model} ({highest_prob:.4f})")
+            
+            # Generate heatmap only for the highest probability model
+            heatmap_b64 = None
+            if highest_model in models_dict:
+                heatmap_b64 = generate_heatmap(models_dict[highest_model], input_tensor, original_img)
+            
+            # Create full PredictionResult only for the highest probability model
+            prediction_result = PredictionResult(
+                probability=round(highest_prob, 4),
+                confidence_level=get_confidence_level(highest_prob),
+                heatmap=None  # Heatmap will be in separate array
+            )
+            
+            results['diagnosis'][highest_model] = prediction_result
+            if heatmap_b64:
+                results['heatmap'].append(heatmap_b64)
+        else:
+            logger.warning("⚠️ No models were run successfully")
+        
+        # For other models, just store probabilities in metadata for reference
+        results['metadata']['model_probabilities'] = {
+            model: round(prob, 4) for model, prob in model_probabilities.items()
+        }
         
         # Set abnormal detection results
         results['abnormal_probability'] = round(abnormal_prob, 4)

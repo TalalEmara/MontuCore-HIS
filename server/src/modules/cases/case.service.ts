@@ -143,10 +143,7 @@ export const getCaseById = async (caseId: number) => {
         performedAt: true,
         radiologistNotes: true,
         conclusion: true,
-        cost: true,
-        dicomFileName: true,
-        dicomPublicUrl: true,
-        dicomUploadedAt: true
+        cost: true
       }
     }),
     prisma.labTest.findMany({
