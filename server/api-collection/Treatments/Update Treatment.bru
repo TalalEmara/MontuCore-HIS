@@ -1,0 +1,44 @@
+meta {
+  name: Update Treatment
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseURL}}/treatments/7
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "PHYSIOTHERAPY",
+    "description": "Updated knee rehabilitation exercises with additional stretches",
+    "providerName": "Dr. Smith",
+    "cost": 175.00
+  }
+}
+
+docs {
+  # Update Treatment
+  
+  Updates an existing treatment record. Only provided fields are updated.
+  
+  ## Path Parameters
+  - `treatmentId`: The treatment's ID (replace 789 with actual ID)
+  
+  ## Request Body
+  All fields are optional - only include what you want to update:
+  - `type`: Treatment type
+  - `description`: Treatment description
+  - `providerName`: Healthcare provider name
+  - `date`: Treatment date
+  - `cost`: Treatment cost
+  
+  ## Response
+  Returns the updated treatment object.
+}

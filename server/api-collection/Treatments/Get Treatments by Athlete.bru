@@ -1,0 +1,32 @@
+meta {
+  name: Get Treatments by Athlete
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/treatments/athlete/5?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 10
+}
+
+docs {
+  # Get Treatments by Athlete
+  
+  Retrieves all treatments for a specific athlete with pagination.
+  
+  ## Path Parameters
+  - `athleteId`: The athlete's ID (replace 123 with actual ID)
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  
+  ## Response
+  Returns paginated list of treatments for the athlete.
+}
