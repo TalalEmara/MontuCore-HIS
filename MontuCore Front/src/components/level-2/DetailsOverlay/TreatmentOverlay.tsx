@@ -115,7 +115,6 @@ export default function TreatmentDetail({
                 type="date"
                 value={formData.date}
                 onChange={(val) => handleChange("date", val)}
-                max={new Date().toISOString().split("T")[0]}
               />
             ) : (
               <>

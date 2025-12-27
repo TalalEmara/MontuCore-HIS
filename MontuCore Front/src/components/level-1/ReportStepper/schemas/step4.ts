@@ -3,7 +3,7 @@ import { z } from "zod";
 export const treatmentItemSchema = z.object({
   id: z.number().optional(),
   type: z.string().min(1, "Treatment type is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string(),
   providerName: z.string().min(1, "Provider name is required"),
   date: z.string().min(1, "Date is required"), 
   cost: z.coerce
