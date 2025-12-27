@@ -202,6 +202,25 @@ export const markExamCompleted = asyncHandler(async (req: Request, res: Response
     return res.status(400).json({ message: 'Exam ID is required' });
   }
 
-  const exam = await ExamService.markExamCompleted(parseInt(id));
-  return successResponse(res, exam, 'Exam marked as completed');
+  const authHeader = req.headers['authorization'] || '';
+  const userToken = authHeader.startsWith('Bearer ')  
+    ? authHeader.substring(7) 
+    : authHeader;
+  const verified = await authC.verifyToken(userToken);
+  if (verified || ['ADMIN', 'CLINICIAN'].includes((verified as any).role)) {
+    if ((verified as any).role === 'CLINICIAN') {
+      const getExam = await ExamService.getExamById(parseInt(id));
+      const clinician = await prisma.clinicianProfile.findUnique({
+        where: { userId: (verified as any).id }
+      });
+      if (getExam?.medicalCase && (getExam.medicalCase as any).managingClinicianId !== clinician?.id) {
+        return res.status(403).json({ message: 'Forbidden: You do not have permission to access this exam' });
+      }
+    }
+    const exam = await ExamService.markExamCompleted(parseInt(id));
+    return successResponse(res, exam, 'Exam marked as completed');
+  }
+  else{
+    return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action' });
+  }
 });
