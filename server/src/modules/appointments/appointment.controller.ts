@@ -83,6 +83,45 @@ export const updateAppointmentStatus = async (req: Request, res: Response): Prom
   }
 }
 
+export const updateAppointment = async (req: Request, res: Response): Promise<void> => {
+  try{
+    // extract appointment id and data from request body
+    const { appointmentId } = req.params;
+    const appointmentData = req.body;
+    const authHeader = req.headers['authorization'] || '';
+    const userToken = authHeader.startsWith('Bearer ')  
+      ? authHeader.substring(7)
+      : authHeader;
+    const validToken = await authC.verifyToken(userToken);
+    if (validToken && (authC.isAdmin(userToken) || authC.isClinician(userToken) || authC.isAthlete(userToken)) ){
+      const updatedAppointment = await appointmentService.updateAppointment(Number(appointmentId), appointmentData);
+      if (updatedAppointment instanceof Error){
+        res.status(400).json({
+          success: false,
+          message: 'Failed to update appointment details: ' + updatedAppointment.message
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Appointment details updated successfully',
+        data: updatedAppointment
+      });
+    }
+    else{
+      res.status(401).json({
+        success: false,
+      });
+    }
+  }
+  catch(error){
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
 export const getAppointmentById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;

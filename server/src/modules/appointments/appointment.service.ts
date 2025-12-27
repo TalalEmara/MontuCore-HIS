@@ -164,6 +164,42 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
   }
 }
 
+export const updateAppointment = async(appointmentID: number, appointmentData : AppointmentData) => {
+  // Update an existing appointment, not all fields are required, change only the provided fields
+  try{
+    const existingAppointment = await prisma.appointment.findUnique({
+      where: {
+        id: appointmentID
+      }
+    });
+    if (!existingAppointment){
+      throw new Error('Appointment not found');
+    }
+    // Prepare updated data
+    const updatedData: any = {};
+    if (appointmentData.athleteId) updatedData.athleteId = appointmentData.athleteId;
+    if (appointmentData.clinicianId) updatedData.clinicianId = appointmentData.clinicianId;
+    if (appointmentData.scheduledAt) {
+      // Convert local time (Egypt timezone) to UTC for storage
+      const offset = getTimezoneOffsetInMinutes();
+      updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
+    }
+    if (appointmentData.height !== undefined) updatedData.height = appointmentData.height;
+    if (appointmentData.weight !== undefined) updatedData.weight = appointmentData.weight;
+    if (appointmentData.status) updatedData.status = appointmentData.status;
+    if (appointmentData.diagnosisNotes !== undefined) updatedData.diagnosisNotes = appointmentData.diagnosisNotes;
+    const updatedAppointment = await prisma.appointment.update({
+      where: {
+        id: appointmentID
+      },
+      data: updatedData
+    });
+    return updatedAppointment;
+  }
+  catch(error){
+    return error;
+  }
+}
 
 export const updateAppointmentStatus = async (appointmentID: number, status: ApptStatus) => {
   try {
