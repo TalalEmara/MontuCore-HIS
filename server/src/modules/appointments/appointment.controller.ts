@@ -210,22 +210,21 @@ export const deleteAppointment = async (req: Request, res: Response): Promise<vo
 
 export const getAllAppointments = async (req: Request, res: Response): Promise<void> => {
   try{
-    const { page = 1, limit = 10, status, athleteName, clinicianName, date, caseId } = req.query;
+    const { page = 1, limit = 10, status, caseId } = req.query;
     const authHeader = req.headers['authorization'] || '';
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
       : authHeader;
     const validToken = await authC.verifyToken(userToken);
     if(validToken && authC.isAdmin(userToken)){
-      const allAppointments = await appointmentService.getAllAppointments({
+      const filters: any = {
         page: Number(page),
         limit: Number(limit),
-        status: status as any,
-        athleteName: athleteName as string,
-        clinicianName: clinicianName as string,
-        date: date as string,
-        caseId: caseId ? Number(caseId) : undefined
-      });
+      };
+      if (status) filters.status = status as any;
+      if (caseId) filters.caseId = Number(caseId);
+      
+      const allAppointments = await appointmentService.getAllAppointments(filters);
       if (allAppointments instanceof Error){
         res.status(400).json({
           success: false,
