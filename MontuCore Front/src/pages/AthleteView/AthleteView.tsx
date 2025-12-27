@@ -14,7 +14,6 @@ import { useAuth } from "../../context/AuthContext";
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
   const [currentPage, setPage] = useState(1);
-  const totalPages = 5;
   const [isBooking, setIsBooking] = useState<boolean>(false)
   const { user,profile } = useAuth();
   const baseAthleteData = {
@@ -24,12 +23,13 @@ function AthleteView() {
     jerseyNumber: profile?.jerseyNumber || 7,
   };
 
-  // Fetch Data
-  const { dashboard, isLoading, refetch } = useAthleteDashboard(
-    baseAthleteData.id,
-    currentPage,
-    4
-  );
+// Fetch Data
+const { dashboard, isLoading, refetch } = useAthleteDashboard(
+  baseAthleteData.id,
+  currentPage,
+  1,      
+  activeTab 
+);
 
   //  Merge Static Data with Dynamic Vitals
   const athleteData = {
@@ -54,30 +54,31 @@ function AthleteView() {
     ]
   ) || []; 
 
-  const cases = dashboard?.report.cases.map((report , indx)=>[
-    indx+1,
+  const cases = dashboard?.report?.cases?.map((report, indx) => [
+    indx + 1,
     report.diagnosisName,
     new Date(report.injuryDate).toLocaleDateString(),
-  ])
+  ]) || []; // Added fallback array
 
-  const prescriptions = dashboard?.prescriptions.treatments.map((treatment, indx)=>[
-    indx+1,
+  const prescriptions = dashboard?.prescriptions?.treatments?.map((treatment, indx) => [
+    indx + 1,
     treatment.description,
     new Date(treatment.date).toLocaleDateString(),
-  ])
-  const images = dashboard?.imaging.exams.map((exam, indx)=>[
-    indx+1,
-    `${exam.bodyPart}-${exam.modality}`,
-    new Date(exam.performedAt|| "").toLocaleDateString(),
-    exam.status
-  ])
+  ]) || [];
 
-  const labTests = dashboard?.tests.labTests.map((test,indx)=>[
-    indx+1,
+  const images = dashboard?.imaging?.exams?.map((exam, indx) => [
+    indx + 1,
+    `${exam.bodyPart}-${exam.modality}`,
+    new Date(exam.performedAt || "").toLocaleDateString(),
+    exam.status
+  ]) || [];
+
+  const labTests = dashboard?.tests?.labTests?.map((test, indx) => [
+    indx + 1,
     `${test.testName}-${test.category}`,
     new Date(test.sampleDate).toLocaleDateString(),
     test.status
-  ])
+  ]) || [];
 
   const medicalRecords = {
     reports: cases,
@@ -85,6 +86,27 @@ function AthleteView() {
     imaging: images,
     "Lab tests": labTests
   };
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setPage(1); 
+  };
+
+const totalPages = (() => {
+  if (!dashboard) return 1;
+  switch (activeTab) {
+    case "prescriptions": 
+      return dashboard.prescriptions?.pagination?.totalPages || 1;
+    case "imaging": 
+      return dashboard.imaging?.pagination?.totalPages || 1;
+    case "Lab tests": 
+      return dashboard.tests?.pagination?.totalPages || 1;
+    case "reports": 
+      return (dashboard.report as any)?.pagination?.totalPages || 1;
+    default: 
+      return 1;
+  }
+})();
 
   return (
     <div className="athlete-viewer-container">
@@ -159,15 +181,7 @@ function AthleteView() {
                 ) : (
                   <div className="no-appointments">No upcoming appointments</div>
                 )}
-                <div className="card-footer">
-                {totalPages > 1 && (
-                 <Pagination 
-                  currentPage={currentPage} 
-                  totalPages={totalPages} 
-                  onPageChange={(page) => setPage(page)} 
-                  variant="white"
-                /> )}
-              </div>
+          
               </div>
             </div>
           </AdjustableCard>
@@ -183,7 +197,7 @@ function AthleteView() {
                   <div
                     key={tab}
                     className={`medical-records-tab ${activeTab === tab ? "active" : ""}`}
-                    onClick={() => setActiveTab(tab as typeof activeTab)}
+                onClick={() => handleTabChange(tab as typeof activeTab)}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </div>
