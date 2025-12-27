@@ -7,9 +7,13 @@ meta {
 get {
   url: {{baseURL}}/appointments/:id
   body: none
-  auth: none
+  auth: bearer
 }
 
 params:path {
-  id: 
+  id: 1
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc0MDI1LCJleHAiOjE3NjcxMzMyMjV9.6ljKPLH8KNz9sAxDtknfoVpnKrU7M1J8J7482k0-zZo
 }

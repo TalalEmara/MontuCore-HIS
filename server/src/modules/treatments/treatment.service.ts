@@ -99,4 +99,45 @@ export const getTreatmentsByCaseId = async (caseId: number, page = 1, limit = 10
   return getTreatments({ caseId, page, limit });
 };
 
+/**
+ * Create a new treatment
+ */
+export const createTreatment = async (treatmentData: any) => {
+  try {
+    const treatment = await prisma.treatment.create({
+      data: treatmentData
+    });
+    return treatment;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Update an existing treatment
+ */
+export const updateTreatment = async (treatmentId: number, updateData: any) => {
+  try {
+    const treatment = await prisma.treatment.update({
+      where: { id: treatmentId },
+      data: updateData
+    });
+    return treatment;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Delete a treatment
+ */
+export const deleteTreatment = async (treatmentId: number) => {
+  try {
+    await prisma.treatment.delete({
+      where: { id: treatmentId }
+    });
+  } catch (error) {
+    throw error;
+  }
+};
 

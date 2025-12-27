@@ -80,9 +80,6 @@ const athleteMedicalDataSchema = z.object({
       z.object({
         modality: z.string().min(1, "Modality is required"),
         bodyPart: z.string().min(1, "Body Part is required"),
-        file: z.instanceof(File).refine(file => file instanceof File, {
-          message: "File is required",
-        }),
         dicomFiles: z.array(z.instanceof(File)).optional()
       })
     )
@@ -118,7 +115,7 @@ function RegisterView() {
   const [showExamModal, setShowExamModal] = useState(false);
 
   const [currentLabTest, setCurrentLabTest] = useState({testName: "", category: "", file: null as File | null});
-  const [currentExam, setCurrentExam] = useState({modality: "", bodyPart: "", file: null as File | null, dicomFiles: [] as File[]});
+  const [currentExam, setCurrentExam] = useState({modality: "", bodyPart: "", dicomFiles: [] as File[]});
       
   const [notes, setNotes] = useState("");
 
@@ -285,9 +282,9 @@ const handleAthleteMedicalSubmit = () => {
   };
 
  const addExam = () => {
-  if (currentExam.modality && currentExam.bodyPart && currentExam.file) {
+  if (currentExam.modality && currentExam.bodyPart ) {
     setExams([...exams, currentExam as any]);
-    setCurrentExam({modality: "", bodyPart: "", file: null, dicomFiles: []});
+    setCurrentExam({modality: "", bodyPart: "", dicomFiles: []});
     setShowExamModal(false);
   }
 };
@@ -525,14 +522,6 @@ const handleAthleteMedicalSubmit = () => {
                   value={currentExam.bodyPart} 
                   onChange={(v) => setCurrentExam({...currentExam, bodyPart: v})} 
                 />
-                <div className={styles.fileInputWrapper}>
-                  <label className={styles.label}>Upload Imaging File</label>
-                  <input 
-                    type="file" 
-                    onChange={(e) => setCurrentExam({...currentExam, file: e.target.files?.[0] || null})} 
-                    accept=".jpg,.jpeg,.png ,.pdf" 
-                  />
-                </div>
                 <div className={styles.fileInputWrapper}>
                   <label className={styles.label}>DICOM Files</label>
                   <input 

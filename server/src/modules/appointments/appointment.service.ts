@@ -12,6 +12,7 @@ interface AppointmentData {
   weight?: number;
   status?: ApptStatus;
   diagnosisNotes?: string;
+  caseId?: number;
   timezone?: string; // e.g., "Europe/Berlin", "America/New_York"
 }
 
@@ -19,9 +20,12 @@ interface GetAllAppointmentsParams {
   page?: number;
   limit?: number;
   status?: ApptStatus;
-  athleteName: string;
-  clinicianName: string;
+  athleteName?: string;
+  clinicianName?: string;
   date?: string;
+  caseId?: number;
+  clinicianId?: number;
+  athleteId?: number;
 }
 
 
@@ -75,8 +79,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
     // Convert local time (Egypt timezone) to UTC for storage
     let scheduledDate = new Date(appointmentData.scheduledAt);
-    const offset = getTimezoneOffsetInMinutes();
-    scheduledDate = localToUTC(appointmentData.scheduledAt, offset);
+    // scheduledDate = localToUTC(appointmentData.scheduledAt, offset); // Input is already UTC
 
     /*
       Some Important Checks
@@ -149,6 +152,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
         height: appointmentData.height ?? null,
         weight: appointmentData.weight ?? null,
         status: appointmentData.status || ApptStatus.SCHEDULED,
+        caseId: appointmentData.caseId ?? null,
         diagnosisNotes: appointmentData.diagnosisNotes ?? null
       }
     })
@@ -164,6 +168,44 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
   }
 }
 
+export const updateAppointment = async(appointmentID: number, appointmentData : AppointmentData) => {
+  // Update an existing appointment, not all fields are required, change only the provided fields
+  try{
+    const existingAppointment = await prisma.appointment.findUnique({
+      where: {
+        id: appointmentID
+      }
+    });
+    if (!existingAppointment){
+      throw new Error('Appointment not found');
+    }
+    // Prepare updated data
+    const updatedData: any = {};
+    if (appointmentData.athleteId) updatedData.athleteId = appointmentData.athleteId;
+    if (appointmentData.clinicianId) updatedData.clinicianId = appointmentData.clinicianId;
+    if (appointmentData.scheduledAt) {
+      // Convert local time (Egypt timezone) to UTC for storage
+      // const offset = getTimezoneOffsetInMinutes();
+      // updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
+      updatedData.scheduledAt = new Date(appointmentData.scheduledAt); // Input is already UTC
+    }
+    if (appointmentData.height !== undefined) updatedData.height = appointmentData.height;
+    if (appointmentData.weight !== undefined) updatedData.weight = appointmentData.weight;
+    if (appointmentData.status) updatedData.status = appointmentData.status;
+    if (appointmentData.diagnosisNotes !== undefined) updatedData.diagnosisNotes = appointmentData.diagnosisNotes;
+    if (appointmentData.caseId !== undefined) updatedData.caseId = appointmentData.caseId;
+    const updatedAppointment = await prisma.appointment.update({
+      where: {
+        id: appointmentID
+      },
+      data: updatedData
+    });
+    return updatedAppointment;
+  }
+  catch(error){
+    return error;
+  }
+}
 
 export const updateAppointmentStatus = async (appointmentID: number, status: ApptStatus) => {
   try {
@@ -293,12 +335,15 @@ export const deleteAppointment = async(appointmentID: number) => {
 }
 
 // When we return a lot of data,we will use pagination to limit the amount of data returned.
-export const getAllAppointments = async({ page = 1, limit = 10, status, athleteName, clinicianName, date }: GetAllAppointmentsParams) => {
+export const getAllAppointments = async({ page = 1, limit = 10, status, athleteName, clinicianName, date, caseId, clinicianId, athleteId }: GetAllAppointmentsParams = {}) => {
   try{
     // Return all appointments
     const where: Prisma.AppointmentWhereInput = {};
     if (status) where.status = status;
     if (date) where.scheduledAt = new Date(date);
+    if (caseId) where.caseId = caseId;
+    if (clinicianId) where.clinicianId = clinicianId;
+    if (athleteId) where.athleteId = athleteId;
     const appointments = await prisma.appointment.findMany({
         where,
         skip: (page - 1) * limit,
@@ -325,87 +370,6 @@ export const getAllAppointments = async({ page = 1, limit = 10, status, athleteN
   }
 } 
 
-
-export const getAllAppointmentsByAthelete = async({ page = 1, limit = 10, status, athleteName, clinicianName, date }: GetAllAppointmentsParams, athleteId: Number) => {
-  try{
-    const athelte = await prisma.user.findFirst({
-      where: {
-        id: Number(athleteId),
-        role: 'ATHLETE'
-      }
-    });
-
-    if (!athelte){
-      throw new Error('Athlete not found');
-    }
-    // Get All the appointments for the athlete
-
-    // I wrote the condition as a separate variable to make it easier to read and maintain, then i will add it in the find query.
-    const where: Prisma.AppointmentWhereInput = {
-      athleteId: athelte.id
-    };
-    if (status) where.status = status;
-    if (date) where.scheduledAt = new Date(date);
-
-    const appointments = await prisma.appointment.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        clinician: {
-          select: { fullName: true }
-        },
-        athlete:{
-          select: { fullName: true }
-        }
-      }
-    });
-    return appointments;
-  }
-  catch(error){
-    return error;
-  }
-} 
-
-
-export const getAllAppointmentsByClinician = async({ page = 1, limit = 10, status, athleteName, clinicianName, date }: GetAllAppointmentsParams, clinicianId : Number) => {
-  try{
-    const clinician = await prisma.user.findFirst({
-      where: {
-        id: Number(clinicianId),
-        role: 'CLINICIAN'
-      }
-    });
-
-    if (!clinician){
-      throw new Error('Clinician not found');
-    }
-    // Get All the appointments for the clinician
-    const where: Prisma.AppointmentWhereInput = {
-      clinicianId: clinician.id
-    };
-    if (status) where.status = status;
-    if (date) where.scheduledAt = new Date(date);
-
-    const appointments = await prisma.appointment.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        athlete:{
-          select: { fullName: true }
-        },
-        clinician: {
-          select: { fullName: true }
-        }
-      }
-    });
-    return appointments;
-  }
-  catch(error){
-    return error;
-  }
-} 
 
 
 
@@ -590,3 +554,48 @@ export const getAppointmentsByCaseId = async (caseId: number, page: number = 1, 
     throw error;
   }
 };
+
+export const getAppointmentsByAthleteId = async (athleteId: number, filters: Partial<GetAppointmentsFilterParams> = {}) => {
+  try{
+    const athlete = await prisma.user.findFirst({
+      where: {
+        id: athleteId,
+        role: 'ATHLETE'
+      }
+    });
+
+    if (!athlete){
+      throw new Error('Athlete not found');
+    }
+
+    // Use the generic getAppointments function with athleteId filter and additional filters
+    const result = await getAppointments({ athleteId, ...filters });
+    return result.appointments;
+  }
+  catch(error){
+    throw error;
+  }
+} 
+
+
+export const getAppointmentsByClinicianId = async (clinicianId: number, filters: Partial<GetAppointmentsFilterParams> = {}) => {
+  try{
+    const clinician = await prisma.user.findFirst({
+      where: {
+        id: clinicianId,
+        role: 'CLINICIAN'
+      }
+    });
+
+    if (!clinician){
+      throw new Error('Clinician not found');
+    }
+
+    // Use the generic getAppointments function with clinicianId filter and additional filters
+    const result = await getAppointments({ clinicianId, ...filters });
+    return result.appointments;
+  }
+  catch(error){
+    throw error;
+  }
+}; 

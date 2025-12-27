@@ -20,6 +20,13 @@ router.put('/update-appointment-status/', appointmentController.updateAppointmen
 
 /***
  * @route PUT /api/appointments
+ * @desc Update Appointment Details
+ * @access Public
+ */
+router.post('/update-appointment-details/:appointmentId', appointmentController.updateAppointment);
+
+/***
+ * @route PUT /api/appointments
  * @desc Update Appointment Status
  * @access Public
  */
@@ -35,6 +42,7 @@ router.delete('/delete-appointment/:id', appointmentController.deleteAppointment
 /***
  * @route GET /api/appointments/
  * @desc Get all appointments
+ * @query page, limit, status, athleteName, clinicianName, date, caseId
  * @access Public
  */
 router.get('/', appointmentController.getAllAppointments);
@@ -42,16 +50,18 @@ router.get('/', appointmentController.getAllAppointments);
 /***
  * @route GET /api/appointments/
  * @desc Get all appointments by clinician
+ * @query page, limit, status, caseId
  * @access Public
  */
-router.get('/clinician/:clinicianId', appointmentController.getAllAppointmentsByClinician);
+router.get('/clinician/:clinicianId', appointmentController.getAppointmentsByClinicianId);
 
 /***
  * @route GET /api/appointments/
  * @desc Get all appointments by athlete
+ * @query page, limit, status, caseId
  * @access Public
  */
-router.get('/athlete/:athleteId', appointmentController.getAllAppointmentsByAthelete);
+router.get('/athlete/:athleteId', appointmentController.getAppointmentsByAthleteId);
 
 
 

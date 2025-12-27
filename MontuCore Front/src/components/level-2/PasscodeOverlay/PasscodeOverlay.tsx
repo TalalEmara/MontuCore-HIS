@@ -5,27 +5,27 @@ import styles from "./PasscodeOverlay.module.css";
 
 interface PasscodeOverlayProps {
   isOpen: boolean;
-  correctPasscode: string;
-  onSuccess: () => void;
+  onSuccess: (code: string) => void;
+  error?: string;
 }
 
 const PasscodeOverlay: React.FC<PasscodeOverlayProps> = ({ 
   isOpen, 
-  correctPasscode, 
-  onSuccess 
+  onSuccess,
+  error: apiError 
 }) => {
   const [passcode, setPasscode] = useState("");
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === correctPasscode) {
-      setError("");
-      onSuccess();
+    if (passcode.length > 0) {
+      setLocalError("");
+      onSuccess(passcode); 
     } else {
-      setError("Incorrect passcode. Please try again.");
+      setLocalError("Please enter a passcode.");
     }
   };
 
@@ -41,18 +41,14 @@ const PasscodeOverlay: React.FC<PasscodeOverlayProps> = ({
             value={passcode}
             onChange={(val) => {
               setPasscode(val);
-              if (error) setError(""); 
+              setLocalError("");
             }}
             type="password"
-            error={error}
+            error={apiError || localError}
           />
           
           <div style={{ marginTop: "1.5rem" }}>
-            <Button 
-              type="submit" 
-              variant="primary" 
-              height="40px"
-            >
+            <Button type="submit" variant="primary" height="40px">
               ENTER
             </Button>
           </div>

@@ -1,0 +1,43 @@
+meta {
+  name: Create Treatment
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/treatments
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "caseId": 7,
+    "type": "PHYSIOTHERAPY",
+    "description": "Knee rehabilitation exercises",
+    "providerName": "Dr. Smith",
+    "date": "2025-12-27T10:00:00Z",
+    "cost": 150.00
+  }
+}
+
+docs {
+  # Create Treatment
+  
+  Creates a new treatment record for a medical case.
+  
+  ## Request Body
+  - `caseId`: ID of the associated medical case (required)
+  - `type`: Treatment type (e.g., PHYSIOTHERAPY, SURGERY, MEDICATION)
+  - `description`: Detailed description of the treatment
+  - `providerName`: Name of the healthcare provider
+  - `date`: Treatment date in ISO format
+  - `cost`: Cost of the treatment (optional)
+  
+  ## Response
+  Returns the created treatment object.
+}

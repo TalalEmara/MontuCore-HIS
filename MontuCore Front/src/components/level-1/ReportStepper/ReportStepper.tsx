@@ -16,21 +16,31 @@ import { step4Schema } from "./schemas/step4";
 
 import { fullReportSchema, type FullReport } from "./schemas/fullReport";
 import styles from "./ReportStepper.module.css";
+import { useMedicalReport } from "../../../hooks/useMedicalReport";
 
 interface ReportStepperProps {
   isOpen: boolean;
   onClose: () => void;
   defaultValues?: Partial<FullReport>;
+  caseId?: number;
+  athleteId?: number;
+  clinicianId?: number;
+  appointmentId?: number;
 }
 
 export default function ReportStepper({
   isOpen,
   onClose,
   defaultValues = {},
+  caseId,
+  athleteId,
+  clinicianId,
+  appointmentId
 }: ReportStepperProps) {
+
   const [currentStep, setCurrentStep] = useState(1);
   const [allData, setAllData] = useState<Partial<FullReport>>(defaultValues);
-
+  const sendReport = useMedicalReport();
   const getSchema = () => {
     switch (currentStep) {
       case 1: return step1Schema;
@@ -74,18 +84,34 @@ export default function ReportStepper({
     generatePDF(formattedData);
   };
 
-  const handleFinalSubmit: SubmitHandler<Partial<FullReport>> = async (data) => {
+const handleFinalSubmit: SubmitHandler<Partial<FullReport>> = async (data) => {
+    // 1. Merge all data
     const merged = { ...allData, ...data };
+    
+    // 2. Validate the FULL report
     const parseResult = fullReportSchema.safeParse(merged);
 
     if (parseResult.success) {
-      const finalData = formatReportData(parseResult.data);
-      console.log("Final Data:", finalData);
-      generatePDF(finalData, true);
-      onClose();
+      console.log("Submitting validated data:", parseResult.data);
+      
+      // 3. Send raw data (FullReport structure) to the hook
+      sendReport.mutate({
+        data: parseResult.data, 
+        appointmentId: appointmentId!, 
+        athleteId: athleteId!,
+        clinicianId: clinicianId!,
+        existingCaseId: caseId
+      }, {
+        onSuccess: () => {
+          // 4. On success, verify visual report and close
+          const formattedData = formatReportData(parseResult.data);
+          generatePDF(formattedData, true);
+          onClose();
+        }
+      });
     } else {
       console.error("VALIDATION ERROR:", parseResult.error);
-      form.trigger();
+      form.trigger(); 
     }
   };
 
@@ -94,7 +120,7 @@ export default function ReportStepper({
       caseStatus: data.caseStatus,
       notes: {
         symptoms: data.symptoms?.join(" - ") || "",
-        Notes: data.Notes || "",
+        Notes: data.Notes || "", 
         painLevel: data.painLevel,
       },
       diagnosis: `${data.diagnosis} - ${data.injuryType}`,
@@ -105,7 +131,6 @@ export default function ReportStepper({
       treatment: data.treatment || []
     };
   };
-
   const generatePDF = (data: any, save = false) => {
     const doc = new jsPDF("p", "mm", "a4");
     doc.setFontSize(18);

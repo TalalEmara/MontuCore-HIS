@@ -140,10 +140,14 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
         </Button>
         <Button variant="secondary">delete</Button>
       </div>
-       <ReportStepper
-        isOpen={isReporting}
-        onClose={() => setIsReporting(false)}
-      />
+      <ReportStepper
+              isOpen={isReporting}
+              onClose={() => setIsReporting(false)}
+              caseId={18}
+              clinicianId={1}
+              athleteId={29}
+              appointmentId={30}
+            />
     </div>
   );
 }

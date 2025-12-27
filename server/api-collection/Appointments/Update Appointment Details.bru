@@ -1,0 +1,28 @@
+meta {
+  name: Update Appointment Details
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/appointments/update-appointment-details/1
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc0MDI1LCJleHAiOjE3NjcxMzMyMjV9.6ljKPLH8KNz9sAxDtknfoVpnKrU7M1J8J7482k0-zZo
+}
+
+body:json {
+  {
+    "status": "SCHEDULED",
+    "diagnosisNotes": "Updated diagnosis notes",
+    "height": 180,
+    "weight": 75
+  }
+}

@@ -1,0 +1,40 @@
+meta {
+  name: Get Appointments by Athlete
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseURL}}/appointments/athlete/5?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 10
+  ~status: SCHEDULED
+  ~caseId: 7
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc0MDI1LCJleHAiOjE3NjcxMzMyMjV9.6ljKPLH8KNz9sAxDtknfoVpnKrU7M1J8J7482k0-zZo
+}
+
+docs {
+  # Get Appointments by Athlete
+  
+  Retrieves all appointments for a specific athlete with optional filtering.
+  
+  ## Path Parameters
+  - `athleteId`: The athlete's ID (replace 1 with actual ID)
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `status`: Filter by appointment status
+  - `caseId`: Filter by case ID
+  
+  ## Response
+  Returns paginated list of appointments for the specified athlete.
+}

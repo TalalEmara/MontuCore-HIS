@@ -1,18 +1,43 @@
 meta {
-  name: Get Schedule
+  name: Get Appointments (Schedule)
   type: http
   seq: 1
 }
 
 get {
-  url: {{baseURL}}/appointments/:id
+  url: {{baseURL}}/appointments?page=1&limit=10
   body: none
-  auth: none
+  auth: bearer
 }
 
 params:query {
-  ~date: 2025-12-01
+  page: 1
+  limit: 10
+  ~status: SCHEDULED
   ~clinicianId: 2
+  ~athleteId: 1
+  ~caseId: 7
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc0MDI1LCJleHAiOjE3NjcxMzMyMjV9.6ljKPLH8KNz9sAxDtknfoVpnKrU7M1J8J7482k0-zZo
+}
+
+docs {
+  # Get Appointments (Schedule)
+  
+  Retrieves appointments with optional filtering and pagination.
+  
+  ## Query Parameters
+  - `page`: Page number (default: 1)
+  - `limit`: Items per page (default: 10)
+  - `status`: Filter by appointment status (SCHEDULED, COMPLETED, CANCELLED)
+  - `clinicianId`: Filter by clinician ID
+  - `athleteId`: Filter by athlete ID
+  - `caseId`: Filter by case ID
+  
+  ## Response
+  Returns paginated list of appointments with athlete and clinician details.
 }
 
 params:path {
