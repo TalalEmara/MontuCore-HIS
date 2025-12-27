@@ -315,7 +315,10 @@
   font-weight: 800;
   color: var(--text-color);
 }
-
+.appointment-container{
+  display: flex;
+  flex-direction: row;
+}
 .appointment-details {
   display: flex;
   flex-direction: column;
@@ -337,7 +340,12 @@
   font-weight: 500;
   color: hsl(from var(--text-color) h s l / 0.5);
 }
-
+.appointment-actions{
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  align-self: flex-end;
+}
 .no-appointments {
   padding: 2rem 1rem;
   text-align: center;

@@ -63,6 +63,43 @@ We follow established conventional commit formats: `type: brief description`
 * **CDSS Integration:** Clinical Decision Support System for evidence-based recommendations.
 
 ---
+
+## 🧪 DICOM Testing Guide
+
+### Quick Start
+1. **Start Backend:** `cd server && pnpm dev`
+2. **Start Frontend:** `cd MontuCore Front && pnpm dev`
+3. **Test Upload:** Navigate to `/dicom-test` in your browser
+
+### Testing Workflows
+
+#### 1. Upload DICOMs to New Exam
+- Select "Create New Exam" mode
+- Enter Case ID (e.g., 7)
+- Choose multiple .dcm files
+- Upload and view automatically
+
+#### 2. Load Existing Exam
+- Enter Exam ID in test page
+- Click "Load Exam"
+- View DICOM series in Cornerstone.js viewer
+
+#### 3. Add to Existing Exam
+- Select "Add to Existing Exam" mode
+- Enter existing Exam ID
+- Upload additional DICOM files
+
+### API Testing
+Use Bruno collection in `server/api-collection/` or the test script `server/test-dicom.js` for backend verification.
+
+### Troubleshooting
+- Check Supabase credentials and bucket permissions
+- Verify DICOM files are valid .dcm format
+- Ensure backend runs on port 3000
+- Check browser console for Cornerstone.js errors
+
+---
+
 ## 👨‍💻 Developers
 
 > **Frontend Team**

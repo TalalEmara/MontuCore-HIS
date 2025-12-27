@@ -1,0 +1,81 @@
+meta {
+  name: Create Exam with Multiple DICOMs
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseURL}}/exams/with-multiple-dicoms
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  caseId: 7
+  modality: MRI
+  bodyPart: Knee
+  status: ORDERED
+  scheduledAt: 2025-12-22T10:00:00.000Z
+  cost: 1500.00
+  dicomFiles: @file(D:\Eng\SBE\4th\hcis\MontuCore-HIS\dicom_images\demo_pure_acl_6.dcm)
+  dicomFiles: @file(D:\Eng\SBE\4th\hcis\MontuCore-HIS\dicom_images\demo_pure_acl_1177_Abn68_Acl86_Men16.dcm)
+}
+
+script:post-response {
+  if (res.status === 201) {
+    try {
+      const responseData = JSON.parse(res.body);
+      if (responseData.data?.id) {
+        bru.setVar("newExamWithMultipleDicomsId", responseData.data.id);
+        console.log("Created Exam with Multiple DICOMs ID:", responseData.data.id);
+        console.log("Number of DICOM files uploaded:", responseData.data.pacsImages?.length || 0);
+      }
+    } catch (error) {
+      console.log("Error parsing response:", error);
+      console.log("Raw response:", res.body);
+    }
+  } else {
+    console.log("Request failed with status:", res.status);
+    console.log("Response:", res.body);
+  }
+}
+
+docs {
+  # Create Exam with Multiple DICOM Files
+  
+  Creates a new imaging exam order with multiple DICOM files uploaded simultaneously, OR adds DICOM files to an existing exam.
+
+  ## New Exam Creation
+  - `caseId`: ID of the medical case (required for new exams)
+  - `modality`: Type of imaging (MRI, CT, X-RAY, Ultrasound, PET, DEXA)
+  - `bodyPart`: Body part to be scanned (Knee, Shoulder, Head, etc.)
+
+  ## Add to Existing Exam
+  - `examId`: ID of existing exam (alternative to caseId)
+  - Cannot provide both caseId and examId
+
+  ## Optional Fields
+  - `status`: ORDERED (default), COMPLETED, CANCELLED
+  - `scheduledAt`: When the exam is scheduled
+  - `performedAt`: When the exam was performed
+  - `radiologistNotes`: Notes from radiologist
+  - `conclusion`: Final diagnosis/conclusion
+  - `cost`: Cost of the exam
+  - `dicomFiles`: Array of DICOM files to upload
+
+  ## DICOM Upload Behavior
+  - Files are uploaded directly to Supabase storage by the backend
+  - DICOM metadata from the first file populates exam fields (modality, bodyPart, performedAt)
+  - For new exams: status set to COMPLETED automatically
+  - For existing exams: status updated to COMPLETED if DICOMs added
+  - Files stored in: scans/case_{caseId}/exam_{examId}_{timestamp}/{filename}
+
+  ## File Requirements
+  - Multiple files can be selected using the same field name 'dicomFiles'
+  - Each file must be a valid DICOM format
+  - Files are processed in parallel for efficiency
+  - Failed file uploads are logged but don't stop the entire operation
+
+  ## Response
+  Returns the exam with all uploaded DICOM information including PACS image records with public URLs for Cornerstone.js viewer.
+}

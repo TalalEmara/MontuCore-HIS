@@ -71,9 +71,11 @@
 |--------|----------|-------------|------|
 | GET | `/` | Get exams with filters and pagination | Public |
 | POST | `/` | Create exam (optional DICOM upload) | Public |
+| POST | `/with-multiple-dicoms` | Create exam with multiple DICOM uploads | Public |
 | GET | `/:id` | Get exam by ID | Public |
 | PUT | `/:id` | Update exam | Public |
 | POST | `/:id/upload` | Upload DICOM to existing exam | Public |
+| POST | `/:id/complete` | Mark exam as completed | Public |
 
 **GET /api/exams Query Parameters:**
 - `page`: Page number (default: 1)
@@ -102,27 +104,60 @@ cost: number
 dicomFile: File  // Optional DICOM file (auto-completes exam)
 ```
 
+**POST /api/exams/with-multiple-dicoms (Create Exam with Multiple DICOMs)**
+```typescript
+Content-Type: multipart/form-data
+
+// Required fields
+caseId: number
+modality: string  // 'MRI', 'CT', 'X-RAY', 'Ultrasound', 'PET', 'DEXA'
+bodyPart: string  // 'Knee', 'Shoulder', 'Head', etc.
+
+// Optional fields
+status: 'ORDERED' | 'COMPLETED' | 'CANCELLED'  // Default: 'ORDERED'
+scheduledAt: Date
+performedAt: Date
+radiologistNotes: string
+conclusion: string
+cost: number
+dicomFiles: File[]  // Array of DICOM files (auto-completes exam if provided)
+
+// Multiple files: Use same field name 'dicomFiles' for each file
+// First DICOM's metadata populates exam fields
+// All files uploaded to: scans/case_{caseId}/exam_{timestamp}/{filename}
+```
+
 **POST /api/exams/:id/upload (Upload DICOM)**
 ```typescript
 Content-Type: multipart/form-data
 
 dicomFile: File  // Required DICOM file
 // Auto-sets status to COMPLETED
-// Rejects if exam already has DICOM
+// Multiple DICOMs allowed per exam (creates separate PACS image records)
+```
+
+**POST /api/exams/:id/complete (Mark Exam Completed)**
+```typescript
+Content-Type: application/json
+
+{}  // Empty body
+// Manually marks exam as COMPLETED
+// Sets performedAt if not already set
 ```
 
 ### Imaging Routes (`/api/imaging`)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/upload` | Upload DICOM scan (legacy + enhanced) | Required |
+| POST | `/upload` | Upload single DICOM scan | Public |
+| POST | `/link-series` | Link DICOM series to case | Public |
 | POST | `/` | Create imaging order | Required |
 | GET | `/` | Get all imaging orders | Required |
 | GET | `/:id` | Get imaging order by ID | Required |
 | PUT | `/:id` | Update imaging order | Required |
 | POST | `/:id/results` | Upload imaging results | Required |
 
-**POST /api/imaging/upload (Enhanced DICOM Upload)**
+**POST /api/imaging/upload (Single DICOM Upload)**
 ```typescript
 Content-Type: multipart/form-data
 
@@ -135,10 +170,26 @@ examId: number      // Attach to existing exam (optional)
 // If caseId provided: creates new exam
 ```
 
+**POST /api/imaging/link-series (Batch DICOM Series)**
+```typescript
+Content-Type: application/json
+
+{
+  "caseId": number,    // Required
+  "images": [          // Required array
+    {
+      "fileName": string,      // Original filename
+      "supabasePath": string   // Full Supabase path
+    }
+  ]
+}
+```
+
 **Business Rules:**
-- **Single DICOM per exam**: Cannot upload multiple DICOMs to same exam
+- **Multiple DICOMs per exam**: Exams can have multiple DICOM files (PACS images)
 - **Auto-complete**: DICOM uploads automatically set status to `COMPLETED`
-- **Status validation**: `COMPLETED` exams must have DICOM files
+- **Metadata extraction**: DICOM metadata populates exam fields (modality, bodyPart, performedAt)
+- **Path validation**: Series linking validates Supabase paths follow `scans/case_{id}/exam_{timestamp}/{filename}`
 - **Default status**: `ORDERED` when creating exams without DICOM
 
 **Bruno Collection:** `Exams/`, `Imaging/`

@@ -1,0 +1,67 @@
+meta {
+  name: Mark Exam as Completed
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseURL}}/exams/{{examId}}/complete
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    try {
+      const responseData = JSON.parse(res.body);
+      if (responseData.data?.id) {
+        console.log("Exam marked as completed:", responseData.data.id);
+        console.log("Status:", responseData.data.status);
+        console.log("PACS Images count:", responseData.data.pacsImages?.length || 0);
+      }
+    } catch (error) {
+      console.log("Error parsing response:", error);
+      console.log("Raw response:", res.body);
+    }
+  } else {
+    console.log("Request failed with status:", res.status);
+    console.log("Response:", res.body);
+  }
+}
+
+docs {
+  # Mark Exam as Completed
+
+  Manually marks an exam as completed after all DICOM images have been uploaded.
+
+  ## URL Parameters
+  - `examId`: ID of the exam to mark as completed
+
+  ## Business Rules
+  - Exam must exist
+  - Exam must not already be completed
+  - Sets status to COMPLETED
+  - Sets performedAt to current date if not already set
+  - Returns updated exam with all PACS images
+
+  ## Use Cases
+  - After uploading multiple DICOM files in separate requests
+  - When exam was created without DICOM and images added later
+  - Manual completion for workflow management
+
+  ## Error Responses
+  - 404: Exam not found
+  - 400: Exam already completed
+
+  ## Response
+  Returns the updated exam with status COMPLETED and all associated PACS images.
+}
+
+vars:pre-request {
+  baseURL: http://localhost:3000/api
+  examId: 1
+}

@@ -4,9 +4,14 @@ import { asyncHandler, successResponse, createdResponse, paginatedResponse } fro
 import * as authC from '../auth/auth.controller.js';
 import { prisma } from '../../config/db.js';
 
-// Extend Request for file uploads
+// Extend Request for single file uploads
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
+}
+
+// Extend Request for multiple file uploads
+interface MulterMultipleRequest extends Request {
+  files?: Express.Multer.File[];
 }
 
 /**
@@ -48,6 +53,35 @@ export const createExam = asyncHandler(async (req: MulterRequest, res: Response)
 
   const exam = await ExamService.createExam(examData);
   return createdResponse(res, exam, 'Exam created successfully');
+});
+
+/**
+ * Create a new exam with multiple DICOM uploads or add DICOMs to existing exam
+ * @route POST /api/exams/with-multiple-dicoms
+ */
+export const createExamWithMultipleDicoms = asyncHandler(async (req: MulterMultipleRequest, res: Response) => {
+  // With .fields() configuration, files are in req.files.fieldname
+  const dicomFiles = req.files && 'dicomFiles' in req.files ? req.files.dicomFiles : [];
+
+  const examData = {
+    ...req.body,
+    caseId: req.body.caseId ? parseInt(req.body.caseId) : undefined,
+    examId: req.body.examId ? parseInt(req.body.examId) : undefined,
+    cost: req.body.cost ? parseFloat(req.body.cost) : undefined,
+    scheduledAt: req.body.scheduledAt ? new Date(req.body.scheduledAt) : undefined,
+    performedAt: req.body.performedAt ? new Date(req.body.performedAt) : undefined,
+    dicomFiles: Array.isArray(dicomFiles) ? dicomFiles : dicomFiles ? [dicomFiles] : [] // Ensure it's an array
+  };
+
+  // Validate that either caseId or examId is provided, but not both
+  if ((!examData.caseId && !examData.examId) || (examData.caseId && examData.examId)) {
+    return res.status(400).json({
+      message: 'Either caseId (for new exam) or examId (for existing exam) must be provided, but not both'
+    });
+  }
+
+  const exam = await ExamService.createExamWithMultipleDicoms(examData);
+  return createdResponse(res, exam, 'DICOM files processed successfully');
 });
 
 /**
@@ -93,4 +127,18 @@ export const uploadDicomToExam = asyncHandler(async (req: MulterRequest, res: Re
 
   const image = await ExamService.uploadDicomToExam(parseInt(id), req.file);
   return createdResponse(res, image, 'DICOM uploaded successfully');
+});
+
+/**
+ * Mark exam as completed
+ * @route POST /api/exams/:id/complete
+ */
+export const markExamCompleted = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: 'Exam ID is required' });
+  }
+
+  const exam = await ExamService.markExamCompleted(parseInt(id));
+  return successResponse(res, exam, 'Exam marked as completed');
 });

@@ -1,10 +1,28 @@
 import { z } from "zod";
 
-export const step3Schema = z.object({
-  immediateActions: z.string().min(3, "Immediate actions are required"),
-  medication: z.string().optional(),
-  rehabPlan: z.string().min(3, "Rehab plan is required"),
-  followUpDate: z.string().min(1, "Follow-up date is required"),
-});
-
-export type Step4Data = z.infer<typeof step3Schema>;
+export const step3Schema = z
+  .object({
+    exam: z
+      .array(
+        z.object({
+          modality: z.array(z.string()).optional(),
+          bodyPart: z.string().optional(),
+        })
+      )
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.exam) {
+      data.exam.forEach((item, index) => {
+        if (item.modality && item.modality.length > 0) {
+          if (!item.bodyPart || item.bodyPart.trim() === "") {
+            ctx.addIssue({
+              path: ["exam", index, "bodyPart"],
+              message: "Body part is required when imaging modality is selected",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+        }
+      });
+    }
+  });

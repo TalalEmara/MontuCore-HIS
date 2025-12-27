@@ -16,12 +16,16 @@ import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
+// import DicomTestPage from "./components/DicomViewer/DicomTestPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
 import TablePage from "./pages/TablePage/TablePage";
 import TestTablePage from "./pages/TablePage/test";
 import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
+import PatientPortalView from "./pages/PatientPortalView/PatientPortalView";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import ExternalConsultationView from "./pages/ExternalView/ExternalConsultationView";
+
 // 1. The absolute root (No UI, just providers/outlet)
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -90,6 +94,12 @@ export const DicomRoute = createRoute({
   component: DicomViewPage,
 });
 
+// export const DicomTestRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "dicom-test",
+//   component: DicomTestPage,
+// });
+
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "register",
@@ -114,6 +124,18 @@ const ExternalConsultationRoute = createRoute({
   component: ExternalConsultationView,
 });
 
+const ProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "profile",
+  component: ProfilePage,
+});
+
+const PatientPortalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "patientPortal",
+  component: PatientPortalView,
+});
+
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
   sidebarLayoutRoute.addChildren([
@@ -121,13 +143,16 @@ const routeTree = rootRoute.addChildren([
     athleteViewRoute,
     PhysiotherapistViewRoute,
     cases,
+    ProfileRoute
   ]),
   CaseRoute,
   DicomRoute,
+  // DicomTestRoute,
   registerRoute,
   LoginRoute,
   ManagerRoute,
   ExternalConsultationRoute,
+  PatientPortalRoute
 ]);
 
 

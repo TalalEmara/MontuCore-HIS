@@ -1,4 +1,8 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
+
+// ... (Interfaces omitted) ...
+export interface CaseRecordResult { caseRecord: any; message: string; }
 
 // --- 1. Interfaces ---
 
@@ -21,7 +25,9 @@ export interface Exam {
   radiologistNotes?: string;
   conclusion?: string;
   cost: number;
-  images: string[];
+  dicomFileName?: string;
+  dicomPublicUrl?: string;
+  dicomUploadedAt?: string;
 }
 
 export interface LabTest {
@@ -55,6 +61,17 @@ export interface PhysioProgram {
   costPerSession: number;
 }
 
+export interface CreateCaseRequest {
+  athleteId: number;
+  managingClinicianId: number;
+  initialAppointmentId: number;
+  diagnosisName: string;
+  icd10Code?: string;
+  injuryDate: string;
+  status: string;
+  severity: string;
+  medicalGrade: string;
+}
 // -- Main Data Structure --
 
 export interface CaseRecordData {
@@ -87,18 +104,34 @@ export interface CaseRecordResult {
 }
 
 // --- 2. API Fetcher ---
+export const createCaseApi = async (data: CreateCaseRequest, token: string, API_URL: string = `http://localhost:3000/api`) => {
+  const response = await fetch(`${API_URL}/cases`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Case creation failed:", errorData);
+    return null; // Return null instead of throwing to allow registration chain to continue
+  }
+  return response.json();
+};
 
 const fetchCaseRecord = async (
   caseId: number,
+  token: string,
   API_URL: string = `http://localhost:3000/api`
-): Promise<CaseRecordResponse> => {
-  // const token = localStorage.getItem('token');
-
+): Promise<any> => {
   const response = await fetch(`${API_URL}/cases/${caseId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -106,20 +139,17 @@ const fetchCaseRecord = async (
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || 'Failed to fetch case record');
   }
-
   return response.json();
 };
 
-// --- 3. Custom Hook ---
-
 export const useCaseRecord = (caseId: number) => {
+  const { token } = useAuth();
+
   const queryInfo = useQuery({
     queryKey: ['caseRecord', caseId],
-    queryFn: () => fetchCaseRecord(caseId),
-    
-    enabled: !!caseId,
+    queryFn: () => fetchCaseRecord(caseId, token!),
+    enabled: !!caseId && !!token,
     placeholderData: keepPreviousData, 
-
     select: (response): CaseRecordResult => ({
       caseRecord: response.data,
       message: response.message || 'Case record loaded successfully',

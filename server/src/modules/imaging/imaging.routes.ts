@@ -2,7 +2,7 @@ import * as imagingController from './imaging.controller.js';
 import { authenticateToken } from '../../middleware/auth.js';
 import { Router, type Router as RouterType } from 'express';
 import multer from 'multer';
-import { uploadAndProcessScan } from './pacs.controller.js';
+import { uploadAndProcessScan, linkScanSeries } from './pacs.controller.js';
 
 const router: RouterType = Router();
 
@@ -16,6 +16,14 @@ const upload = multer({
 // POST /api/imaging/upload
 // Frontend sends FormData: key="file" (the .dcm), key="caseId"
 router.post('/upload', upload.single('file'), uploadAndProcessScan);
+
+/**
+ * @route   POST /api/imaging/link-series
+ * @desc    Link a series of DICOM images to a case (batch upload). Metadata is automatically extracted from the first DICOM file.
+ * @access  Public (to be protected with auth in production)
+ * @body    { caseId: number, images: Array<{fileName: string, supabasePath: string}> }
+ */
+router.post('/link-series', linkScanSeries);
 
 
 /**

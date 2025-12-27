@@ -21,8 +21,7 @@ function CaseView() {
   const caseId = 2
   const [isReporting, setIsReporting] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
-  const { caseRecord, isLoading } = useCaseRecord(caseId);
-
+  const { caseRecord, isLoading: caseLoading } = useCaseRecord(caseId);
 
   // const appointments = caseRecord?.
   const treatments = caseRecord?.treatments.map((treatment , indx) => [
@@ -90,10 +89,10 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
             <List header={["#","exam","status"]} data={exams} />
           </div>
         )}
-        <p className={styles.title}>
-          case #{caseId} <span>{caseRecord?.managingClinician.fullName}</span>
-         <Bill invoiceId={caseRecord?.id} />
-        </p>
+       <p className={styles.title}>
+       case #{caseId} <span>{caseRecord?.managingClinician.fullName}</span>
+       <Bill invoiceId={caseId} /> 
+    </p>
         
       </div>
       <div className={styles.reports}>
@@ -119,7 +118,7 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
         <AdjustableCard title="Physiotherapy" height="100%" maxWidth="100%">
           <div className={styles.physioContent}>
             <div className={styles.physioCards}>
-              <InfoCard label="Sessions" value={physioProgram?.numberOfSessions} />
+              <InfoCard label="Sessions" value={physioProgram?.numberOfSessions } />
               <InfoCard label="Completed" value={physioProgram?.sessionsCompleted} />
               <InfoCard label="per week" value={physioProgram?.weeklyRepetition} />
             </div>

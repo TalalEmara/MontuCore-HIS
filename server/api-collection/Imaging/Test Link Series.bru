@@ -1,0 +1,68 @@
+meta {
+  name: Test Link DICOM Series (with sample data)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/imaging/link-series
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "caseId": 7,
+    "images": [
+      {
+        "fileName": "demo_pure_acl_6.dcm",
+        "supabasePath": "scans/case_7/exam_1735320000000/demo_pure_acl_6.dcm"
+      }
+    ]
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    try {
+      const responseData = JSON.parse(res.body);
+      console.log("✅ Series linked successfully!");
+      console.log("📋 Exam ID:", responseData.exam?.id);
+      console.log("🩻 Modality:", responseData.exam?.modality);
+      console.log("📍 Body Part:", responseData.exam?.bodyPart);
+      console.log("🖼️ Images count:", responseData.images?.length || 0);
+      console.log("📊 Metadata extracted:", responseData.metadata);
+    } catch (error) {
+      console.log("❌ Error parsing response:", error);
+    }
+  } else {
+    console.log("❌ Request failed with status:", res.status);
+    console.log("📄 Response:", res.body);
+  }
+}
+
+docs {
+  # Test Link DICOM Series
+
+  Test route for linking DICOM series. Uses sample data that may not exist in your Supabase bucket.
+
+  ## Prerequisites
+  - Case with ID 7 must exist
+  - DICOM file must be uploaded to Supabase at the specified path
+  - Or update the caseId and paths to match your test data
+
+  ## Expected Behavior
+  - Downloads first DICOM to extract metadata
+  - Creates exam with COMPLETED status
+  - Creates PACS image records
+  - Returns exam, images, and extracted metadata
+
+  ## Troubleshooting
+  - 404: Case not found - check caseId
+  - 400: Invalid path format - check supabasePath format
+  - 500: DICOM parsing failed - check if file exists in Supabase
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000/api
+}

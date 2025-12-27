@@ -1,0 +1,60 @@
+meta {
+  name: Add DICOMs to Existing Exam
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseURL}}/exams/with-multiple-dicoms
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  examId: {{newExamWithMultipleDicomsId}}
+  dicomFiles: @file(D:\Eng\SBE\4th\hcis\MontuCore-HIS\dicom_images\demo_dual_injury_1178_Abn96_Acl92_Men85.npy)
+  dicomFiles: @file(D:\Eng\SBE\4th\hcis\MontuCore-HIS\dicom_images\demo_dual_injury_1201_Abn86_Acl98_Men89.npy)
+}
+
+script:post-response {
+  if (res.status === 201) {
+    try {
+      const responseData = JSON.parse(res.body);
+      if (responseData.data?.id) {
+        console.log("Added DICOMs to existing Exam ID:", responseData.data.id);
+        console.log("Total DICOM files now:", responseData.data.pacsImages?.length || 0);
+        console.log("Exam status:", responseData.data.status);
+      }
+    } catch (error) {
+      console.log("Error parsing response:", error);
+      console.log("Raw response:", res.body);
+    }
+  } else {
+    console.log("Request failed with status:", res.status);
+    console.log("Response:", res.body);
+  }
+}
+
+docs {
+  # Add DICOM Files to Existing Exam
+
+  Adds multiple DICOM files to an existing imaging exam.
+
+  ## Required Fields
+  - `examId`: ID of the existing exam
+  - `dicomFiles`: Array of DICOM files to upload
+
+  ## Behavior
+  - Exam status will be updated to COMPLETED
+  - DICOM metadata will only update exam fields if they are not already set
+  - New files are added to existing PACS image records
+  - Files stored in: scans/case_{caseId}/exam_{examId}_{timestamp}/{filename}
+
+  ## Use Case
+  - Adding additional DICOM series to an existing exam
+  - Uploading results after initial exam creation
+  - Supplementing incomplete DICOM uploads
+
+  ## Response
+  Returns the updated exam with all DICOM information including existing and new PACS image records.
+}

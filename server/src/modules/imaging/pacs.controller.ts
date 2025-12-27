@@ -8,7 +8,7 @@ interface MulterRequest extends Request {
     file?: Express.Multer.File;
 }
 
-const parseDicomDate = (dateString: string | undefined): Date => {
+const parseDicomDate = (dateString: string | null | undefined): Date => {
   if (!dateString || dateString.length !== 8) {
     return new Date(); // Fallback to "now" if missing or invalid
   }
@@ -59,7 +59,8 @@ export const uploadAndProcessScan = async (
         console.log('🩻 Extracted Metadata:', metadata);
 
         // 2. Upload to Supabase
-        const uniqueName = `scans/${Date.now()}_${file.originalname}`;
+        const timestamp = Date.now();
+        const uniqueName = `scans/case_${caseId || examId}/exam_${timestamp}/${file.originalname}`;
         const { error: uploadError } = await supabase.storage
             .from('dicoms')
             .upload(uniqueName, file.buffer, {
@@ -75,17 +76,11 @@ export const uploadAndProcessScan = async (
         if (examId) {
             // Attach to existing exam
             const existingExam = await prisma.exam.findUnique({
-                where: { id: parseInt(examId) },
-                include: { images: true }
+                where: { id: parseInt(examId) }
             });
 
             if (!existingExam) {
                 return res.status(404).json({ error: 'Exam not found' });
-            }
-
-            // Check if exam already has DICOM
-            if (existingExam.images.length > 0) {
-                return res.status(400).json({ error: 'Exam already has a DICOM file. Only one DICOM per exam is allowed.' });
             }
 
             // Update exam with DICOM metadata and set status to COMPLETED
@@ -98,38 +93,148 @@ export const uploadAndProcessScan = async (
                     bodyPart: metadata.bodyPart || existingExam.bodyPart
                 }
             });
+
+            // Create PACS image record
+            await prisma.pACSImage.create({
+                data: {
+                    examId: exam.id,
+                    fileName: file.originalname,
+                    supabasePath: uniqueName,
+                    publicUrl: publicUrl
+                }
+            });
         } else {
-            // Create new exam (legacy behavior)
+            // Create new exam
             exam = await prisma.exam.create({
                 data: {
                     caseId: parseInt(caseId),
                     modality: metadata.modality || 'UNKNOWN',
                     bodyPart: metadata.bodyPart || 'UNKNOWN',
                     status: 'COMPLETED', // DICOM upload auto-completes
-                    performedAt: parseDicomDate(metadata.studyDate),
+                    performedAt: parseDicomDate(metadata.studyDate)
+                }
+            });
+
+            // Create PACS image record
+            await prisma.pACSImage.create({
+                data: {
+                    examId: exam.id,
+                    fileName: file.originalname,
+                    supabasePath: uniqueName,
+                    publicUrl: publicUrl
                 }
             });
         }
 
-        // 4. Link the Image
-        const image = await prisma.pACSImage.create({
-            data: {
-                examId: exam.id,
-                fileName: file.originalname,
-                supabasePath: uniqueName,
-                publicUrl: publicUrl
-            }
-        });
-
         res.status(201).json({ 
             message: 'Scan processed and saved', 
-            exam, 
-            image,
+            exam,
             metadata 
         });
 
     } catch (error: any) {
         console.error('Upload Error:', error);
         res.status(500).json({ error: 'Failed to process DICOM file' });
+    }
+};
+
+export const linkScanSeries = async (
+    req: Request,
+    res: Response
+): Promise<Response | undefined> => {
+    try {
+        const { caseId, images } = req.body;
+
+        // Validate required fields
+        if (!caseId || !images || !Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ error: 'caseId and images array are required' });
+        }
+
+        // Validate case exists
+        const caseExists = await prisma.case.findUnique({
+            where: { id: parseInt(caseId) }
+        });
+
+        if (!caseExists) {
+            return res.status(404).json({ error: 'Case not found' });
+        }
+
+        // Validate supabasePath format for each image
+        const expectedPathRegex = /^scans\/case_\d+\/exam_\d+\/.+$/;
+        for (const image of images) {
+            if (!image.fileName || !image.supabasePath) {
+                return res.status(400).json({ error: 'Each image must have fileName and supabasePath' });
+            }
+            if (!expectedPathRegex.test(image.supabasePath)) {
+                return res.status(400).json({
+                    error: 'Invalid supabasePath format. Expected: scans/case_{caseId}/exam_{timestamp}/{filename}'
+                });
+            }
+        }
+
+        // Extract metadata from the first DICOM file
+        let metadata;
+        try {
+            const firstImage = images[0];
+            const { data, error } = await supabase.storage
+                .from('dicoms')
+                .download(firstImage.supabasePath);
+
+            if (error) throw error;
+
+            // Convert blob to buffer for dicom-parser
+            const arrayBuffer = await data.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            metadata = parseDicomMetadata(buffer);
+
+            console.log('🩻 Extracted metadata from first DICOM:', metadata);
+        } catch (error) {
+            console.warn('Failed to parse DICOM metadata, using defaults:', error);
+            metadata = {
+                modality: 'MRI',
+                bodyPart: 'UNKNOWN',
+                studyDate: null
+            };
+        }
+
+        // Create new exam with extracted metadata
+        const exam = await prisma.exam.create({
+            data: {
+                caseId: parseInt(caseId),
+                modality: metadata.modality || 'MRI',
+                bodyPart: metadata.bodyPart || 'UNKNOWN',
+                status: 'COMPLETED',
+                performedAt: parseDicomDate(metadata.studyDate)
+            }
+        });
+
+        // Prepare PACS images data
+        const pacsImagesData = images.map(image => ({
+            examId: exam.id,
+            fileName: image.fileName,
+            supabasePath: image.supabasePath,
+            publicUrl: getPublicUrl('dicoms', image.supabasePath)
+        }));
+
+        // Batch insert PACS images
+        await prisma.pACSImage.createMany({
+            data: pacsImagesData
+        });
+
+        // Fetch the created images to return in response
+        const createdImages = await prisma.pACSImage.findMany({
+            where: { examId: exam.id }
+        });
+
+        res.status(201).json({
+            message: 'Scan series linked successfully',
+            exam,
+            images: createdImages,
+            metadata
+        });
+
+    } catch (error: any) {
+        console.error('Link Series Error:', error);
+        res.status(500).json({ error: 'Failed to link scan series' });
     }
 };

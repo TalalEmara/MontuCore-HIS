@@ -211,22 +211,22 @@ model Exam {
   conclusion       String?
   cost             Float?
 
-  // 2. The Actual Files
-  images PACSImage[]
+  // DICOM Images (multiple per exam)
+  pacsImages PACSImage[]
 
   @@map("exams")
 }
 
+// 2. The DICOM Images (Multiple per Exam)
 model PACSImage {
-  id     Int @id @default(autoincrement())
-  examId Int @map("exam_id")
+  id          Int  @id @default(autoincrement())
+  examId      Int  @map("exam_id")
+  exam        Exam @relation(fields: [examId], references: [id])
 
-  fileName     String   @map("file_name") // Original file name
-  supabasePath String   @map("supabase_path") // Internal bucket path
-  publicUrl    String   @map("public_url") // The link for Cornerstone.js
-  uploadedAt   DateTime @default(now()) @map("uploaded_at")
-
-  exam Exam @relation(fields: [examId], references: [id])
+  fileName       String
+  supabasePath   String    @map("supabase_path")
+  publicUrl      String    @map("public_url")
+  uploadedAt     DateTime  @default(now()) @map("uploaded_at")
 
   @@map("pacs_images")
 }

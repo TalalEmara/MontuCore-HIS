@@ -7,8 +7,22 @@ import physicianProfile from "../../assets/images/physician.webp";
 import { usePhysicianDashboard } from "../../hooks/usePhysicianDashboard";
 import { Link } from "@tanstack/react-router"; // or 'react-router-dom' depending on your setup
 import Pagination from "../../components/level-0/Pagination/Pagination";
+import { useAuth } from "../../context/AuthContext";
+import { useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointments";
+import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
+import Button from "../../components/level-0/Button/Bottom";
+import { Calendar, X } from "lucide-react";
 
 const PhysicianView: React.FC = () => {
+  const { user } = useAuth();
+  const rescheduleMutation = useRescheduleAppointment();
+  const cancelMutation = useCancelAppointment();
+
+  // [NEW] State for Reschedule Modal
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [newDate, setNewDate] = useState<string>("");
+
   const physicianData = {
     fullName: "Olivia Black",
     id: 2,
@@ -20,14 +34,11 @@ const PhysicianView: React.FC = () => {
   const totalPages = 3; 
 
   // 1. Destructure isError, error, and refetch from the hook
-  const { 
-    dashboard, 
-    message, 
-    isLoading, 
-    isError, 
-    error,
-    refetch // Useful for a "Try Again" button
-  } = usePhysicianDashboard(physicianData.id, currentPage, 4);
+  const { dashboard, isLoading, isError, error, refetch } = usePhysicianDashboard(
+    user?.id || 0, 
+    currentPage, 
+    4
+  );
 
   // Local state (Static data)
   const [physioNotes] = useState([
@@ -37,13 +48,98 @@ const PhysicianView: React.FC = () => {
     { athleteName: "Leo", note: "Reported minor ankle discomfort" },
   ]);
 
-  const profileStats = { id:physicianData.id, role: "Physician" };
+  const profileStats = { id: user?.id, role: "Physician" };
   const profileImage = physicianProfile;
+  // [NEW] Handle Cancel
+  const handleCancel = (appointmentId: number) => {
+    if (window.confirm("Are you sure you want to cancel this appointment?")) {
+      cancelMutation.mutate(appointmentId);
+    }
+  };
 
+  // [NEW] Open Reschedule Modal
+  const openRescheduleModal = (appointment: any) => {
+    setSelectedAppointment(appointment);
+    setNewDate(""); // Reset date input
+    setIsRescheduleOpen(true);
+  };
+
+  // [NEW] Submit Reschedule
+  const handleRescheduleSubmit = () => {
+    if (!selectedAppointment || !newDate) return;
+
+    // Ensure we have the correct IDs. 
+    // For physician view, clinicianId is the user, athleteId is in the appointment object
+    const athleteId = selectedAppointment.athleteId || selectedAppointment.athlete?.id;
+    const clinicianId = user?.id;
+
+    if (!athleteId || !clinicianId) {
+        console.error("Missing ID information for reschedule");
+        return;
+    }
+
+    rescheduleMutation.mutate({
+      appointmentId: selectedAppointment.id,
+      athleteId: athleteId,
+      clinicianId: clinicianId,
+      scheduledAt: new Date(newDate).toISOString(),
+      diagnosisNotes: selectedAppointment.diagnosisNotes,
+      height: selectedAppointment.height,
+      weight: selectedAppointment.weight
+    });
+
+    setIsRescheduleOpen(false);
+  };
   return (
     <div className={styles.physicianViewerContainer}>
+      {/* [NEW] Reschedule Overlay */}
+      <BasicOverlay 
+        isOpen={isRescheduleOpen} 
+        onClose={() => setIsRescheduleOpen(false)}
+        title="Reschedule Appointment"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px' }}>
+          <p style={{ margin: 0 }}>
+            Rescheduling appointment for <strong>{selectedAppointment?.athlete?.fullName}</strong>.
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 500 }}>Select New Date & Time</label>
+            <input 
+              type="datetime-local" 
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              style={{
+                padding: '10px',
+                borderRadius: '8px',
+                border: '1px solid #ddd',
+                fontSize: '14px',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+            <Button 
+              variant="secondary" 
+              onClick={() => setIsRescheduleOpen(false)}
+              height="35px"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleRescheduleSubmit}
+              height="35px"
+            >
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </BasicOverlay>
       <div className={styles.physicianMainContent}>
-        <TopBar Name={`Dr. ${physicianData.fullName}`} Role={physicianData.role} />
+        <TopBar Name={`Dr. ${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
 
         {/* 2. LOADING STATE */}
         {isLoading ? (
@@ -114,7 +210,7 @@ const PhysicianView: React.FC = () => {
               </div>
             </AdjustableCard>
 
-            <AdjustableCard
+           <AdjustableCard
               className={styles.todayScheduleCard}
               height="320px"
               minHeight="320px"
@@ -129,20 +225,37 @@ const PhysicianView: React.FC = () => {
                   )}
 
                   {dashboard?.todaysAppointments.appointments.map(
-                    (appointment, idx) => (
-                      <div key={idx} className={styles.scheduleRow}>
+                    (appointment: any, idx: number) => (
+                      <div key={idx} className={styles.scheduleRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className={styles.scheduleInfo}>
                           <span className={styles.athleteName}>
                             {appointment.athlete.fullName}
                           </span>
                         </div>
-                        <div
-                          className={`${styles.status} ${
-                            styles[appointment.status]
-                          }`}
-                        >
-                          {appointment.status}
+                        
+                        {/* New Actions Section */}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                           {/* Status Badge */}
+                           <div
+                            className={`${styles.status} ${styles[appointment.status]}`}
+                            style={{ marginRight: '10px' }}
+                          >
+                            {appointment.status}
+                          </div>
+
+                          <div onClick={() => openRescheduleModal(appointment)}>
+                            <Button variant="secondary" height="28px" width="30px">
+                              <Calendar size={14} />
+                            </Button>
+                          </div>
+                          
+                          <div onClick={() => handleCancel(appointment.id)}>
+                            <Button variant="secondary" height="28px" width="30px">
+                              <X size={14} />
+                            </Button>
+                          </div>
                         </div>
+
                       </div>
                     )
                   )}

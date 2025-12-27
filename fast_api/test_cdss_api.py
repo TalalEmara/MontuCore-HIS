@@ -1,6 +1,6 @@
 """
 CDSS API Testing Script
-Tests the full pipeline: sends DICOM URL to API and visualizes results
+Tests the full pipeline: sends 3 DICOM URLs to API and visualizes results
 """
 
 import requests
@@ -43,25 +43,25 @@ def print_results_summary(response_data):
     print("📊 CDSS ANALYSIS RESULTS")
     print("="*80)
     
-    # Primary Diagnosis (if available from Express backend)
-    if 'diagnosis' in response_data:
+    # Primary Diagnosis (if available and corresponds to highest probability model)
+    if 'diagnosis' in response_data and response_data['diagnosis']:
         diag = response_data['diagnosis']
         severity_emoji = {
             'normal': '✅',
             'low': '⚠️ ',
             'moderate': '🟠',
             'high': '🔴'
-        }.get(diag['severity'], '❓')
+        }.get(diag.get('severity', ''), '❓')
         
-        print(f"\n🩺 PRIMARY DIAGNOSIS: {severity_emoji} {diag['primary'].upper()}")
-        print(f"   Severity: {diag['severity'].upper()}")
-        print(f"   Confidence: {diag['confidence']:.4f} ({diag['confidence']*100:.2f}%)")
-        print(f"   Details: {diag['details']}")
+        print(f"\n🩺 PRIMARY DIAGNOSIS: {severity_emoji} {diag.get('primary', 'Unknown').upper()}")
+        print(f"   Severity: {diag.get('severity', 'Unknown').upper()}")
+        print(f"   Confidence: {diag.get('confidence', 0):.4f} ({diag.get('confidence', 0)*100:.2f}%)")
+        print(f"   Details: {diag.get('details', 'No details')}")
+    else:
+        print("\n🩺 PRIMARY DIAGNOSIS: Not determined (diagnosis doesn't match highest probability model)")
     
-    # Check if data is nested under 'analysis' (Express format) or root level (FastAPI format)
-    analysis_data = response_data.get('analysis', response_data)
     
-    # Metadata
+    # Metadata (if available)
     if 'metadata' in response_data:
         print("\n📋 Metadata:")
         for key, value in response_data['metadata'].items():
@@ -70,54 +70,55 @@ def print_results_summary(response_data):
         if 'modelsUsed' in response_data['metadata']:
             print(f"  Models Used: {', '.join(response_data['metadata']['modelsUsed'])}")
     
+    # Get diagnosis data for model results
+    diagnosis_data = response_data.get('diagnosis', {})
+    
     # ACL Results
-    if 'acl' in analysis_data:
+    if 'acl' in diagnosis_data and diagnosis_data['acl']:
         print("\n🦵 ACL Tear Detection:")
-        print(f"  Probability: {analysis_data['acl']['probability']:.4f} ({analysis_data['acl']['probability']*100:.2f}%)")
-        print(f"  Confidence: {analysis_data['acl']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if analysis_data['acl'].get('heatmap') else '❌ Not available'}")
+        print(f"  Probability: {diagnosis_data['acl']['probability']:.4f} ({diagnosis_data['acl']['probability']*100:.2f}%)")
+        print(f"  Confidence: {diagnosis_data['acl']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
+    else:
+        print("\n🦵 ACL Tear Detection: No full results (lower probability model)")
     
     # Meniscus Results
-    if 'meniscus' in analysis_data:
+    if 'meniscus' in diagnosis_data and diagnosis_data['meniscus']:
         print("\n🔍 Meniscus Tear Detection:")
-        print(f"  Probability: {analysis_data['meniscus']['probability']:.4f} ({analysis_data['meniscus']['probability']*100:.2f}%)")
-        print(f"  Confidence: {analysis_data['meniscus']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if analysis_data['meniscus'].get('heatmap') else '❌ Not available'}")
+        print(f"  Probability: {diagnosis_data['meniscus']['probability']:.4f} ({diagnosis_data['meniscus']['probability']*100:.2f}%)")
+        print(f"  Confidence: {diagnosis_data['meniscus']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
+    else:
+        print("\n🔍 Meniscus Tear Detection: No full results (lower probability model)")
     
     # Abnormal Model Results
-    if 'abnormalModel' in analysis_data:
+    if 'abnormal' in diagnosis_data and diagnosis_data['abnormal']:
         print("\n⚠️  General Abnormality Detection:")
-        print(f"  Probability: {analysis_data['abnormalModel']['probability']:.4f} ({analysis_data['abnormalModel']['probability']*100:.2f}%)")
-        print(f"  Confidence: {analysis_data['abnormalModel']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if analysis_data['abnormalModel'].get('heatmap') else '❌ Not available'}")
-    elif 'abnormal' in analysis_data:
-        print("\n⚠️  General Abnormality Detection:")
-        print(f"  Probability: {analysis_data['abnormal']['probability']:.4f} ({analysis_data['abnormal']['probability']*100:.2f}%)")
-        print(f"  Confidence: {analysis_data['abnormal']['confidence_level']}")
-        print(f"  Heatmap: {'✅ Available' if analysis_data['abnormal'].get('heatmap') else '❌ Not available'}")
+        print(f"  Probability: {diagnosis_data['abnormal']['probability']:.4f} ({diagnosis_data['abnormal']['probability']*100:.2f}%)")
+        print(f"  Confidence: {diagnosis_data['abnormal']['confidence_level']}")
+        print(f"  Heatmap: {'✅ Available' if response_data.get('heatmap') else '❌ Not available'}")
+    else:
+        print("\n⚠️  General Abnormality Detection: No full results (lower probability model)")
     
     # Overall Assessment
-    if 'abnormalOverall' in analysis_data:
+    if 'abnormal_detected' in response_data:
         print("\n🎯 Overall Assessment:")
-        print(f"  Abnormal Detected: {'⚠️  YES' if analysis_data['abnormalOverall']['detected'] else '✅ NO'}")
-        print(f"  Overall Abnormality: {analysis_data['abnormalOverall']['probability']:.4f} ({analysis_data['abnormalOverall']['probability']*100:.2f}%)")
-    elif 'abnormalDetected' in response_data:
-        print("\n🎯 Overall Assessment:")
-        print(f"  Abnormal Detected: {'⚠️  YES' if response_data['abnormalDetected'] else '✅ NO'}")
+        print(f"  Abnormal Detected: {'⚠️  YES' if response_data['abnormal_detected'] else '✅ NO'}")
+        print(f"  Overall Abnormality: {response_data['abnormal_probability']:.4f} ({response_data['abnormal_probability']*100:.2f}%)")
+        if 'threshold' in response_data:
+            print(f"  Threshold: {response_data['threshold']}")
         if 'abnormalProbability' in response_data:
             print(f"  Overall Abnormality: {response_data['abnormalProbability']:.4f} ({response_data['abnormalProbability']*100:.2f}%)")
     
     print("\n" + "="*80)
 
-def test_express_endpoint(dicom_url, patient_id=6, exam_id=1):
+def test_express_endpoint(dicom_urls, patient_id=6, exam_id=1):
     """Test via Express server (port 3000)"""
     print("\n🔵 Testing Express Backend (http://localhost:3000/api/cdss/analyze-dicom)")
-    print(f"📁 DICOM URL: {dicom_url}")
+    print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrl": dicom_url,
-        "patientId": patient_id,
-        "examId": exam_id
+        "dicomUrls": dicom_urls
     }
     
     try:
@@ -135,27 +136,24 @@ def test_express_endpoint(dicom_url, patient_id=6, exam_id=1):
         # Print summary
         print_results_summary(actual_data)
         
-        # Save heatmaps (handle nested structure)
-        analysis_data = actual_data.get('analysis', actual_data)
+        # Save heatmaps (handle flat structure for Express, nested for direct FastAPI)
+        analysis_data = actual_data
         print("\n💾 Saving Heatmaps...")
         
-        if analysis_data.get('acl', {}).get('heatmap'):
-            decode_and_save_heatmap(analysis_data['acl']['heatmap'], 'acl')
-        
-        if analysis_data.get('meniscus', {}).get('heatmap'):
-            decode_and_save_heatmap(analysis_data['meniscus']['heatmap'], 'meniscus')
-        
-        if analysis_data.get('abnormalModel', {}).get('heatmap'):
-            decode_and_save_heatmap(analysis_data['abnormalModel']['heatmap'], 'abnormal')
-        elif analysis_data.get('abnormal', {}).get('heatmap'):
-            decode_and_save_heatmap(analysis_data['abnormal']['heatmap'], 'abnormal')
-            decode_and_save_heatmap(data['abnormal']['heatmap'], 'abnormal')
+        # Heatmap is now an array, save the first one (for highest probability model)
+        if analysis_data.get('heatmap') and len(analysis_data['heatmap']) > 0:
+            decode_and_save_heatmap(analysis_data['heatmap'][0], 'highest_probability_model')
         
         # Save full JSON (without base64)
         clean_data = json.loads(json.dumps(data))
         for model in ['acl', 'meniscus', 'abnormal']:
-            if model in clean_data and 'heatmap' in clean_data[model]:
-                clean_data[model]['heatmap'] = f"<base64 image data - {len(data[model]['heatmap'])} chars>"
+            if 'diagnosis' in clean_data and model in clean_data['diagnosis']:
+                # No heatmap in individual models anymore
+                pass
+        
+        # Clean heatmap array
+        if 'heatmap' in clean_data and isinstance(clean_data['heatmap'], list):
+            clean_data['heatmap'] = [f"<base64 image data - {len(h)} chars>" for h in clean_data['heatmap']]
         
         os.makedirs("./test_results", exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -174,15 +172,13 @@ def test_express_endpoint(dicom_url, patient_id=6, exam_id=1):
         print(f"❌ Error: {str(e)}")
         return None
 
-def test_fastapi_endpoint(dicom_url):
+def test_fastapi_endpoint(dicom_urls):
     """Test directly via FastAPI (port 5000)"""
     print("\n🟢 Testing FastAPI Directly (http://localhost:5000/analyze)")
-    print(f"📁 DICOM URL: {dicom_url}")
+    print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrl": dicom_url,
-        "patientId": 999,
-        "examId": 999
+        "dicomUrls": dicom_urls
     }
     
     try:
@@ -196,14 +192,22 @@ def test_fastapi_endpoint(dicom_url):
         
         # Save heatmaps
         print("\n💾 Saving Heatmaps...")
-        if data.get('acl', {}).get('heatmap'):
-            decode_and_save_heatmap(data['acl']['heatmap'], 'acl_direct')
+        # Heatmap is now an array, save the first one (for highest probability model)
+        if data.get('heatmap') and len(data['heatmap']) > 0:
+            decode_and_save_heatmap(data['heatmap'][0], 'highest_probability_model_direct')
         
-        if data.get('meniscus', {}).get('heatmap'):
-            decode_and_save_heatmap(data['meniscus']['heatmap'], 'meniscus_direct')
+        # Save full JSON (without base64)
+        clean_data = json.loads(json.dumps(data))
+        # Clean heatmap array
+        if 'heatmap' in clean_data and isinstance(clean_data['heatmap'], list):
+            clean_data['heatmap'] = [f"<base64 image data - {len(h)} chars>" for h in clean_data['heatmap']]
         
-        if data.get('abnormal', {}).get('heatmap'):
-            decode_and_save_heatmap(data['abnormal']['heatmap'], 'abnormal_direct')
+        os.makedirs("./test_results", exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        json_file = f"./test_results/analysis_{timestamp}_direct.json"
+        with open(json_file, 'w') as f:
+            json.dump(clean_data, f, indent=2)
+        print(f"✅ Saved full response to: {json_file}")
         
         return data
         
@@ -220,12 +224,18 @@ if __name__ == "__main__":
     print("🏥 CDSS API TESTING SCRIPT")
     print("="*80)
     
-    # Example DICOM URL - replace with your actual Supabase URL
-    dicom_url = input("\n📎 Enter DICOM URL (or press Enter for example): ").strip()
+    # Example DICOM URLs - replace with your actual Supabase URLs
+    dicom_urls = []
+    print("\n📎 Enter 3 DICOM URLs (one per line, or press Enter for examples):")
     
-    if not dicom_url:
-        dicom_url = "https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-bucket/scan123.dcm"
-        print(f"Using example URL: {dicom_url}")
+    for i in range(3):
+        url = input(f"DICOM URL {i+1}: ").strip()
+        if not url:
+            url = "https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-bucket/scan123.dcm"
+            print(f"Using example URL for slice {i+1}: {url}")
+        dicom_urls.append(url)
+    
+    print(f"\nUsing DICOM URLs: {dicom_urls}")
     
     print("\nWhich endpoint to test?")
     print("1. Express Backend (recommended - tests full pipeline)")
@@ -235,9 +245,9 @@ if __name__ == "__main__":
     choice = input("\nEnter choice (1/2/3) [default: 1]: ").strip() or "1"
     
     if choice in ["1", "3"]:
-        test_express_endpoint(dicom_url)
+        test_express_endpoint(dicom_urls)
     
     if choice in ["2", "3"]:
-        test_fastapi_endpoint(dicom_url)
+        test_fastapi_endpoint(dicom_urls)
     
     print("\n✨ Testing complete! Check ./test_results/ folder for saved heatmaps and JSON.\n")

@@ -1,0 +1,172 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.contentWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-bottom: 2rem;
+}
+
+/* --- Card Styling (Matches LoginView & AthleteView panels) --- */
+.profileCard {
+  background-color: rgba(92, 6, 6, 0.08); /* Matches AthleteView panels */
+  border: 1px solid rgba(92, 6, 6, 0.12);
+  box-shadow: 0 1.25rem 3.75rem rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+}
+
+/* --- Header Section (Matches LoginView) --- */
+.header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid hsl(from var(--text-color) h s l / 0.2);
+}
+
+/* The Glowing Accent Bar */
+.header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -0.5rem;
+  width: 3.75rem;
+  height: 0.25rem;
+  background: var(--accent);
+  box-shadow: 0 0 1.25rem var(--accent);
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 900;
+  color: var(--text-color);
+  letter-spacing: -0.0625rem;
+  margin: 0;
+  line-height: 1.1;
+  text-shadow: 0.125rem 0.125rem 0 var(--primary-color);
+  text-transform: uppercase;
+}
+
+/* --- Section Dividers --- */
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.5rem 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+  opacity: 0.3;
+}
+
+/* --- Form Grid --- */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.fieldContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: hsl(from var(--text-color) h s l / 0.7);
+  margin-left: 0.25rem;
+}
+
+/* --- Read-Only Mode (Matches 'record-item' from AthleteView) --- */
+.valueDisplay {
+  padding: 0.875rem 1rem;
+  background: hsl(from var(--text-color) h s l / 0.02);
+  border: 1px solid hsl(from var(--text-color) h s l / 0.06);
+  border-radius: 0.625rem;
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1rem;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.valueDisplay:hover {
+  background: hsl(from var(--text-color) h s l / 0.04);
+  border-color: hsl(from var(--secondary-color) h s l / 0.3);
+  transform: translateY(-0.125rem);
+}
+
+.emptyValue {
+  color: hsl(from var(--text-color) h s l / 0.3);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* --- Buttons --- */
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(from var(--text-color) h s l / 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profileCard {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

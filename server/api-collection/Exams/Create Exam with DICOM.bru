@@ -59,9 +59,10 @@ docs {
   
   ## DICOM Upload Behavior
   - If DICOM is provided, exam status will be set to COMPLETED automatically
-  - DICOM metadata will populate exam fields (performedAt, radiologistNotes, etc.)
-  - Only one DICOM file allowed per exam
+  - DICOM metadata will populate exam fields (performedAt, modality, bodyPart, etc.)
+  - Multiple DICOM files can be added to the same exam later
   - File must be a valid DICOM format
+  - Creates a PACS image record for the uploaded file
   
   ## Common Modalities
   - MRI: Magnetic Resonance Imaging
