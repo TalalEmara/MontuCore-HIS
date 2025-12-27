@@ -8,12 +8,16 @@ const router: Router = express.Router();
 
 /**
  * @route   POST /api/cdss/analyze-dicom
- * @desc    Analyze DICOM image with AI models (ACL, Meniscus detection)
+ * @desc    Analyze DICOM images with AI models (ACL, Meniscus detection)
  * @access  Public
  * 
  * @example Request Body:
  * {
- *   "dicomUrl": "https://your-supabase-url.com/storage/v1/object/public/dicom-bucket/scan123.dcm",
+ *   "dicomUrls": [
+ *     "https://your-supabase-url.com/storage/v1/object/public/dicom-bucket/slice1.dcm",
+ *     "https://your-supabase-url.com/storage/v1/object/public/dicom-bucket/slice2.dcm",
+ *     "https://your-supabase-url.com/storage/v1/object/public/dicom-bucket/slice3.dcm"
+ *   ],
  *   "patientId": 6,
  *   "examId": 1
  * }

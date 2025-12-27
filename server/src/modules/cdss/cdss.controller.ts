@@ -45,29 +45,31 @@ interface AIAnalysisResult {
  * @access Public (add auth in production)
  */
 export const analyzeDicom = asyncHandler(async (req: Request, res: Response) => {
-  const { dicomUrl, patientId, examId } = req.body;
+  const { dicomUrls, patientId, examId } = req.body;
 
   // Validation
-  if (!dicomUrl) {
-    throw new ValidationError('dicomUrl is required');
+  if (!dicomUrls || !Array.isArray(dicomUrls) || dicomUrls.length !== 3) {
+    throw new ValidationError('dicomUrls must be an array of exactly 3 URLs');
   }
 
-  // Optional: Validate URL format
-  try {
-    new URL(dicomUrl);
-  } catch (error) {
-    throw new ValidationError('Invalid dicomUrl format');
+  // Validate each URL
+  for (let i = 0; i < dicomUrls.length; i++) {
+    try {
+      new URL(dicomUrls[i]);
+    } catch (error) {
+      throw new ValidationError(`Invalid dicomUrl at index ${i}`);
+    }
   }
 
   console.log(`🔍 Analyzing DICOM for Patient ${patientId || 'N/A'}, Exam ${examId || 'N/A'}`);
-  console.log(`📥 DICOM URL: ${dicomUrl}`);
+  console.log(`📥 DICOM URLs: ${dicomUrls.join(', ')}`);
 
   try {
     // Call AI Service
     const response = await axios.post<AIAnalysisResult>(
       `${AI_SERVICE_URL}/analyze`,
       {
-        dicomUrl: dicomUrl,
+        dicomUrls: dicomUrls,
         patientId: patientId,
         examId: examId
       },

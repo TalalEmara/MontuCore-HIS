@@ -12,9 +12,13 @@ post {
 
 body:json {
   {
-    "dicomUrl": "https://brnitwpxdkwvhlgvfkua.supabase.co/storage/v1/object/public/dicoms/scans/1766255681479_demo_pure_acl_6.dcm",
+    "dicomUrls": [
+      "https://brnitwpxdkwvhlgvfkua.supabase.co/storage/v1/object/public/dicoms/scans/case_7/exam_16_1766852130866/demo_pure_acl_6_1.dcm",
+      "https://brnitwpxdkwvhlgvfkua.supabase.co/storage/v1/object/public/dicoms/scans/case_7/exam_16_1766852130866/demo_pure_acl_6_2.dcm",
+      "https://brnitwpxdkwvhlgvfkua.supabase.co/storage/v1/object/public/dicoms/scans/case_7/exam_16_1766852130866/demo_pure_acl_6_3.dcm"
+    ],
     "patientId": 6,
-    "examId": 12
+    "examId": 16
   }
 }
 
@@ -51,15 +55,15 @@ tests {
 docs {
   # Analyze DICOM with AI Models
   
-  Sends a DICOM image to the AI service for ACL, Meniscus, and general Abnormality detection.
+  Sends 3 DICOM sagittal slices to the AI service for ACL, Meniscus, and general Abnormality detection.
   
   ## Prerequisites
   1. Python FastAPI service must be running on port 5000
   2. AI models (acl_model.pth, meniscus_model.pth, abnormal_model.pth) must be loaded
-  3. DICOM file must be accessible via public URL
+  3. DICOM files must be accessible via public URLs
   
   ## Request Body
-  - `dicomUrl` (required): Public URL to the DICOM file
+  - `dicomUrls` (required): Array of 3 public URLs to the DICOM sagittal slice files
   - `patientId` (optional): Patient/Athlete ID for tracking
   - `examId` (optional): Exam ID for database linking
   
@@ -72,8 +76,8 @@ docs {
   - Overall abnormality detection
   
   ## Use Case
-  After uploading a knee MRI DICOM to Supabase:
-  1. Get the public URL
+  After uploading 3 knee MRI sagittal DICOM slices to Supabase:
+  1. Get the public URLs
   2. Call this endpoint
   3. Display predictions and heatmap to clinician
   4. Optionally save results to database

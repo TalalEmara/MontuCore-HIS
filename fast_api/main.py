@@ -94,10 +94,10 @@ else:
         cached = torch.cuda.memory_reserved(0) / 1e6
         logger.info(f"💾 GPU Memory: {allocated:.1f} MB allocated, {cached:.1f} MB cached")
 
-# --- HELPER: MIDDLE SLICE LOGIC ---
+# --- HELPER: PROCESS SINGLE DICOM SLICE ---
 def process_dicom(file_bytes: bytes) -> tuple:
     """
-    Reads DICOM bytes, finds middle slice, converts to 3-channel tensor.
+    Reads DICOM bytes for a single sagittal slice, converts to 1-channel tensor.
     Uses the same preprocessing pipeline as training for maximum accuracy.
     
     Args:
@@ -105,8 +105,8 @@ def process_dicom(file_bytes: bytes) -> tuple:
         
     Returns:
         tuple: (input_tensor, visual_img_array)
-            - input_tensor: Float32 tensor for AI model (1, 3, 256, 256)
-            - visual_img_array: Uint8 array for heatmap visualization (H, W, 3)
+            - input_tensor: Float32 tensor for AI model (1, 1, 256, 256)
+            - visual_img_array: Uint8 array for heatmap visualization (H, W)
         
     Raises:
         HTTPException: If DICOM processing fails
@@ -118,30 +118,16 @@ def process_dicom(file_bytes: bytes) -> tuple:
         
         logger.info(f"📊 DICOM shape: {pixel_array.shape}, dtype: {pixel_array.dtype}")
         
-        # 2. Middle Slice Logic
-        if len(pixel_array.shape) == 3:
-            num_slices = pixel_array.shape[0]
-            mid = num_slices // 2
-            
-            logger.info(f"🎯 Using middle slice: {mid}/{num_slices}")
-            
-            prev = pixel_array[max(0, mid - 1)]
-            curr = pixel_array[mid]
-            next_s = pixel_array[min(num_slices - 1, mid + 1)]
-            img_stack = np.stack([prev, curr, next_s], axis=-1)  # (H, W, 3)
-            
-        elif len(pixel_array.shape) == 2:
-            logger.info("📷 Processing 2D DICOM image")
-            img_stack = np.stack([pixel_array] * 3, axis=-1)
-        else:
-            raise ValueError(f"Unexpected DICOM shape: {pixel_array.shape}")
-
+        # 2. Expect 2D DICOM (single slice)
+        if len(pixel_array.shape) != 2:
+            raise ValueError(f"Expected 2D DICOM slice, got shape: {pixel_array.shape}")
+        
         # --- PATH A: FOR AI MODEL (High Precision) ---
         # Convert directly to Tensor without rounding to 0-255 uint8
-        tensor = torch.from_numpy(img_stack)
+        tensor = torch.from_numpy(pixel_array)
         
-        # PyTorch expects (Channels, Height, Width), but numpy is (H, W, C)
-        tensor = tensor.permute(2, 0, 1)
+        # Add channel dimension: (H, W) -> (1, H, W)
+        tensor = tensor.unsqueeze(0)
         
         # Exact Normalization from Training: (x - min) / (max - min)
         if tensor.max() > tensor.min():
@@ -152,18 +138,17 @@ def process_dicom(file_bytes: bytes) -> tuple:
         # Resize using Tensor method (preserves float precision)
         # Note: We use antialias=True to match modern PIL resizing
         resize_transform = transforms.Resize((256, 256), antialias=True)
-        tensor = resize_transform(tensor).unsqueeze(0).to(device)
+        tensor = resize_transform(tensor).unsqueeze(0).to(device)  # (1, 1, 256, 256)
         
         logger.info(f"✅ Tensor shape: {tensor.shape}, device: {tensor.device}, dtype: {tensor.dtype}")
 
         # --- PATH B: FOR HEATMAP (Visual only) ---
         # Create uint8 version just for heatmap generation
-        # (GradCAM needs an RGB image to draw on)
-        img_min, img_max = img_stack.min(), img_stack.max()
+        img_min, img_max = pixel_array.min(), pixel_array.max()
         if img_max > img_min:
-            img_visual = ((img_stack - img_min) / (img_max - img_min)) * 255.0
+            img_visual = ((pixel_array - img_min) / (img_max - img_min)) * 255.0
         else:
-            img_visual = np.zeros_like(img_stack)
+            img_visual = np.zeros_like(pixel_array)
         img_visual = np.uint8(img_visual)
         
         logger.info(f"✅ Visual image range: [{img_visual.min()}, {img_visual.max()}]")
@@ -184,8 +169,8 @@ def generate_heatmap(model: nn.Module, tensor: torch.Tensor, original_img: np.nd
     
     Args:
         model: PyTorch model
-        tensor: Input tensor
-        original_img: Original image array (H, W, 3)
+        tensor: Input tensor (1, 3, 256, 256)
+        original_img: Original image array (H, W) grayscale
         
     Returns:
         Base64 encoded PNG image string
@@ -197,11 +182,14 @@ def generate_heatmap(model: nn.Module, tensor: torch.Tensor, original_img: np.nd
         # Generate CAM
         grayscale_cam = cam(input_tensor=tensor, targets=[ClassifierOutputTarget(0)])[0, :]
         
-        # Resize original image to match tensor size (256x256) for visualization
+        # Resize original image to match tensor size (256x256) and convert to RGB
         original_resized = cv2.resize(original_img, (256, 256))
         
+        # Convert grayscale to RGB by stacking
+        original_rgb = np.stack([original_resized] * 3, axis=-1)
+        
         # Normalize to [0, 1] range
-        original_normalized = original_resized.astype(np.float32) / 255.0
+        original_normalized = original_rgb.astype(np.float32) / 255.0
         
         # Overlay heatmap on original image
         visualization = show_cam_on_image(original_normalized, grayscale_cam, use_rgb=True)
@@ -222,7 +210,7 @@ def generate_heatmap(model: nn.Module, tensor: torch.Tensor, original_img: np.nd
 
 # --- REQUEST/RESPONSE MODELS ---
 class AnalysisRequest(BaseModel):
-    dicomUrl: str
+    dicomUrls: list[str]  # Exactly 3 URLs for sagittal slices
     patientId: Optional[int] = None
     examId: Optional[int] = None
 
@@ -281,9 +269,9 @@ async def analyze_scan(request: AnalysisRequest):
     """
     Main endpoint for DICOM analysis.
     
-    Downloads DICOM from URL, processes it, runs AI models, and returns predictions.
+    Downloads 3 DICOM sagittal slices from URLs, stacks them, runs AI models, and returns predictions.
     """
-    logger.info(f"🔍 Analysis request received for URL: {request.dicomUrl}")
+    logger.info(f"🔍 Analysis request received for {len(request.dicomUrls)} DICOM URLs")
     
     if not models_dict:
         raise HTTPException(
@@ -291,30 +279,52 @@ async def analyze_scan(request: AnalysisRequest):
             detail="No AI models loaded. Service is not ready."
         )
     
+    if len(request.dicomUrls) != 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Exactly 3 DICOM URLs are required"
+        )
+    
     try:
-        # 1. Download DICOM from Supabase
-        logger.info(f"📥 Downloading DICOM from: {request.dicomUrl}")
-        response = requests.get(request.dicomUrl, timeout=30)
+        # 1. Download and process 3 DICOM slices
+        tensors = []
+        visual_imgs = []
+        total_file_size = 0
         
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Failed to download DICOM. Status: {response.status_code}"
-            )
+        for i, dicom_url in enumerate(request.dicomUrls):
+            logger.info(f"📥 Downloading DICOM {i+1}/3 from: {dicom_url}")
+            response = requests.get(dicom_url, timeout=30)
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to download DICOM {i+1}. Status: {response.status_code}"
+                )
+            
+            file_size = len(response.content)
+            total_file_size += file_size
+            logger.info(f"✅ Downloaded DICOM {i+1}: {file_size} bytes")
+            
+            # Process single slice
+            tensor, visual_img = process_dicom(response.content)
+            tensors.append(tensor)
+            visual_imgs.append(visual_img)
         
-        file_size = len(response.content)
-        logger.info(f"✅ Downloaded {file_size} bytes")
+        # Stack the three slices into 3-channel tensor
+        input_tensor = torch.cat(tensors, dim=1)  # (1, 3, 256, 256)
+        logger.info(f"✅ Stacked tensor shape: {input_tensor.shape}")
         
-        # 2. Process DICOM
-        input_tensor, original_img = process_dicom(response.content)
+        # Use middle slice for heatmap visualization
+        original_img = visual_imgs[1]
         
         results = {
             'success': True,
             'metadata': {
-                'file_size_bytes': file_size,
+                'total_file_size_bytes': total_file_size,
                 'tensor_shape': list(input_tensor.shape),
                 'patient_id': request.patientId,
-                'exam_id': request.examId
+                'exam_id': request.examId,
+                'dicom_urls': request.dicomUrls
             }
         }
         

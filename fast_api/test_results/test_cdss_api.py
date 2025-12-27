@@ -1,6 +1,6 @@
 """
 CDSS API Testing Script
-Tests the full pipeline: sends DICOM URL to API and visualizes results
+Tests the full pipeline: sends 3 DICOM URLs to API and visualizes results
 """
 
 import requests
@@ -109,13 +109,13 @@ def print_results_summary(response_data):
     
     print("\n" + "="*80)
 
-def test_express_endpoint(dicom_url, patient_id=6, exam_id=1):
+def test_express_endpoint(dicom_urls, patient_id=6, exam_id=1):
     """Test via Express server (port 3000)"""
     print("\n🔵 Testing Express Backend (http://localhost:3000/api/cdss/analyze-dicom)")
-    print(f"📁 DICOM URL: {dicom_url}")
+    print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrl": dicom_url,
+        "dicomUrls": dicom_urls,
         "patientId": patient_id,
         "examId": exam_id
     }
@@ -174,13 +174,13 @@ def test_express_endpoint(dicom_url, patient_id=6, exam_id=1):
         print(f"❌ Error: {str(e)}")
         return None
 
-def test_fastapi_endpoint(dicom_url):
+def test_fastapi_endpoint(dicom_urls):
     """Test directly via FastAPI (port 5000)"""
     print("\n🟢 Testing FastAPI Directly (http://localhost:5000/analyze)")
-    print(f"📁 DICOM URL: {dicom_url}")
+    print(f"📁 DICOM URLs: {dicom_urls}")
     
     payload = {
-        "dicomUrl": dicom_url,
+        "dicomUrls": dicom_urls,
         "patientId": 999,
         "examId": 999
     }
@@ -220,12 +220,18 @@ if __name__ == "__main__":
     print("🏥 CDSS API TESTING SCRIPT")
     print("="*80)
     
-    # Example DICOM URL - replace with your actual Supabase URL
-    dicom_url = input("\n📎 Enter DICOM URL (or press Enter for example): ").strip()
+    # Example DICOM URLs - replace with your actual Supabase URLs
+    dicom_urls = []
+    print("\n📎 Enter 3 DICOM URLs (one per line, or press Enter for examples):")
     
-    if not dicom_url:
-        dicom_url = "https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-bucket/scan123.dcm"
-        print(f"Using example URL: {dicom_url}")
+    for i in range(3):
+        url = input(f"DICOM URL {i+1}: ").strip()
+        if not url:
+            url = "https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-bucket/scan123.dcm"
+            print(f"Using example URL for slice {i+1}: {url}")
+        dicom_urls.append(url)
+    
+    print(f"\nUsing DICOM URLs: {dicom_urls}")
     
     print("\nWhich endpoint to test?")
     print("1. Express Backend (recommended - tests full pipeline)")
@@ -235,9 +241,9 @@ if __name__ == "__main__":
     choice = input("\nEnter choice (1/2/3) [default: 1]: ").strip() or "1"
     
     if choice in ["1", "3"]:
-        test_express_endpoint(dicom_url)
+        test_express_endpoint(dicom_urls)
     
     if choice in ["2", "3"]:
-        test_fastapi_endpoint(dicom_url)
+        test_fastapi_endpoint(dicom_urls)
     
     print("\n✨ Testing complete! Check ./test_results/ folder for saved heatmaps and JSON.\n")
