@@ -30,6 +30,15 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   const activeViewportData = viewports.find(vp => vp.id === activeViewportId) || viewports[0];
   const hasImages = activeViewportData.imageIds && activeViewportData.imageIds.length > 0;
 
+  const handleRemoteImages = (newImageIds: string[]) => {
+    setViewports(prev => prev.map(vp => {
+      if (vp.id === activeViewportId) {
+        return { ...vp, imageIds: newImageIds };
+      }
+      return vp;
+    }));
+};
+const { loadExam, isLoading, error } = useExamLoader(handleRemoteImages);
   // --- CALLBACK: Handle new images ---
   const handleNewDicomFiles = (newImageIds: string[]) => {
     setViewports((prev) =>
@@ -43,7 +52,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   };
 
   // --- HOOK: Passive Loader (No ID passed here) ---
-  const { loadExam, isLoading } = useExamLoader(handleNewDicomFiles);
+  // const { loadExam, isLoading } = useExamLoader(handleNewDicomFiles);
 
   // --- ACTIONS ---
   const handleAddViewport = () => {
@@ -87,7 +96,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
       <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
         {/* BUTTON: Manually triggers load with ID 16 */}
         <button 
-            onClick={() => loadExam(16)} 
+            onClick={() => loadExam(13)} 
             disabled={isLoading}
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
