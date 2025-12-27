@@ -7,13 +7,22 @@ meta {
 post {
   url: {{baseURL}}/appointments/create-appointment
   body: json
-  auth: none
+  auth: bearer
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODUzODM1LCJleHAiOjE3NjcxMTMwMzV9.qiExaN_jm93RB8PbUC464DlM4BzQxUi6XUakWNdkoM8
+}
+
+auth:bearer {
+  token: 
 }
 
 body:json {
   {
-    "athleteId": 3,
+    "athleteId": 5,
     "clinicianId": 2,
-    "scheduledAt": "2025-12-19T23:00:00Z"
+    "caseId": 2,
+    "scheduledAt": "2025-12-27T23:00:00Z"
   }
 }
