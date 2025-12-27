@@ -12,6 +12,7 @@
   "dependencies": {
     "@cornerstonejs/core": "^4.13.5",
     "@cornerstonejs/dicom-image-loader": "^4.13.5",
+    "@cornerstonejs/streaming-image-volume-loader": "^1.86.1",
     "@cornerstonejs/tools": "^4.13.5",
     "@darshanpatel2608/human-body-react": "^1.2.9",
     "@hookform/resolvers": "^5.2.2",

@@ -21,9 +21,20 @@ export const INJURY_TYPES = [
 ] as const;
 
 export const IMAGING_OPTIONS = [
-  "X-Ray",
   "MRI",
-  "CT Scan",
-  "Ultrasound",
-  "Bone Scan",
+  "CT",
+  "X-RAY",
+  "US",
+] as const;
+
+export const SEVERITY = [
+  "MILD",
+  "MODERATE",
+  "SEVERE",
+  "CRITICAL",
+] as const;
+
+export const Rehab_Programs = [
+  "None",
+  "Cardiac Rehab",
 ] as const;

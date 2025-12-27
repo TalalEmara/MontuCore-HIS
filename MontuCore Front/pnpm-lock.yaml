@@ -14,6 +14,9 @@ importers:
       '@cornerstonejs/dicom-image-loader':
         specifier: ^4.13.5
         version: 4.13.5(@cornerstonejs/core@4.13.5(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0))(dicom-parser@1.8.21)
+      '@cornerstonejs/streaming-image-volume-loader':
+        specifier: ^1.86.1
+        version: 1.86.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)
       '@cornerstonejs/tools':
         specifier: ^4.13.5
         version: 4.13.5(@cornerstonejs/core@4.13.5(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0))(@kitware/vtk.js@34.15.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0))(@types/d3-array@3.2.1)(@types/d3-interpolate@3.0.4)(d3-array@3.2.4)(d3-interpolate@3.0.1)(gl-matrix@3.4.3)
@@ -614,6 +617,10 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0 || ^8.0.0-0 <8.0.0
 
+  '@babel/runtime@7.22.11':
+    resolution: {integrity: sha512-ee7jVNlWN09+KftVOu9n7S8gQzD/Z6hN/I8VBRXW4P1+Xe7kJGXMwu8vds4aGIMHZnNbdpSWCfZZtinytpcAvA==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/runtime@7.28.4':
     resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
     engines: {node: '>=6.9.0'}
@@ -646,6 +653,9 @@ packages:
     resolution: {integrity: sha512-qvP4q4JDib7mi9r7LqKOwqz7YZ8gjtDX4ZCezeYf8+eb7MBXCz5uXAMeVF3yz9Axw4XiIMdB/pqXkm8tqCl13w==}
     engines: {node: '>=0.14'}
 
+  '@cornerstonejs/core@1.86.1':
+    resolution: {integrity: sha512-Al6rAxEGfcAreQipRwTGF53FwTQ4OqlVQtr2tvZbqOj+j3fu1z8aewwjdUIjo4S0pwTcKB/vsONzLAtiG6bbsg==}
+
   '@cornerstonejs/core@4.13.5':
     resolution: {integrity: sha512-5BVLS3diHymNA+fZ4FzlKwQkClKYmSMzCtpj1G1lJypS6PDJ9AnptfJhlhqKts8nEnpQaDYr+7ZOyLhP4Cd7yw==}
 
@@ -654,6 +664,9 @@ packages:
     peerDependencies:
       '@cornerstonejs/core': 4.13.5
       dicom-parser: 1.8.21
+
+  '@cornerstonejs/streaming-image-volume-loader@1.86.1':
+    resolution: {integrity: sha512-AOn285RnnRnBv2fMg8dFQTq80LAXXAGKqmtlAdhpZbh19B+NTKUKhRVOBUnvrgz4VhlsKx0ibYn9ztEx+18P2g==}
 
   '@cornerstonejs/tools@4.13.5':
     resolution: {integrity: sha512-4U7U4PJXEE109umiURiPRzEVUKiad6hmSkFWPJavA1JbKksGtyW6Bh3qcx0oEf2Cgf1VwBHkkFBpp8ZLi6NtCg==}
@@ -923,6 +936,14 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@kitware/vtk.js@30.4.1':
+    resolution: {integrity: sha512-jBJFm8AyWpJjNFFBadXyvBwegdD9M6WRdxmIb+x/MVpCyA5lEZSMemhiMn71oKsznaEe5Pjv2VDVJWmwK0vhUg==}
+    hasBin: true
+    peerDependencies:
+      '@babel/preset-env': ^7.17.10
+      autoprefixer: ^10.4.7
+      wslink: '>=1.1.0 || ^2.0.0'
 
   '@kitware/vtk.js@34.15.1':
     resolution: {integrity: sha512-9BH/a++drhclknBKNVzVpcOzDK95nc/OflKpQE8nY+IlaXTB1+Z6WXS6IwkEEUkRRUqSVskcW4ksgWdxihB49w==}
@@ -1655,6 +1676,9 @@ packages:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
 
+  detect-gpu@5.0.70:
+    resolution: {integrity: sha512-bqerEP1Ese6nt3rFkwPnGbsUF9a4q+gMmpTVVOEzoCyeCc+y7/RvJnQZJx1JwhgQI5Ntg0Kgat8Uu7XpBqnz1w==}
+
   dicom-parser@1.8.21:
     resolution: {integrity: sha512-lYCweHQDsC8UFpXErPlg86Px2A8bay0HiUY+wzoG3xv5GzgqVHU3lziwSc/Gzn7VV7y2KeP072SzCviuOoU02w==}
 
@@ -2211,6 +2235,9 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
+  lodash.clonedeep@4.5.0:
+    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
+
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
@@ -2427,6 +2454,9 @@ packages:
 
   regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
+
+  regenerator-runtime@0.14.1:
+    resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
 
   regexpu-core@6.4.0:
     resolution: {integrity: sha512-0ghuzq67LI9bLXpOX/ISfve/Mq33a4aFRzoQYhnnok1JOFpmE/A2TBGkNVenOGEeSBCjIiWcc6MVOG5HEQv0sA==}
@@ -2764,6 +2794,9 @@ packages:
   watchpack@2.4.4:
     resolution: {integrity: sha512-c5EGNOiyxxV5qmTtAB7rbiXxi1ooX1pQKMLX/MIabJjRA0SJBQOjKF+KSVfHkr9U1cADPon0mRiVe/riyaiDUA==}
     engines: {node: '>=10.13.0'}
+
+  webgl-constants@1.1.1:
+    resolution: {integrity: sha512-LkBXKjU5r9vAW7Gcu3T5u+5cvSvh5WwINdr0C+9jpzVB41cjQAP5ePArDtk/WHYdVj0GefCgM73BA7FlIiNtdg==}
 
   webpack-sources@3.3.3:
     resolution: {integrity: sha512-yd1RBzSGanHkitROoPFd6qsrxt+oFhg/129YzheDGqeustzX0vTZJZsSsQjVQC4yzBQ56K55XU8gaNCtIzOnTg==}
@@ -3469,6 +3502,10 @@ snapshots:
       '@babel/types': 7.28.5
       esutils: 2.0.3
 
+  '@babel/runtime@7.22.11':
+    dependencies:
+      regenerator-runtime: 0.14.1
+
   '@babel/runtime@7.28.4': {}
 
   '@babel/template@7.27.2':
@@ -3502,6 +3539,19 @@ snapshots:
 
   '@cornerstonejs/codec-openjph@2.4.7': {}
 
+  '@cornerstonejs/core@1.86.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)':
+    dependencies:
+      '@kitware/vtk.js': 30.4.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)
+      comlink: 4.4.2
+      detect-gpu: 5.0.70
+      gl-matrix: 3.4.3
+      lodash.clonedeep: 4.5.0
+    transitivePeerDependencies:
+      - '@babel/preset-env'
+      - autoprefixer
+      - webpack
+      - wslink
+
   '@cornerstonejs/core@4.13.5(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)':
     dependencies:
       '@kitware/vtk.js': 34.15.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)
@@ -3526,6 +3576,16 @@ snapshots:
       jpeg-lossless-decoder-js: 2.1.2
       pako: 2.1.0
       uuid: 9.0.1
+
+  '@cornerstonejs/streaming-image-volume-loader@1.86.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)':
+    dependencies:
+      '@cornerstonejs/core': 1.86.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)
+      comlink: 4.4.2
+    transitivePeerDependencies:
+      - '@babel/preset-env'
+      - autoprefixer
+      - webpack
+      - wslink
 
   '@cornerstonejs/tools@4.13.5(@cornerstonejs/core@4.13.5(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0))(@kitware/vtk.js@34.15.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0))(@types/d3-array@3.2.1)(@types/d3-interpolate@3.0.4)(d3-array@3.2.4)(d3-interpolate@3.0.1)(gl-matrix@3.4.3)':
     dependencies:
@@ -3725,6 +3785,30 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@kitware/vtk.js@30.4.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)':
+    dependencies:
+      '@babel/preset-env': 7.28.5(@babel/core@7.28.5)
+      '@babel/runtime': 7.22.11
+      '@types/webxr': 0.5.24
+      autoprefixer: 10.4.22(postcss@8.5.6)
+      commander: 9.2.0
+      d3-scale: 4.0.2
+      fast-deep-equal: 3.1.3
+      fflate: 0.7.3
+      gl-matrix: 3.4.3
+      globalthis: 1.0.3
+      seedrandom: 3.0.5
+      shader-loader: 1.3.1
+      shelljs: 0.8.5
+      spark-md5: 3.0.2
+      stream-browserify: 3.0.0
+      webworker-promise: 0.5.0
+      worker-loader: 3.0.8(webpack@5.103.0)
+      wslink: 2.5.0
+      xmlbuilder2: 3.0.2
+    transitivePeerDependencies:
+      - webpack
 
   '@kitware/vtk.js@34.15.1(@babel/preset-env@7.28.5(@babel/core@7.28.5))(autoprefixer@10.4.22(postcss@8.5.6))(webpack@5.103.0)(wslink@2.5.0)':
     dependencies:
@@ -4528,6 +4612,10 @@ snapshots:
 
   delayed-stream@1.0.0: {}
 
+  detect-gpu@5.0.70:
+    dependencies:
+      webgl-constants: 1.1.1
+
   dicom-parser@1.8.21: {}
 
   dompurify@3.3.1:
@@ -5055,6 +5143,8 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
+  lodash.clonedeep@4.5.0: {}
+
   lodash.debounce@4.0.8: {}
 
   lodash.get@4.4.2: {}
@@ -5227,6 +5317,8 @@ snapshots:
 
   regenerator-runtime@0.13.11:
     optional: true
+
+  regenerator-runtime@0.14.1: {}
 
   regexpu-core@6.4.0:
     dependencies:
@@ -5548,6 +5640,8 @@ snapshots:
     dependencies:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
+
+  webgl-constants@1.1.1: {}
 
   webpack-sources@3.3.3: {}
 
