@@ -6,6 +6,7 @@ import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
 import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D"; // NEW IMPORT
 import { useExamLoader } from "../../hooks/DicomViewer/useExamLoader";
+import { DicomSidebar } from "../../components/DicomView/DicomSideBar/DicomSideBar";
 
 interface ViewportData {
   id: string;
@@ -100,6 +101,10 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
         </button>
       </div>
 
+      <div className={styles.viewContainer}>
+      <DicomSidebar patientId={""} patientName={""} onExamClick={function (examId: number): void {
+          throw new Error("Function not implemented.");
+        } }/>
       {/* RENDER AREA */}
       {viewMode === 'stack' && (
         // --- 2D STACK VIEW ---
@@ -148,6 +153,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
              )}
         </div>
       )}
+    </div>
     </div>
   );
 });

@@ -7,6 +7,13 @@
   background: var(--background-color);
   overflow: hidden; 
 }
+.viewContainer{
+ display: grid;
+    grid-template-columns: auto 1fr;
+    flex: 1;
+    height: calc(100vh - 60px); /* Adjust based on top bar height */
+    width: 100%;
+}
 
 .viewportGrid { 
     flex: 1;
