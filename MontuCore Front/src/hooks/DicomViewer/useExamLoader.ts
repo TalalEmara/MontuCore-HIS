@@ -1,44 +1,90 @@
-// hooks/DicomViewer/useExamLoader.ts
 import { useState, useCallback } from 'react';
-import { useDicomUrlHandler } from './useDicomUrlHandler';
 
+// Define the shape of your API response
+interface PacsImage {
+  id: number;
+  fileName: string; // e.g., "image-00000.dcm"
+  publicUrl: string;
+  uploadedAt: string;
+}
+
+interface ExamData {
+  id: number;
+  caseId: number;
+  modality: string;
+  status: string;
+  pacsImages: PacsImage[];
+  [key: string]: any; // Allow other fields like 'medicalCase'
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: ExamData;
+}
+
+/**
+ * Hook to load a full exam (series of DICOMs) from the API.
+ * * @param onImagesLoaded Callback that receives the array of 'wadouri:URL' strings
+ * @param apiUrl Base API URL (defaults to localhost:3000)
+ */
 export const useExamLoader = (
-  onImagesLoaded: (imageIds: string[]) => void
+  onImagesLoaded: (imageIds: string[]) => void, 
+  apiUrl: string = 'http://localhost:3000'
 ) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 1. Initialize the URL handler with the callback
-  const { handleUrls } = useDicomUrlHandler(onImagesLoaded);
+  const loadExam = useCallback(async (examId: number | string) => {
+    if (!examId) return;
 
-  // 2. Manual Trigger Function
-  // Now accepts the ID as an argument
-  const loadExam = useCallback(async (examId: number) => {
     setIsLoading(true);
-    console.log('Manually loading DICOM for exam ID:', examId);
+    setError(null);
 
     try {
-      // Step A: Try API
-      const response = await fetch(`http://localhost:3000/api/exams/${examId}`);
-      const examData = await response.json();
-      
-      if (examData.data && examData.data.dicomPublicUrl) {
-        console.log('Found DICOM URL via API:', examData.data.dicomPublicUrl);
-        await handleUrls([examData.data.dicomPublicUrl]);
-      } else {
-        // Step B: Fallback
-        console.warn('No API URL found. Using local fallback.');
-        const localUrl = 'http://localhost:5173/dicom_images/demo_pure_acl_6.dcm';
-        await handleUrls([localUrl]);
+      // 1. Construct Endpoint
+      const cleanBase = apiUrl.replace(/\/$/, '');
+      const response = await fetch(`${cleanBase}/api/exams/${examId}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch exam: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Error fetching exam data:', error);
+
+      const json: ApiResponse = await response.json();
+
+      if (!json.success || !json.data) {
+        throw new Error('Invalid response format from server');
+      }
+
+      const images = json.data.pacsImages || [];
+
+      if (images.length === 0) {
+        throw new Error('This exam has no DICOM images attached.');
+      }
+
+      // 2. Sort Images (CRITICAL)
+      // We must ensure 'image-00000.dcm' comes before 'image-00001.dcm' 
+      // otherwise the 3D volume will be scrambled.
+      const sortedImages = images.sort((a, b) => 
+        a.fileName.localeCompare(b.fileName, undefined, { numeric: true, sensitivity: 'base' })
+      );
+
+      // 3. Map to WADOURI format
+      const imageIds = sortedImages.map((img) => `wadouri:${img.publicUrl}`);
+      console.log(imageIds);
+      // 4. Pass to Viewer
+      onImagesLoaded(imageIds);
+
+    } catch (err: any) {
+      console.error("Exam Load Error:", err);
+      setError(err.message || "Failed to load exam images");
     } finally {
       setIsLoading(false);
     }
-  }, [handleUrls]);
+  }, [onImagesLoaded, apiUrl]);
 
   return {
     loadExam,
-    isLoading
+    isLoading,
+    error,
   };
 };

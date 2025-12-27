@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import DicomTopBar, { type ToolMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
+import DicomTopBar, { type ToolMode, type ViewMode } from "../../components/DicomView/DicomTopBar/DicomTopBar";
 import DicomViewer, { type VoiPreset } from "../../components/level-1/DicomViewer/DicomViewer";
 import { Download } from "lucide-react";
 import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
+import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D"; // NEW IMPORT
 import { useExamLoader } from "../../hooks/DicomViewer/useExamLoader";
-import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D";
+import { DicomSidebar } from "../../components/DicomView/DicomSideBar/DicomSideBar";
 
 interface ViewportData {
   id: string;
@@ -19,7 +20,9 @@ interface DicomViewPageRef {
 
 const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   const [activeTool, setActiveTool] = useState<ToolMode>("WindowLevel");
-  const [isMPR, setIsMPR] = useState<boolean>(false);
+  
+  // CHANGED: From boolean isMPR to string viewMode
+  const [viewMode, setViewMode] = useState<ViewMode>('stack');
 
   const [viewports, setViewports] = useState<ViewportData[]>([
     { id: "viewport-0", imageIds: [], preset: null },
@@ -81,13 +84,15 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
         onAddViewport={handleAddViewport}
         onRemoveViewport={handleRemoveViewport}
         onPresetChange={handlePresetChange}
-        onViewSwitch={() => setIsMPR(!isMPR)}
+        // UPDATED PROPS
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
         {/* BUTTON: Manually triggers load with ID 16 */}
         <button 
-            onClick={() => loadExam(16)} 
+            onClick={() => loadExam(13)} 
             disabled={isLoading}
             style={{ display: 'flex', gap: 6, padding: '8px 16px', borderRadius: 4, border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', alignItems: 'center' }}
         >
@@ -96,8 +101,12 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
         </button>
       </div>
 
+      <div className={styles.viewContainer}>
+      <DicomSidebar patientId={""} patientName={""} onExamClick={function (examId: number): void {
+          throw new Error("Function not implemented.");
+        } }/>
       {/* RENDER AREA */}
-      {!isMPR ? (
+      {viewMode === 'stack' && (
         // --- 2D STACK VIEW ---
         <div className={styles.viewportGrid} style={{ '--cols': viewports.length } as React.CSSProperties}>
           {viewports.map((vp) => (
@@ -115,25 +124,40 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
             </div>
           ))}
         </div>
-      ) : (
-        // --- 3D MPR VIEW ---
+      )}
+
+      {viewMode === 'mpr' && (
+        // --- MPR ORTHO VIEW ---
         <div style={{ width: '100%', height: 'calc(100vh - 60px)', padding: '10px' }}>
              {hasImages ? (
-                 <DicomViewer3D
-                    // Forces re-mount on switch to ensure data transfer
+                 <MPRViewer
                     key={`mpr-view-${activeViewportId}`} 
                     imageIds={activeViewportData.imageIds}
-                    // activeTool={activeTool}
+                    activeTool={activeTool}
                  />
              ) : (
                 <div style={{color:'white', padding: 20}}>No images loaded to generate MPR.</div>
              )}
         </div>
       )}
+
+      {viewMode === '3d' && (
+        // --- 3D VOLUME VIEW ---
+        <div style={{ width: '100%', height: 'calc(100vh - 60px)', padding: '10px' }}>
+             {hasImages ? (
+                 <DicomViewer3D
+                    imageIds={activeViewportData.imageIds}
+                 />
+             ) : (
+                <div style={{color:'white', padding: 20}}>No images loaded for 3D Volume.</div>
+             )}
+        </div>
+      )}
+    </div>
     </div>
   );
 });
 
 DicomViewPage.displayName = 'DicomViewPage';
 
-export default DicomViewPage; 
+export default DicomViewPage;
