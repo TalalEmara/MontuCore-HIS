@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 
 models/
+dicom_related/dicoms/

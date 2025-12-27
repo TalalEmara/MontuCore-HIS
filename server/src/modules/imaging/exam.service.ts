@@ -140,6 +140,11 @@ export const getExamsByAthleteId = async (athleteId: number, page = 1, limit = 1
   return getExams({ athleteId, page, limit });
 };
 
+export const getUpcomingExamsByAthleteId = async (athleteId: number) => {
+  const now = new Date();
+  return getExams({ athleteId, dateRange: { startDate: now, endDate: new Date('2100-01-01') } });
+};
+
 /** Convenience: exams for a case with full pagination */
 export const getExamsByCaseId = async (caseId: number, page = 1, limit = 10) => {
   return getExams({ caseId, page, limit });

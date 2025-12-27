@@ -1,0 +1,22 @@
+meta {
+  name: Update Physio Program
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseURL}}/physio-programs/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc5MTQ0LCJleHAiOjE3NjcxMzgzNDR9.HMr3pDQTlmU0ApxVcPzY9lZjjV54fmSEvfVazQzLKkw
+}
+
+body:json {
+  {
+    "title": "Updated ACL Rehabilitation Program",
+    "sessionsCompleted": 5
+  }
+}
