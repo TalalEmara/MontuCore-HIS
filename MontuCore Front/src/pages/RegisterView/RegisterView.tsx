@@ -163,7 +163,10 @@ const { mutate: registerAthlete, isPending: isAthletePending } = useAthleteReg(a
         jerseyNumber: athleteDetailsData.jerseyNumber!,
         height: athleteBasicData.height || 0,
         weight: athleteBasicData.weight || 0,
-        status: athleteDetailsData.status!
+        status: athleteDetailsData.status!,
+        // Include diagnosis only if uploaded
+        labTests: labTests, 
+        exams: exams
       }, options);
       
     } else {
