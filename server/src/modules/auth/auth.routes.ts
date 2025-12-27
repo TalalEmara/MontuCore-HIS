@@ -35,6 +35,20 @@ router.get('/logout', authController.logout);
 router.get('/getAllUsers', authController.getAllUsers);
 
 /**
+ * @route GET /api/auth/getAllAthletes
+ * @desc Get all athletes
+ * @access Public
+*/
+router.get('/getAllAthletes', authController.getAllAthletes);
+
+/**
+ * @route GET /api/auth/getAllClinicians
+ * @desc Get all clinicians
+ * @access Public
+*/
+router.get('/getAllClinicians', authController.getAllClinicians);
+
+/**
  * @route GET /api/auth/getUserById/:id
  * @desc Get a specific user by ID
  * @access Public
@@ -63,32 +77,5 @@ router.post('/updateAthlete', authController.updateAthleteProfile);
 router.delete('/deleteUser/:id', authController.deleteUser);
 
 
-// /**
-//  * @route   POST /api/auth/register
-//  * @desc    Register a new user
-//  * @access  Public
-//  */
-// router.post('/register', authController.register);
-
-// /**
-//  * @route   POST /api/auth/login
-//  * @desc    Login user
-//  * @access  Public
-//  */
-// router.post('/login', authController.login);
-
-// /**
-//  * @route   POST /api/auth/logout
-//  * @desc    Logout user
-//  * @access  Private
-//  */
-// router.post('/logout', authenticateToken, authController.logout);
-
-// /**
-//  * @route   GET /api/auth/profile
-//  * @desc    Get current user profile
-//  * @access  Private
-//  */
-// router.get('/profile', authenticateToken, authController.getProfile);
 
 export default router;
