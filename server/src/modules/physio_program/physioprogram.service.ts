@@ -147,8 +147,10 @@ export const createPhysioProgram = async (data: CreatePhysioProgramData) => {
         id: physio.id,
         type: 'Physio Program',
         description: physio.title,
-        cost: totalCost
-      });
+        numberOfSessions: physio.numberOfSessions,
+        costPerSession: physio.costPerSession || 0,
+        totalCost
+        });
 
       const subtotal =
         (items.appointment?.cost || 0) +

@@ -140,10 +140,15 @@ export const getInvoicesByCaseId = async (caseId: number) => {
 
     physioPrograms: (rawItems.physioPrograms ?? []).map((p: any) => ({
       id: p.id,
-      description: p.title,
-      sessions: p.sessions,
-      cost: p.cost
+      description: p.description ?? p.title ?? "Physio Program",
+      numberOfSessions: p.numberOfSessions ?? p.sessions ?? 0,
+      costPerSession: p.costPerSession ?? 0,
+      totalCost:
+        p.totalCost ??
+        p.cost ??
+        ((p.costPerSession || 0) * (p.numberOfSessions || 0)),
     })),
+
   };
 
   return {
