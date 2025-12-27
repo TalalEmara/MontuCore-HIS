@@ -35,6 +35,20 @@ router.get('/logout', authController.logout);
 router.get('/getAllUsers', authController.getAllUsers);
 
 /**
+ * @route GET /api/auth/getAllAthletes
+ * @desc Get all athletes
+ * @access Public
+*/
+router.get('/getAllAthletes', authController.getAllAthletes);
+
+/**
+ * @route GET /api/auth/getAllClinicians
+ * @desc Get all clinicians
+ * @access Public
+*/
+router.get('/getAllClinicians', authController.getAllClinicians);
+
+/**
  * @route GET /api/auth/getUserById/:id
  * @desc Get a specific user by ID
  * @access Public

@@ -299,3 +299,52 @@ export const getUserById = async (userId: number) => {
     throw "Something went wrong during fetching user by ID";
   }
 };
+
+
+export const getAllAthletes = async () => {
+  try{
+    // return the whole object except passwordHash
+    const athletes = await prisma.user.findMany({
+      where: {
+        role: 'ATHLETE'
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        createdAt: true,
+        athleteProfile: true
+      }
+    });
+
+    return athletes;
+  }
+  catch(error){
+    throw "Something went wrong during fetching athletes";
+  }
+}
+
+
+export const getAllClinicians = async () => {
+  try{
+    // return the whole object except passwordHash
+    const clinicians = await prisma.user.findMany({
+      where: {
+        role: 'CLINICIAN'
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        createdAt: true,
+        clinicianProfile: true
+      }
+    });
+    return clinicians;
+  }
+  catch(error){
+    throw "Something went wrong during fetching clinicians";
+  }
+}
