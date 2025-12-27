@@ -1,9 +1,10 @@
-
 import React from "react";
 import {
   Move, Search, Sun, Ruler, Layers, Triangle, Plus, Minus,
   Activity,
-  SwitchCamera, 
+  SwitchCamera,
+  Grid, // New Icon
+  Box,  // New Icon
 } from "lucide-react";
 import DicomButton from "../DicomButton/DicomButton";
 import styles from "./DicomTopBar.module.css";
@@ -11,10 +12,9 @@ import styles from "./DicomTopBar.module.css";
 import { type VoiPreset } from "../../level-1/DicomViewer/DicomViewer";
 
 export type ToolMode = "WindowLevel" | "Pan" | "Zoom" | "Length" | "Angle" | "StackScroll";
+export type ViewMode = 'stack' | 'mpr' | '3d'; // NEW TYPE
 
 // Define Standard Medical Presets
-// "Sharpening" = Lung/Bone (High Contrast)
-// "Smoothing" = Soft Tissue (Low Contrast)
 export const PRESETS: VoiPreset[] = [
   { id: 'soft-tissue', label: 'Soft Tissue (Smooth)', windowWidth: 400, windowCenter: 40 },
   { id: 'lung', label: 'Lung (Sharpen)', windowWidth: 1500, windowCenter: -600 },
@@ -28,9 +28,11 @@ interface DicomTopBarProps {
   isSyncActive: boolean;
   onAddViewport?: () => void;
   onRemoveViewport?: () => void;
-  onViewSwitch?:()=>void;
   
-  // --- NEW: Preset Handler ---
+  // UPDATED: Replaced simple switch with mode change
+  viewMode?: ViewMode; 
+  onViewModeChange?: (mode: ViewMode) => void; 
+  
   onPresetChange: (preset: VoiPreset) => void;
 }
 
@@ -42,16 +44,39 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
   onAddViewport,    
   onRemoveViewport,
   onPresetChange,
-  onViewSwitch 
+  viewMode = 'stack', // Default
+  onViewModeChange,
 }) => {
   const iconSize = 20;
 
+  // Helper to handle the cycle
+  const handleSwitchClick = () => {
+    if (!onViewModeChange) return;
+    if (viewMode === 'stack') onViewModeChange('mpr');
+    else if (viewMode === 'mpr') onViewModeChange('3d');
+    else onViewModeChange('stack');
+  };
+
+  // Helper for Button Appearance
+  const getSwitchProps = () => {
+    switch (viewMode) {
+      case 'stack': return { label: "To MPR", icon: <Grid size={iconSize} /> };
+      case 'mpr': return { label: "To 3D", icon: <Box size={iconSize} /> };
+      case '3d': return { label: "To 2D", icon: <Layers size={iconSize} /> };
+      default: return { label: "Switch", icon: <SwitchCamera size={iconSize} /> };
+    }
+  };
+
+  const switchBtn = getSwitchProps();
+
   return (
     <div className={styles.dicomTopBar}>
+      {/* UPDATED SWITCH BUTTON */}
       <DicomButton
-        label="Switch"
-        icon={<SwitchCamera size={iconSize} />}
-        onClick={() => onViewSwitch()}
+        label={switchBtn.label}
+        icon={switchBtn.icon}
+        onClick={handleSwitchClick}
+        isActive={true} // Highlighted to show it's a main action
       />
       
       {/* GROUP 1: ADJUSTMENT & FILTERS */}
@@ -62,7 +87,6 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
         onClick={() => onToolChange("WindowLevel")}
       />
       
-      {/* PRESETS DROPDOWN (Simplified as a select for now) */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 5px' }}>
         <Activity size={16} color="#a1a1aa" style={{ marginBottom: 2 }} />
         <select 
@@ -85,54 +109,65 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
       <Divider />
 
       {/* GROUP 2: NAVIGATION */}
-      <DicomButton
-        label="Pan"
-        icon={<Move size={iconSize} />}
-        isActive={activeTool === "Pan"}
-        onClick={() => onToolChange("Pan")}
-      />
-      <DicomButton
-        label="Zoom"
-        icon={<Search size={iconSize} />}
-        isActive={activeTool === "Zoom"}
-        onClick={() => onToolChange("Zoom")}
-      />
-      <DicomButton
-        label="Scroll"
-        icon={<Layers size={iconSize} />}
-        isActive={activeTool === "StackScroll"}
-        onClick={() => onToolChange("StackScroll")}
-      />
+      {/* Disable 2D tools if in 3D mode (optional, but good UX) */}
+      {viewMode !== '3d' && (
+        <>
+          <DicomButton
+            label="Pan"
+            icon={<Move size={iconSize} />}
+            isActive={activeTool === "Pan"}
+            onClick={() => onToolChange("Pan")}
+          />
+          <DicomButton
+            label="Zoom"
+            icon={<Search size={iconSize} />}
+            isActive={activeTool === "Zoom"}
+            onClick={() => onToolChange("Zoom")}
+          />
+          <DicomButton
+            label="Scroll"
+            icon={<Layers size={iconSize} />}
+            isActive={activeTool === "StackScroll"}
+            onClick={() => onToolChange("StackScroll")}
+          />
+        </>
+      )}
 
-      <Divider />
+     
 
       {/* GROUP 3: MEASUREMENTS */}
-      <DicomButton
-        label="Length"
-        icon={<Ruler size={iconSize} />}
-        isActive={activeTool === "Length"}
-        onClick={() => onToolChange("Length")}
-      />
-      <DicomButton
-        label="Angle"
-        icon={<Triangle size={iconSize} />}
-        isActive={activeTool === "Angle"}
-        onClick={() => onToolChange("Angle")}
-      />
-
-      <Divider />
-
-      {/* GROUP 4: VIEWPORTS */}
+      {viewMode === 'stack' && (
+        <>
+         <Divider />
+          <DicomButton
+            label="Length"
+            icon={<Ruler size={iconSize} />}
+            isActive={activeTool === "Length"}
+            onClick={() => onToolChange("Length")}
+          />
+          <DicomButton
+            label="Angle"
+            icon={<Triangle size={iconSize} />}
+            isActive={activeTool === "Angle"}
+            onClick={() => onToolChange("Angle")}
+          />
+          <Divider />
+          {/* GROUP 4: VIEWPORTS */}
       <DicomButton
         label="Add View"
         icon={<Plus size={iconSize} />}
-        onClick={onAddViewport}
+        onClick={onAddViewport|| (() => {})}
       />
       <DicomButton
         label="Less View"
         icon={<Minus size={iconSize} />}
-        onClick={onRemoveViewport}
+        onClick={onRemoveViewport|| (() => {})}
       />
+        </>
+        
+      )}
+
+      
 
       <p className={styles.atheleteName}> Athelete Athelete </p>
     </div>
