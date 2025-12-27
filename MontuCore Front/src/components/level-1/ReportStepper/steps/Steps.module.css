@@ -89,7 +89,6 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background-color: var(--hover-bg);
   border: 1px solid var(--accent);
   border-radius: 6px;
   position: relative;
@@ -210,3 +209,63 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+.scrollableContent {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -ms-overflow-style: none; 
+  scrollbar-width: none;
+}
+
+.scrollableContent::-webkit-scrollbar {
+  display: none; 
+}
+
+.treatmentItemWrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.forceInline :global([class*="overlay"]) {
+  position: relative !important;
+  inset: auto !important;
+  background-color: transparent !important;
+  z-index: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: unset !important;
+}
+
+.forceInline :global([class*="modal"]) {
+  position: relative !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: unset !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.forceInline :global([class*="header"]) {
+  display: none !important;
+}
+
+.forceInline :global([class*="section"]) {
+  padding: 2px 0 !important;
+  margin: 0 !important;
+}
+

@@ -61,6 +61,17 @@ export interface PhysioProgram {
   costPerSession: number;
 }
 
+export interface CreateCaseRequest {
+  athleteId: number;
+  managingClinicianId: number;
+  initialAppointmentId: number;
+  diagnosisName: string;
+  icd10Code?: string;
+  injuryDate: string;
+  status: string;
+  severity: string;
+  medicalGrade: string;
+}
 // -- Main Data Structure --
 
 export interface CaseRecordData {
@@ -93,6 +104,23 @@ export interface CaseRecordResult {
 }
 
 // --- 2. API Fetcher ---
+export const createCaseApi = async (data: CreateCaseRequest, token: string, API_URL: string = `http://localhost:3000/api`) => {
+  const response = await fetch(`${API_URL}/cases`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Case creation failed:", errorData);
+    return null; // Return null instead of throwing to allow registration chain to continue
+  }
+  return response.json();
+};
 
 const fetchCaseRecord = async (
   caseId: number,

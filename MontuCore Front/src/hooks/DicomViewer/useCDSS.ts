@@ -1,95 +1,94 @@
-// path: src/hooks/DicomViewer/useDicomAnalysis.ts
+import { useMutation } from '@tanstack/react-query';
 
-import { useState, useCallback } from 'react';
-
-interface AnalysisResponse {
-  success: boolean;
-  data: {
-    diagnosis: {
-      primary: string;
-      severity: 'normal' | 'low' | 'moderate' | 'high';
-      details: string;
-      confidence: number;
-    };
-    // ... add other fields if needed for UI
+// 1. Define Interfaces
+export interface CDSSDiagnosis {
+  primary: string;
+  severity: 'normal' | 'low' | 'moderate' | 'high';
+  details: string;
+  confidence: number;
+  acl?: {
+    probability: number;
+    confidence_level: string;
   };
+}
+
+interface CDSSResponse {
+  success: boolean;
+  diagnosis: CDSSDiagnosis;
+  heatmap?: string[];
+  abnormal_probability?: number;
+  abnormal_detected?: boolean;
   message?: string;
 }
 
-export const useDicomAnalysis = (apiUrl: string = 'http://localhost:3000') => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse['data'] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface AnalyzeParams {
+  imageIds: string[];
+  examId?: number | string;
+  patientId?: number | string;
+}
 
-  const analyzeExam = useCallback(async (
-    examId: number, 
-    patientId: number, 
-    pacsImages: any[] // Expects the array of image objects from useExamLoader
-  ) => {
-    
-    if (!pacsImages || pacsImages.length === 0) {
-      setError("No images available to analyze.");
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError(null);
-
-    try {
-      // 1. Sort Images to ensure correct "middle" logic
-      const sortedImages = [...pacsImages].sort((a, b) => 
-        a.fileName.localeCompare(b.fileName, undefined, { numeric: true, sensitivity: 'base' })
-      );
-
-      // 2. Select Middle 3 Slices
-      let selectedUrls: string[] = [];
-      const total = sortedImages.length;
-
-      if (total <= 3) {
-        // If 3 or fewer, send all
-        selectedUrls = sortedImages.map(img => img.publicUrl);
-      } else {
-        const midIndex = Math.floor(total / 2);
-        // Take middle-1, middle, middle+1
-        const sliceIndices = [midIndex - 1, midIndex, midIndex + 1];
-        selectedUrls = sliceIndices.map(idx => sortedImages[idx].publicUrl);
+export const useCDSS = (apiUrl: string = 'http://localhost:3000') => {
+  
+  // 2. Setup Mutation
+  const mutation = useMutation({
+    mutationFn: async ({ imageIds, examId, patientId }: AnalyzeParams) => {
+      
+      if (!imageIds || imageIds.length === 0) {
+        throw new Error("No images available to analyze.");
       }
 
-      // 3. Send to Backend
+      // --- Logic: Strip Prefix & Select Middle 3 Slices ---
+      const cleanUrls = imageIds.map(id => id.replace('wadouri:', ''));
+      const total = cleanUrls.length;
+      let selectedUrls: string[] = [];
+
+      if (total <= 3) {
+        selectedUrls = cleanUrls;
+      } else {
+        const midIndex = Math.floor(total / 2);
+        selectedUrls = [
+          cleanUrls[midIndex - 1], 
+          cleanUrls[midIndex], 
+          cleanUrls[midIndex + 1]
+        ];
+      }
+
+      console.log(`Sending ${selectedUrls.length} slices for analysis...`);
+      console.log(selectedUrls);
+      // --- API Request ---
       const cleanBase = apiUrl.replace(/\/$/, '');
       const response = await fetch(`${cleanBase}/api/cdss/analyze-dicom`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           examId,
           patientId,
-          dicomUrls: selectedUrls // Sending Array
+          dicomUrls: selectedUrls 
         }),
       });
 
-      const json = await response.json();
+      const json: CDSSResponse = await response.json();
 
       if (!response.ok || !json.success) {
         throw new Error(json.message || "AI Analysis failed");
       }
 
-      setAnalysisResult(json.data);
-      return json.data;
-
-    } catch (err: any) {
-      console.error("Analysis Error:", err);
-      setError(err.message || "Failed to analyze exam");
-    } finally {
-      setIsAnalyzing(false);
+      return json.diagnosis;
+    },
+    onError: (err) => {
+      console.error("CDSS Analysis Error:", err);
     }
-  }, [apiUrl]);
+  });
 
+  // 3. Return a consistent API
   return {
-    analyzeExam,
-    isAnalyzing,
-    analysisResult,
-    error,
+    // Wrapper to match previous signature (args vs object)
+    analyzeImages: (imageIds: string[], examId?: number | string, patientId?: number | string) => {
+      mutation.mutate({ imageIds, examId, patientId });
+    },
+    isAnalyzing: mutation.isPending,
+    cdssResult: mutation.data || null, // data is undefined initially
+    error: mutation.error ? mutation.error.message : null,
+    reset: mutation.reset
   };
 };

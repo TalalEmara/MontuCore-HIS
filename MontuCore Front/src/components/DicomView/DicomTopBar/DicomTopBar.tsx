@@ -15,6 +15,7 @@ export type ToolMode = "WindowLevel" | "Pan" | "Zoom" | "Length" | "Angle" | "St
 export type ViewMode = 'stack' | 'mpr' | '3d'; // NEW TYPE
 
 // Define Standard Medical Presets
+// eslint-disable-next-line react-refresh/only-export-components
 export const PRESETS: VoiPreset[] = [
   { id: 'soft-tissue', label: 'Soft Tissue (Smooth)', windowWidth: 400, windowCenter: 40 },
   { id: 'lung', label: 'Lung (Sharpen)', windowWidth: 1500, windowCenter: -600 },
