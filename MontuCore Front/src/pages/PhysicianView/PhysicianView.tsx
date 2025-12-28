@@ -25,7 +25,7 @@ const PhysicianView: React.FC = () => {
   const [newDate, setNewDate] = useState<string>("");
 
   const [isCreateCaseOpen, setIsCreateCaseOpen] = useState(false);
-  const [activeAthleteForCase, setActiveAthleteForCase] = useState<any>(null);
+  const [activeAppointmentForCase, setActiveAppointmentForCase] = useState<any>(null);
 
   const physicianData = {
     fullName: "Olivia Black",
@@ -145,7 +145,8 @@ const PhysicianView: React.FC = () => {
       <CreateCase 
       isOpen={isCreateCaseOpen} 
       onClose={() => setIsCreateCaseOpen(false)} 
-      initialAthlete={activeAthleteForCase} 
+      initialAthlete={activeAppointmentForCase?.athlete} 
+      appointmentId={activeAppointmentForCase?.id}
     />
 
       <div className={styles.physicianMainContent}>
@@ -263,7 +264,7 @@ const PhysicianView: React.FC = () => {
                           <>
                             {isClose && (
                               <div onClick={() => {
-                                  setActiveAthleteForCase(appointment.athlete); 
+                                  setActiveAppointmentForCase(appointment); 
                                   setIsCreateCaseOpen(true); 
                                 }}>
                                 <Button variant="secondary" height="28px" width="30px">

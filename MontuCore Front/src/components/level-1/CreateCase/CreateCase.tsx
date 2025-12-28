@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router"; 
+import { useAuth } from "../../../context/AuthContext";
 import styles from "./CreateCase.module.css";
 import Button from "../../level-0/Button/Bottom";
 import TextInput from "../../level-0/TextInput/TextInput";
@@ -29,11 +30,14 @@ interface CreateCaseProps {
   isOpen: boolean;
   onClose: () => void;
   initialAthlete: { id: string | number; fullName: string };
+  appointmentId: number;
 }
 
-export default function CreateCase({ isOpen, onClose, initialAthlete }: CreateCaseProps) {
+export default function CreateCase({ isOpen, onClose, initialAthlete, appointmentId }: CreateCaseProps) {
   const [successMsg, setSuccessMsg] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
 
   const { control, handleSubmit, watch, formState: { errors }, reset } = useForm<CreateCaseFormData>({
     resolver: zodResolver(CreateCaseSchema),
@@ -47,13 +51,57 @@ export default function CreateCase({ isOpen, onClose, initialAthlete }: CreateCa
 
   const isNewCase = watch("isNewCase");
 
-  const onSubmit = (data: CreateCaseFormData) => {
+  const onSubmit = async (data: CreateCaseFormData) => {
     if (data.isNewCase === "yes") {
-      onClose();
-      navigate({ 
-        to: "/cases/$caseId", 
-        params: { caseId: String(initialAthlete.id) } 
-      });
+      if (!user || !profile) {
+        alert("User authentication required");
+        return;
+      }
+
+      if (!appointmentId) {
+        alert("Appointment context required to create a case");
+        return;
+      }
+
+      setIsCreating(true);
+      try {
+        const caseData = {
+          athleteId: Number(initialAthlete.id),
+          managingClinicianId: profile.id, // clinician profile ID
+          initialAppointmentId: appointmentId, // required appointment ID
+          diagnosisName: "none",
+          icd10Code: "S83.5",
+          injuryDate: new Date().toISOString(),
+          status: "ACTIVE",
+          severity: "MODERATE",
+          medicalGrade: "Grade 2"
+        };
+
+        const response = await fetch('http://localhost:3000/api/cases', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(caseData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create case');
+        }
+
+        const result = await response.json();
+        const newCaseId = result.data?.id || result.id;
+
+        onClose();
+        navigate({ 
+          to: `/cases/${newCaseId}`
+        });
+      } catch (error) {
+        console.error('Error creating case:', error);
+        alert('Failed to create case. Please try again.');
+      } finally {
+        setIsCreating(false);
+      }
     } else {
       setSuccessMsg(`Notes saved for ${initialAthlete.fullName}`);
       setTimeout(() => {
@@ -163,9 +211,9 @@ export default function CreateCase({ isOpen, onClose, initialAthlete }: CreateCa
             )}
 
             <div className={styles.actions}>
-              <Button type="button" variant="secondary" onClick={onClose} height="36px">Cancel</Button>
-              <Button type="submit" height="36px">
-                {isNewCase === "yes" ? "Continue" : "Save Entry"}
+              <Button type="button" variant="secondary" onClick={onClose} height="36px" disabled={isCreating}>Cancel</Button>
+              <Button type="submit" height="36px" disabled={isCreating}>
+                {isCreating ? "Creating..." : (isNewCase === "yes" ? "Continue" : "Save Entry")}
               </Button>
             </div>
           </form>
