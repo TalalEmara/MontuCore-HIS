@@ -17,6 +17,7 @@ import { step4Schema } from "./schemas/step4";
 import { fullReportSchema, type FullReport } from "./schemas/fullReport";
 import styles from "./ReportStepper.module.css";
 import { useMedicalReport } from "../../../hooks/useMedicalReport";
+import { useAllClinicians } from "../../../hooks/useUsers";
 
 interface ReportStepperProps {
   isOpen: boolean;
@@ -68,6 +69,7 @@ export default function ReportStepper({
     const valid = await form.trigger();
     if (valid) {
       const currentValues = form.getValues();
+      console.log("Current Step Values:", currentValues);
       setAllData(prev => ({ ...prev, ...currentValues }));
       setCurrentStep(s => s + 1);
     }
@@ -115,7 +117,11 @@ const handleFinalSubmit: SubmitHandler<Partial<FullReport>> = async (data) => {
     }
   };
 
+  const { data: clinicians } = useAllClinicians();
   const formatReportData = (data: FullReport) => {
+    const selectedClinician = clinicians?.find(
+    (c) => String(c.id) === String(data.physiotherapistProgram)
+  );
     return {
       caseStatus: data.caseStatus,
       notes: {
@@ -124,7 +130,9 @@ const handleFinalSubmit: SubmitHandler<Partial<FullReport>> = async (data) => {
         painLevel: data.painLevel,
       },
       diagnosis: `${data.diagnosis} - ${data.injuryType}`,
-      rehabProgram: data.rehabProgram || "None",
+     physiotherapistProgram: selectedClinician 
+      ? `Dr. ${selectedClinician.fullName}` 
+      : (data.physiotherapistProgram || "None"),
       severity: data.severity,
       followUpDate: data.followUpDate,
       exam: data.exam || [],
@@ -173,7 +181,7 @@ const handleFinalSubmit: SubmitHandler<Partial<FullReport>> = async (data) => {
     addSectionTitle("Diagnosis & Rehab");
     addLine("Diagnosis", data.diagnosis);
     addLine("Severity", data.severity);
-    addLine("Rehab Program", data.rehabProgram);
+    addLine("physiotherapist Program", data.physiotherapistProgram);
     addLine("Follow-up", data.followUpDate);
     drawDivider();
 

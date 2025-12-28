@@ -2,20 +2,41 @@ import React, { useState } from "react";
 import LabTestDetail from "../../components/level-2/DetailsOverlay/labTestOverlay";
 import TablePage from "./TablePage";
 import LabTestPreview from "../../components/level-2/Preview/LabTestPreview";
+import Badge from "../../components/level-0/Badge/Badge"; 
 
-const useMockUsers = (page: number, pageSize: number) => ({
-  data: [
-    { id: 1, name: "Cristiano Ronaldo", role: "Striker", status: "Active" },
-    { id: 2, name: "Lionel Messi", role: "Playmaker", status: "Inactive" },
-  ],
+interface LabRecord {
+  id: number;
+  testName: string;
+  category: string;
+  status: "COMPLETED" | "PENDING" | "CANCELLED";
+  date: string;
+}
+
+const labsData: LabRecord[] = [
+  { id: 1, testName: "Complete Blood Count", category: "Hematology", status: "COMPLETED", date: "2025-12-11" },
+  { id: 7, testName: "Coagulation Profile", category: "Hematology", status: "COMPLETED", date: "2025-12-11" },
+];
+
+const useLabData = (page: number, pageSize: number) => ({
+  data: labsData,
   isLoading: false,
-  totalItems: 2,
+  totalItems: labsData.length,
 });
 
 const testColumns = [
-  { header: "ID", cell: (row: any) => row.id },
-  { header: "Name", cell: (row: any) => <strong>{row.name}</strong> },
-  { header: "Role", cell: (row: any) => row.role },
+  { header: "ID", cell: (row: LabRecord) => row.id },
+  { header: "Test Name", cell: (row: LabRecord) => <strong>{row.testName}</strong> },
+  { header: "Category", cell: (row: LabRecord) => row.category },
+  { header: "Date", cell: (row: LabRecord) => row.date },
+  { 
+    header: "Status", 
+    cell: (row: LabRecord) => (
+      <Badge 
+        label={row.status} 
+        variant={row.status === "COMPLETED" ? "success" : "pending"} 
+      />
+    ) 
+  },
 ];
 
 function LabTable() {
@@ -34,7 +55,7 @@ function LabTable() {
       
       <TablePage
         title="Laboratory Tests"
-        useDataHook={useMockUsers}
+        useDataHook={useLabData}
         columns={testColumns}
         PreviewComponent={LabPreviewWithDetails}
       />
