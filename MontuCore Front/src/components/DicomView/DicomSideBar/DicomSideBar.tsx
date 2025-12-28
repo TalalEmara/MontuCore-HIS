@@ -195,7 +195,6 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
                                 marginBottom: '5px' 
                               }} 
                             />
-                          ))
                         </div>
                       )}
                   </>
