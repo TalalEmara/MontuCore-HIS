@@ -1,0 +1,26 @@
+meta {
+  name: Create Physio Program
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/physio-programs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2ODc5MTQ0LCJleHAiOjE3NjcxMzgzNDR9.HMr3pDQTlmU0ApxVcPzY9lZjjV54fmSEvfVazQzLKkw
+}
+
+body:json {
+  {
+    "caseId": 5,
+    "title": "ACL Rehabilitation Program",
+    "numberOfSessions": 12,
+    "startDate": "2025-12-30T10:00:00Z",
+    "weeklyRepetition": 3,
+    "costPerSession": 50.0
+  }
+}
