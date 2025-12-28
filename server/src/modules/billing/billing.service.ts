@@ -97,12 +97,71 @@ const generateInvoiceNumber = async (): Promise<string> => {
 /**
  * Get invoices by Case ID
  */
-export const getInvoiceByCaseId = async (caseId: number) => {
-  return prisma.invoice.findFirst({
+export const getInvoicesByCaseId = async (caseId: number) => {
+  const invoice = await prisma.invoice.findFirst({
     where: { caseId },
-    include: { athlete: true, clinician: true, appointment: true },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      invoiceDate: true,
+      items: true,
+      subtotal: true,
+      athlete: {
+        select: {
+          fullName: true
+        }
+      }
+    }
   });
+
+  if (!invoice) return null;
+
+  const rawItems: any = invoice.items || {};
+
+  const cleanedItems = {
+    exams: (rawItems.exams ?? []).map((e: any) => ({
+      id: e.id,
+      description: `${e.modality} - ${e.bodyPart}`,
+      cost: e.cost ?? 0,
+    })),
+
+    labTests: (rawItems.labTests ?? []).map((l: any) => ({
+      id: l.id,
+      description: l.testName,
+      cost: l.cost ?? 0,
+      
+    })),
+
+    treatments: (rawItems.treatments ?? []).map((t: any) => ({
+      id: t.id,
+      description: t.description,
+      cost: t.cost ?? 0
+    })),
+
+    physioPrograms: (rawItems.physioPrograms ?? []).map((p: any) => ({
+      id: p.id,
+      description: p.description ?? p.title ?? "Physio Program",
+      numberOfSessions: p.numberOfSessions ?? p.sessions ?? 0,
+      costPerSession: p.costPerSession ?? 0,
+      totalCost:
+        p.totalCost ??
+        p.cost ??
+        ((p.costPerSession || 0) * (p.numberOfSessions || 0)),
+    })),
+
+  };
+
+  return {
+    id: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    invoiceDate: invoice.invoiceDate,
+    items: cleanedItems,
+    subtotal: invoice.subtotal,
+    athleteName: invoice.athlete.fullName
+  };
 };
+
+
 
 
 

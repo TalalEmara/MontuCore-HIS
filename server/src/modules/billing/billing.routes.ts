@@ -27,10 +27,11 @@ router.get('/invoices/:id', authenticateToken, billingController.getInvoiceById)
 
 /***
  * @route GET /api/billing/invoices/case/:caseId
- * @desc Get invoice for a specific case
+ * @desc Get all invoices for a specific case
  * @access Protected
  */
-router.get('/invoices/case/:caseId', authenticateToken, billingController.getInvoiceByCaseId);
+router.get('/invoices/case/:caseId', authenticateToken, billingController.getInvoicesByCaseId);
 
 export default router;
+
 

@@ -222,27 +222,6 @@ export const updateAppointmentStatus = async (appointmentID: number, status: App
       data: { status },
     });
 
-    // Auto-create invoice if appointment is COMPLETED
-    if (status === ApptStatus.COMPLETED) {
-      const invoiceData: any = {
-        athleteId: appointment.athleteId,
-        clinicianId: appointment.clinicianId,
-        appointmentId: appointment.id,
-        items: [
-          {
-            quantity: 1,
-            unitPrice: 0,
-            description: 'Appointment services (covered by insurance)',
-          },
-        ],
-        notes: 'Automatically generated invoice for completed appointment',
-        createdBy: appointment.clinicianId,
-        caseId: appointment.caseId ?? undefined, // safely add caseId if exists
-      };
-
-      await billingService.createInvoice(invoiceData);
-    }
-
     // Return the usual response
     const responseData = {
       "Athlete Name": await prisma.user
@@ -261,7 +240,6 @@ export const updateAppointmentStatus = async (appointmentID: number, status: App
     return error;
   }
 };
-
 
 
 export const getAppointment = async(appointmentID: number) => {
