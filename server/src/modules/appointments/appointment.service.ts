@@ -576,7 +576,7 @@ export const getAppointmentsByAthleteId = async (athleteId: number, filters: Par
 
     // Use the generic getAppointments function with athleteId filter and additional filters
     const result = await getAppointments({ athleteId, ...filters });
-    return result.appointments;
+    return result;
   }
   catch(error){
     throw error;
@@ -599,7 +599,7 @@ export const getAppointmentsByClinicianId = async (clinicianId: number, filters:
 
     // Use the generic getAppointments function with clinicianId filter and additional filters
     const result = await getAppointments({ clinicianId, ...filters });
-    return result.appointments;
+    return result;
   }
   catch(error){
     throw error;
