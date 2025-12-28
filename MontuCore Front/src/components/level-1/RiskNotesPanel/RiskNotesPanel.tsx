@@ -7,10 +7,11 @@ import Button from "../../level-0/Button/Bottom";
 import TextInput from "../../level-0/TextInput/TextInput"; 
 import ComboBox from "../../level-0/ComboBox/ComboBox";
 import Checkbox from "../../level-0/CheckBox/CheckBox"; 
-import { useAllAthletes } from "../../../hooks/useUsers";
+import { useAllAthletes, useAllClinicians } from "../../../hooks/useUsers";
 
 const riskNoteSchema = z.object({
   athleteId: z.string().min(1, "Please select a patient"),
+  clinicianId: z.string().min(1, "Please select a clinician"),
   severity: z.string().min(1, "Please select severity"),
   categories: z.array(z.string()).min(1, "Select at least one observation"),
   notes: z.string().min(5, "Notes are required"),
@@ -32,11 +33,13 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
   
   // 1. Fetch data directly
   const { data: Athletes } = useAllAthletes();
+  const { data: Clinicians } = useAllClinicians();
 
   const { control, handleSubmit, formState: { errors }, reset, setValue, watch, getValues } = useForm<RiskNoteFormData>({
     resolver: zodResolver(riskNoteSchema),
     defaultValues: { 
       athleteId: "", // Initialize empty, let useEffect fill it when data arrives
+      clinicianId: "",
       severity: "MILD", 
       categories: [], 
       notes: "" 
@@ -84,10 +87,12 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
   const onSubmit = (data: RiskNoteFormData) => {
     // 3. Safe find with optional chaining
     const selectedAthlete = Athletes?.find(p => String(p.id) === data.athleteId);
-    
+    const selectedClinician = Clinicians?.find(c => String(c.id) === data.clinicianId);
+
     const finalData = {
       ...data,
-      athleteName: selectedAthlete ? selectedAthlete.fullName : "Unknown" // Used fullName instead of label
+      athleteName: selectedAthlete ? selectedAthlete.fullName : "Unknown", // Used fullName instead of label
+      clinicianName: selectedClinician ? selectedClinician.fullName : "Unknown"
     };
 
     console.log("FINAL OBJECT:", finalData);
@@ -130,6 +135,22 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
                   <ComboBox 
                     label="Select Athlete" 
                     // 4. Transform data safely
+                    options={Athletes ? Athletes.map(a => ({ label: a.fullName, value: String(a.id) })) : []}
+                    value={field.value} 
+                    onChange={field.onChange} 
+                  />
+                  {errors.athleteId && <span className={styles.errorText}>{errors.athleteId.message}</span>}
+                </div>
+              )}
+            />
+
+            <Controller
+              name="athleteId"
+              control={control}
+              render={({ field }) => (
+                <div className={styles.fieldGroup}>
+                  <ComboBox 
+                    label="Select Athlete" 
                     options={Athletes ? Athletes.map(a => ({ label: a.fullName, value: String(a.id) })) : []}
                     value={field.value} 
                     onChange={field.onChange} 
