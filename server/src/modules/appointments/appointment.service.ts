@@ -471,7 +471,7 @@ export const getAppointments = async (filters: GetAppointmentsFilterParams = {})
         skip,
         take: limit,
         orderBy: {
-          scheduledAt: 'asc'
+          scheduledAt: 'desc'
         }
       }),
       prisma.appointment.count({ where })

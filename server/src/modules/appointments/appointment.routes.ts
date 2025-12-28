@@ -26,13 +26,6 @@ router.put('/update-appointment-status/', appointmentController.updateAppointmen
 router.post('/update-appointment-details/:appointmentId', appointmentController.updateAppointment);
 
 /***
- * @route PUT /api/appointments
- * @desc Update Appointment Status
- * @access Public
- */
-router.get('/:id', appointmentController.getAppointmentById);
-
-/***
  * @route DELETE /api/appointments/
  * @desc Delete appointment
  * @access Public
@@ -62,6 +55,13 @@ router.get('/clinician/:clinicianId', appointmentController.getAppointmentsByCli
  * @access Public
  */
 router.get('/athlete/:athleteId', appointmentController.getAppointmentsByAthleteId);
+
+/***
+ * @route PUT /api/appointments
+ * @desc Update Appointment Status
+ * @access Public
+ */
+router.get('/:id', appointmentController.getAppointmentById);
 
 
 

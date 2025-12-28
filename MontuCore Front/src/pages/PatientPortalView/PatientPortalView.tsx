@@ -10,7 +10,8 @@ import TextInput from "../../components/level-0/TextInput/TextInput";
 import { useGenerateShareLink, useExternalConsultation } from "../../hooks/useConsultation";
 import PasscodeOverlay from "../../components/level-2/PasscodeOverlay/PasscodeOverlay";
 import { useParams, useSearch } from "@tanstack/react-router";
-import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 type RecordTab = "cases" | "exams" | "labs" | "prescriptions"; // Renamed imaging to exams
@@ -34,7 +35,10 @@ function PatientPortalView() {
   const search: any = useSearch({ strict: false });
   const isConsulting = search.view === "consulting";
   const isExternal = search.view === "external";
-  // const Token = "aac6d477-079b-4ae8-bb0d-d16fd057834e";
+  const { user, token } = useAuth();
+  
+  // For internal view, use the authenticated user's ID; for external/consulting, use the param
+  const effectiveAthleteId = isExternal || isConsulting ? athleteId : (user?.id || 0);
   
   const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(!isExternal);
@@ -51,12 +55,21 @@ function PatientPortalView() {
     accessCode, 
     isAuthorized && isExternal
   );
-  const { dashboard, isLoading: isDashboardLoading } = useAthleteDashboard(
-    athleteId || 0,
-    1,
-    10, // Limit
-    "reports" 
-  );
+
+  // Fetch dashboard data for the portal
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
+    queryKey: ['athlete-portal', effectiveAthleteId],
+    queryFn: async () => {
+      const response = await fetch(`http://localhost:3000/api/athlete/dashboard/${effectiveAthleteId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      return response.json();
+    },
+    enabled: !!effectiveAthleteId && !!token && !isExternal, // Only fetch for internal/consulting views
+  });
   const handlePasscodeSuccess = (enteredCode: string) => {
     setAccessCode(enteredCode);
     setIsAuthorized(true);
@@ -68,43 +81,43 @@ function PatientPortalView() {
     }
   }, [isExtError]);
 
-// --- Data Mapping ---
-  // Map the 'useAthleteDashboard' result to the local interfaces expected by the List components.
-  // If loading or external, we fallback to empty arrays here (external is handled in getListConfig).
+// Map the dashboard result to the local interfaces expected by the List components.
+// Use externalResponse for external views, dashboardData for internal/consulting views
 
-  const appointmentsData: Appointment[] = dashboard?.upcomingAppointments.appointments.map(appt => ({
-    id: appt.id,
-    clinician: appt.clinician?.fullName || "Unassigned",
-    date: new Date(appt.scheduledAt).toLocaleDateString(),
-    status: appt.status as ApptStatus
-  })) || [];
+const dataSource = isExternal ? externalResponse?.data : dashboardData?.data;
 
-  const cases: MedicalCase[] = dashboard?.report?.cases?.map(c => ({
-    id: c.id,
-    name: c.diagnosisName,
-    severity: c.severity as Severity,
-    date: new Date(c.injuryDate).toLocaleDateString(),
-    status: c.status as CaseStatus
-  })) || [];
+const appointmentsData: Appointment[] = dataSource?.upcomingAppointments?.appointments?.map(appt => ({
+  id: appt.id,
+  clinician: appt.clinician?.fullName || "Unassigned",
+  date: new Date(appt.scheduledAt).toLocaleDateString(),
+  status: appt.status as ApptStatus
+})) || [];
 
-  const examsData: ExamRecord[] = dashboard?.imaging?.exams?.map(e => ({
-    id: e.id,
-    modality: e.modality,
-    bodyPart: e.bodyPart,
-    status: e.status,
-    scheduledAt: e.scheduledAt
-  })) || [];
+const cases: MedicalCase[] = dataSource?.report?.cases?.map(c => ({
+  id: c.id,
+  name: c.diagnosisName,
+  severity: c.severity as Severity,
+  date: new Date(c.injuryDate).toLocaleDateString(),
+  status: c.status as CaseStatus
+})) || [];
 
-  const labsData: LabRecord[] = dashboard?.tests?.labTests?.map(l => ({
-    id: l.id,
-    testName: l.testName,
-    category: l.category,
-    status: l.status,
-    date: new Date(l.sampleDate).toLocaleDateString()
-  })) || [];
+const examsData: ExamRecord[] = dataSource?.imaging?.exams?.map(e => ({
+  id: e.id,
+  modality: e.modality,
+  bodyPart: e.bodyPart,
+  status: e.status,
+  scheduledAt: e.scheduledAt
+})) || [];
 
-  const prescriptions: Prescription[] = dashboard?.prescriptions?.treatments?.map(t => ({
-    id: t.id,
+const labsData: LabRecord[] = dataSource?.tests?.labTests?.map(l => ({
+  id: l.id,
+  testName: l.testName,
+  category: l.category,
+  status: l.status,
+  date: new Date(l.sampleDate).toLocaleDateString()
+})) || [];
+
+const prescriptions: Prescription[] = dataSource?.prescriptions?.treatments?.map(t => ({
     name: t.description, // using description as name
     date: new Date(t.date).toLocaleDateString(),
     clinician: t.providerName
@@ -138,7 +151,7 @@ function PatientPortalView() {
     const labIds = selectedIds.filter(id => id.startsWith("labs-")).map(id => parseInt(id.split("-")[1]));
 
     mutate({
-      athleteId: athleteId || 0,
+      athleteId: effectiveAthleteId,
       permissions: { caseIds, examIds, labIds, notes: shareNotes },
       expiryHours: parseInt(expiryHours) || 1
     });
