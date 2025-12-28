@@ -11,7 +11,7 @@ import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 import BookingPanel from "../../components/level-1/BookingPanel/BookingPanel";
 import { useAuth } from "../../context/AuthContext";
 import { X, Calendar } from "lucide-react";
-import { useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointments";
+import { useCancelAppointment } from "../../hooks/useAppointments";
 import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 
 function AthleteView() {
@@ -25,7 +25,6 @@ function AthleteView() {
 
   const { user, profile } = useAuth();
 
-  const rescheduleMutation = useRescheduleAppointment();
   const cancelMutation = useCancelAppointment();
 
 
@@ -120,27 +119,33 @@ function AthleteView() {
   };
 
 
-  const handleRescheduleSubmit = () => {
+  const handleRescheduleSubmit = async () => {
     if (!selectedAppointment || !newDate) return;
 
-    const clinicianId = selectedAppointment.clinicianId;
-    
-    if (!clinicianId) {
-        console.error("Cannot reschedule: Clinician ID missing");
-        return;
+    try {
+      const response = await fetch(`http://localhost:3000/api/appointments/update-appointment-details/${selectedAppointment.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: "SCHEDULED",
+          scheduledAt: new Date(newDate).toISOString()
+        })
+      });
+
+      if (response.ok) {
+        setIsRescheduleOpen(false);
+        refetch(); // Refresh the dashboard data
+        alert('Appointment rescheduled successfully!');
+      } else {
+        console.error('Failed to reschedule appointment');
+        alert('Failed to reschedule appointment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error rescheduling appointment:', error);
+      alert('An error occurred while rescheduling. Please try again.');
     }
-
-    rescheduleMutation.mutate({
-      appointmentId: selectedAppointment.id,
-      athleteId: athleteData.id, 
-      clinicianId: clinicianId,
-      scheduledAt: new Date(newDate).toISOString(),
-      diagnosisNotes: selectedAppointment.diagnosisNotes,
-      height: selectedAppointment.height,
-      weight: selectedAppointment.weight
-    });
-
-    setIsRescheduleOpen(false);
   };
   const totalPages = (() => {
     if (!dashboard) return 1;
@@ -276,13 +281,13 @@ function AthleteView() {
                         </div>
                         <div className="appointment-actions">
                           {/* [UPDATED] Reschedule Button */}
-                          <div onClick={() => openRescheduleModal(appt.raw.clinicianId)}>
+                          <div onClick={() => openRescheduleModal(appt.raw)}>
                             <Button variant="secondary" height="30px">
                               <Calendar size={16} />
                             </Button>
                           </div>
                           {/* [UPDATED] Cancel Button */}
-                          <div onClick={() => handleCancel(appt.raw.id)}>
+                          <div onClick={() => handleCancel(appt.raw.clinicianId)}>
                             <Button variant="secondary" height="30px">
                               <X size={16} />
                             </Button>
