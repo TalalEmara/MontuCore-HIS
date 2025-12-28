@@ -1,5 +1,5 @@
 .billButton {
-  background: var(--primary-color);
+  background: var(--secondary-color);
   color: var(--text-color);
   border: none;
   border-radius: 6px;
@@ -8,7 +8,7 @@
   cursor: pointer;
 }
 
-.billButton:hover { background: var(--secondary-color); }
+.billButton:hover { background: var(--primary-color); }
 
 .overlay {
   position: fixed;
