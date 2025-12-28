@@ -8,9 +8,11 @@ import TextInput from "../../level-0/TextInput/TextInput";
 import ComboBox from "../../level-0/ComboBox/ComboBox";
 import Checkbox from "../../level-0/CheckBox/CheckBox"; 
 import { useAllAthletes, useAllClinicians } from "../../../hooks/useUsers";
+import { useCreateRiskAppointment } from "../../../hooks/useRiskNotes";
 
+// Validation Schema
 const riskNoteSchema = z.object({
-  athleteId: z.string().min(1, "Please select a patient"),
+  athleteId: z.string().min(1, "Please select an athlete"),
   clinicianId: z.string().min(1, "Please select a clinician"),
   severity: z.string().min(1, "Please select severity"),
   categories: z.array(z.string()).min(1, "Select at least one observation"),
@@ -22,7 +24,6 @@ type RiskNoteFormData = z.infer<typeof riskNoteSchema>;
 interface RiskNotesPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  // Removed 'patients' prop as we are fetching athletes internally
 }
 
 const CATEGORIES = ["Inflammation", "Muscle Fatigue", "Joint Pain", "Limited ROM", "Load Issue", "Neural Tension"];
@@ -31,14 +32,17 @@ const SEVERITIES = ["MILD", "MODERATE", "SEVERE", "CRITICAL"];
 export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps) {
   const [successMsg, setSuccessMsg] = useState("");
   
-  // 1. Fetch data directly
-  const { data: Athletes } = useAllAthletes();
-  const { data: Clinicians } = useAllClinicians();
+  // Data Fetching
+  const { data: athletes } = useAllAthletes();
+  const { data: clinicians } = useAllClinicians();
+  
+  // Custom Hook for Logic
+  const { createRiskEntry, isLoading } = useCreateRiskAppointment();
 
   const { control, handleSubmit, formState: { errors }, reset, setValue, watch, getValues } = useForm<RiskNoteFormData>({
     resolver: zodResolver(riskNoteSchema),
     defaultValues: { 
-      athleteId: "", // Initialize empty, let useEffect fill it when data arrives
+      athleteId: "", 
       clinicianId: "",
       severity: "MILD", 
       categories: [], 
@@ -46,15 +50,17 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
     }
   });
 
-  // 2. Set default athlete when data loads and modal opens
+  // Initialize Defaults when data arrives
   useEffect(() => {
-    if (isOpen && Athletes && Athletes.length > 0) {
-      // Only set default if no value is currently selected to avoid overwriting user choice
-      if (!getValues("athleteId")) {
-        setValue("athleteId", String(Athletes[0].id));
+    if (isOpen) {
+      if (athletes?.length && !getValues("athleteId")) {
+        setValue("athleteId", String(athletes[0].id));
+      }
+      if (clinicians?.length && !getValues("clinicianId")) {
+        setValue("clinicianId", String(clinicians[0].id));
       }
     }
-  }, [isOpen, Athletes, setValue, getValues]);
+  }, [isOpen, athletes, clinicians, setValue, getValues]);
 
   const selectedCategories = watch("categories");
 
@@ -74,7 +80,7 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
   };
 
   const handleCheckboxChange = (cat: string, checked: boolean) => {
-    const current = [...(selectedCategories || [])]; // Safety check
+    const current = [...(selectedCategories || [])];
     if (checked) {
       current.push(cat);
     } else {
@@ -85,24 +91,20 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
   };
 
   const onSubmit = (data: RiskNoteFormData) => {
-    // 3. Safe find with optional chaining
-    const selectedAthlete = Athletes?.find(p => String(p.id) === data.athleteId);
-    const selectedClinician = Clinicians?.find(c => String(c.id) === data.clinicianId);
-
-    const finalData = {
-      ...data,
-      athleteName: selectedAthlete ? selectedAthlete.fullName : "Unknown", // Used fullName instead of label
-      clinicianName: selectedClinician ? selectedClinician.fullName : "Unknown"
-    };
-
-    console.log("FINAL OBJECT:", finalData);
-    setSuccessMsg("Notes Saved Successfully!");
-    
-    setTimeout(() => {
-      reset();
-      setSuccessMsg("");
-      onClose();
-    }, 800);
+    createRiskEntry(
+      data,
+      () => {
+        setSuccessMsg("Risk Recorded & Appointment Created!");
+        setTimeout(() => {
+          reset();
+          setSuccessMsg("");
+          onClose();
+        }, 1500);
+      },
+      (err) => {
+        console.error("Failed to save risk note", err);
+      }
+    );
   };
 
   const onInvalid = (formErrors: any) => {
@@ -127,6 +129,7 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
             onSubmit={handleSubmit(onSubmit, onInvalid)}
           >
             
+            {/* Athlete Dropdown */}
             <Controller
               name="athleteId"
               control={control}
@@ -134,8 +137,7 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
                 <div className={styles.fieldGroup}>
                   <ComboBox 
                     label="Select Athlete" 
-                    // 4. Transform data safely
-                    options={Athletes ? Athletes.map(a => ({ label: a.fullName, value: String(a.id) })) : []}
+                    options={athletes ? athletes.map(a => ({ label: a.fullName, value: String(a.id) })) : []}
                     value={field.value} 
                     onChange={field.onChange} 
                   />
@@ -144,22 +146,24 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
               )}
             />
 
+            {/* Clinician Dropdown */}
             <Controller
-              name="athleteId"
+              name="clinicianId"
               control={control}
               render={({ field }) => (
                 <div className={styles.fieldGroup}>
                   <ComboBox 
-                    label="Select Athlete" 
-                    options={Athletes ? Athletes.map(a => ({ label: a.fullName, value: String(a.id) })) : []}
+                    label="Assign Clinician" 
+                    options={clinicians ? clinicians.map(c => ({ label: c.fullName, value: String(c.id) })) : []}
                     value={field.value} 
                     onChange={field.onChange} 
                   />
-                  {errors.athleteId && <span className={styles.errorText}>{errors.athleteId.message}</span>}
+                  {errors.clinicianId && <span className={styles.errorText}>{errors.clinicianId.message}</span>}
                 </div>
               )}
             />
 
+            {/* Severity Chips */}
             <div className={styles.automationContainer}>
               <label className={styles.label}>Risk Severity</label>
               <div className={styles.presetGrid}>
@@ -192,6 +196,7 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
               </div>
             </div>
 
+            {/* Observation Checkboxes */}
             <div className={styles.automationContainer}>
               <label className={styles.label}>Observations</label>
               <div className={styles.checkboxGrid}>
@@ -207,6 +212,7 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
               {errors.categories && <span className={styles.errorText}>{errors.categories.message}</span>}
             </div>
 
+            {/* Text Area */}
             <Controller
               name="notes"
               control={control}
@@ -224,7 +230,9 @@ export default function RiskNotesPanel({ isOpen, onClose }: RiskNotesPanelProps)
 
             <div className={styles.actions}>
               <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-              <Button type="submit">Save Record</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Record"}
+              </Button>
             </div>
           </form>
         )}
