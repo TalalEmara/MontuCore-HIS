@@ -3,13 +3,10 @@ import * as treatmentController from './treatment.controller.js';
 
 const router: Router = express.Router();
 
-/**
- * @route   GET /api/treatments
- * @desc    Get treatments with filters (athleteId, caseId, type) and pagination
- * @access  Public (to be protected with auth in production)
- * @query   athleteId, caseId, type, page, limit
- */
 router.get('/', treatmentController.getTreatments);
+router.post('/', treatmentController.createTreatment);
+router.get('/:id', treatmentController.getTreatments);
+router.put('/:id', treatmentController.updateTreatment);
 
 /**
  * @route   GET /api/treatments/athlete/:athleteId
@@ -49,3 +46,4 @@ router.put('/:id', treatmentController.updateTreatment);
 router.delete('/:id', treatmentController.deleteTreatment);
 
 export default router;
+

@@ -79,7 +79,8 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
     // Convert local time (Egypt timezone) to UTC for storage
     let scheduledDate = new Date(appointmentData.scheduledAt);
-    // scheduledDate = localToUTC(appointmentData.scheduledAt, offset); // Input is already UTC
+    const offset = getTimezoneOffsetInMinutes(appointmentData.timezone || DEFAULT_TIMEZONE);
+    scheduledDate = localToUTC(appointmentData.scheduledAt, offset);
 
     /*
       Some Important Checks
@@ -98,7 +99,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       {
         where: {
           clinicianId: appointmentData.clinicianId,
-          scheduledAt: new Date(appointmentData.scheduledAt),
+          scheduledAt: scheduledDate,
           status: ApptStatus.SCHEDULED
         }
       }
@@ -112,7 +113,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       {
         where: {
           athleteId: appointmentData.athleteId,
-          scheduledAt: new Date(appointmentData.scheduledAt),
+          scheduledAt: scheduledDate,
           status: ApptStatus.SCHEDULED
         }
       }
@@ -148,7 +149,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       data: {
         athleteId: appointmentData.athleteId,
         clinicianId: appointmentData.clinicianId,
-        scheduledAt: new Date(appointmentData.scheduledAt),
+        scheduledAt: scheduledDate,
         height: appointmentData.height ?? null,
         weight: appointmentData.weight ?? null,
         status: appointmentData.status || ApptStatus.SCHEDULED,
@@ -185,9 +186,8 @@ export const updateAppointment = async(appointmentID: number, appointmentData : 
     if (appointmentData.clinicianId) updatedData.clinicianId = appointmentData.clinicianId;
     if (appointmentData.scheduledAt) {
       // Convert local time (Egypt timezone) to UTC for storage
-      // const offset = getTimezoneOffsetInMinutes();
-      // updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
-      updatedData.scheduledAt = new Date(appointmentData.scheduledAt); // Input is already UTC
+      const offset = getTimezoneOffsetInMinutes(appointmentData.timezone || DEFAULT_TIMEZONE);
+      updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
     }
     if (appointmentData.height !== undefined) updatedData.height = appointmentData.height;
     if (appointmentData.weight !== undefined) updatedData.weight = appointmentData.weight;
@@ -222,27 +222,6 @@ export const updateAppointmentStatus = async (appointmentID: number, status: App
       data: { status },
     });
 
-    // Auto-create invoice if appointment is COMPLETED
-    if (status === ApptStatus.COMPLETED) {
-      const invoiceData: any = {
-        athleteId: appointment.athleteId,
-        clinicianId: appointment.clinicianId,
-        appointmentId: appointment.id,
-        items: [
-          {
-            quantity: 1,
-            unitPrice: 0,
-            description: 'Appointment services (covered by insurance)',
-          },
-        ],
-        notes: 'Automatically generated invoice for completed appointment',
-        createdBy: appointment.clinicianId,
-        caseId: appointment.caseId ?? undefined, // safely add caseId if exists
-      };
-
-      await billingService.createInvoice(invoiceData);
-    }
-
     // Return the usual response
     const responseData = {
       "Athlete Name": await prisma.user
@@ -261,7 +240,6 @@ export const updateAppointmentStatus = async (appointmentID: number, status: App
     return error;
   }
 };
-
 
 
 export const getAppointment = async(appointmentID: number) => {

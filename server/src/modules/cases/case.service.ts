@@ -1,5 +1,6 @@
 import { Severity, CaseStatus } from '@prisma/client';
 import { prisma } from '../../config/db.js';
+import * as billingService from '../billing/billing.service.js';
 import { get } from 'http';
 
 interface CaseData {
@@ -38,6 +39,7 @@ interface GetCasesFilterParams {
  * Create a new case
  */
 export const createCase = async (caseData: CaseData) => {
+  // 1️⃣ Create the case first
   const newCase = await prisma.case.create({
     data: {
       athleteId: caseData.athleteId,
@@ -61,6 +63,93 @@ export const createCase = async (caseData: CaseData) => {
     }
   });
 
+  // 2️⃣ Auto-create invoice for this case with medical data (if exists)
+  if (newCase) {
+    try {
+      // Constant appointment price
+      const APPOINTMENT_PRICE = 150.00;
+
+      // Fetch all related medical data (safe - returns empty arrays if none exist)
+      const [exams, labTests, treatments, physioPrograms] = await Promise.all([
+        prisma.exam.findMany({
+          where: { caseId: newCase.id }
+        }).catch(() => []),
+        prisma.labTest.findMany({
+          where: { caseId: newCase.id }
+        }).catch(() => []),
+        prisma.treatment.findMany({
+          where: { caseId: newCase.id }
+        }).catch(() => []),
+        prisma.physioProgram.findMany({
+          where: { caseId: newCase.id }
+        }).catch(() => [])
+      ]);
+
+      // Build invoice items JSON (even if empty)
+      const invoiceItems = {
+        appointment: {
+          id: caseData.initialAppointmentId,
+          type: 'Appointment',
+          description: 'Initial Consultation',
+          cost: APPOINTMENT_PRICE
+        },
+        exams: exams.map(exam => ({
+          id: exam.id,
+          type: 'Exam',
+          description: `${exam.modality} - ${exam.bodyPart}`,
+          cost: exam.cost || 0,
+          status: exam.status
+        })),
+        labTests: labTests.map(lab => ({
+          id: lab.id,
+          type: 'Lab Test',
+          description: lab.testName,
+          cost: lab.cost || 0,
+          status: lab.status
+        })),
+        treatments: treatments.map(treatment => ({
+          id: treatment.id,
+          type: 'Treatment',
+          description: treatment.description,
+          cost: treatment.cost || 0,
+          provider: treatment.providerName
+        })),
+        physioPrograms: physioPrograms.map(physio => ({
+          id: physio.id,
+          type: 'Physio Program',
+          description: physio.title,
+          cost: (physio.costPerSession || 0) * physio.numberOfSessions,
+          sessions: physio.numberOfSessions
+        }))
+      };
+
+      // Calculate subtotal (including appointment)
+      const subtotal = APPOINTMENT_PRICE + [
+        ...exams.map(e => e.cost || 0),
+        ...labTests.map(l => l.cost || 0),
+        ...treatments.map(t => t.cost || 0),
+        ...physioPrograms.map(p => (p.costPerSession || 0) * p.numberOfSessions)
+      ].reduce((sum, cost) => sum + cost, 0);
+
+      const invoiceData: any = {
+        athleteId: newCase.athleteId,
+        clinicianId: newCase.managingClinicianId,
+        caseId: newCase.id,
+        items: invoiceItems,
+        subtotal,
+        totalAmount: subtotal,
+        notes: 'Automatically generated invoice for new case',
+        createdBy: newCase.managingClinicianId
+      };
+
+      await billingService.createInvoice(invoiceData);
+    } catch (invoiceError) {
+      console.error('Failed to create invoice:', invoiceError);
+      // Don't fail case creation if invoice creation fails
+    }
+  }
+
+  // 3️⃣ Return the case
   return newCase;
 };
 
