@@ -17,7 +17,15 @@ export interface Appointment {
 
 export interface AppointmentsResponse {
   success: boolean;
-  data: Appointment[];
+  data: {
+    appointments: Appointment[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface AppointmentClinician { fullName: string; }
@@ -38,7 +46,15 @@ export interface AthleteAppointment {
 
 export interface AthleteAppointmentsResponse {
   success: boolean;
-  data: AthleteAppointment[];
+  data: {
+    appointments: AthleteAppointment[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface CreateAppointmentRequest {
@@ -71,8 +87,12 @@ export interface RescheduleAppointmentRequest {
 
 // --- API Fetchers (Pure Functions) ---
 
-const fetchClinicianAppointments = async (clinicianId: number, token: string): Promise<AppointmentsResponse> => {
-  const response = await fetch(`http://localhost:3000/api/appointments/clinician/${clinicianId}`, {
+const fetchClinicianAppointments = async (clinicianId: number, token: string, page: number = 1, limit: number = 10): Promise<AppointmentsResponse> => {
+  const url = new URL(`http://localhost:3000/api/appointments/clinician/${clinicianId}`);
+  url.searchParams.append('page', page.toString());
+  url.searchParams.append('limit', limit.toString());
+
+  const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -87,8 +107,12 @@ const fetchClinicianAppointments = async (clinicianId: number, token: string): P
   return response.json();
 };
 
-const fetchAthleteAppointments = async (athleteId: number, token: string): Promise<AthleteAppointmentsResponse> => {
-  const response = await fetch(`http://localhost:3000/api/appointments/athlete/${athleteId}`, {
+const fetchAthleteAppointments = async (athleteId: number, token: string, page: number = 1, limit: number = 10): Promise<AthleteAppointmentsResponse> => {
+  const url = new URL(`http://localhost:3000/api/appointments/athlete/${athleteId}`);
+  url.searchParams.append('page', page.toString());
+  url.searchParams.append('limit', limit.toString());
+
+  const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -162,21 +186,21 @@ export const rescheduleAppointmentApi = async (data: RescheduleAppointmentReques
 
 // --- Custom Hooks ---
 
-export const useClinicianAppointments = (clinicianId: number) => {
+export const useClinicianAppointments = (clinicianId: number, page: number = 1, limit: number = 10) => {
   const { token } = useAuth();
   return useQuery({
-    queryKey: ['appointments', 'clinician', clinicianId],
-    queryFn: () => fetchClinicianAppointments(clinicianId, token!),
+    queryKey: ['appointments', 'clinician', clinicianId, page, limit],
+    queryFn: () => fetchClinicianAppointments(clinicianId, token!, page, limit),
     enabled: !!clinicianId && !!token,
     select: (response) => response.data
   });
 };
 
-export const useAthleteAppointments = (athleteId: number | undefined) => {
+export const useAthleteAppointments = (athleteId: number | undefined, page: number = 1, limit: number = 10) => {
   const { token } = useAuth();
   return useQuery({
-    queryKey: ['appointments', 'athlete', athleteId],
-    queryFn: () => fetchAthleteAppointments(athleteId!, token!),
+    queryKey: ['appointments', 'athlete', athleteId, page, limit],
+    queryFn: () => fetchAthleteAppointments(athleteId!, token!, page, limit),
     enabled: !!athleteId && !!token,
     select: (response) => response.data,
   });

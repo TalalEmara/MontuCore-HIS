@@ -167,9 +167,9 @@ export const getAllAppointments = async (req: Request, res: Response): Promise<v
   }
 };
 
-export const getAppointmentsByAthleteId = async (req: Request, res: Response): Promise<void> => {
+export const getAppointmentsByClinicianId = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { athleteId } = req.params;
+    const { clinicianId } = req.params;
     const { page = 1, limit = 10, status, caseId } = req.query;
 
     const filters: any = {
@@ -179,15 +179,15 @@ export const getAppointmentsByAthleteId = async (req: Request, res: Response): P
     if (status) filters.status = status as any;
     if (caseId) filters.caseId = Number(caseId);
 
-    const appointments = await appointmentService.getAppointmentsByAthleteId(
-      Number(athleteId),
+    const appointments = await appointmentService.getAppointmentsByClinicianId(
+      Number(clinicianId),
       filters
     );
 
     if (appointments instanceof Error) {
       res.status(400).json({
         success: false,
-        message: 'Something went wrong'
+        message: appointments.message
       });
       return;
     }
@@ -203,9 +203,9 @@ export const getAppointmentsByAthleteId = async (req: Request, res: Response): P
   }
 };
 
-export const getAppointmentsByClinicianId = async (req: Request, res: Response): Promise<void> => {
+export const getAppointmentsByAthleteId = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { clinicianId } = req.params;
+    const { athleteId } = req.params;
     const { page = 1, limit = 10, status, caseId } = req.query;
 
     const filters: any = {
@@ -215,8 +215,8 @@ export const getAppointmentsByClinicianId = async (req: Request, res: Response):
     if (status) filters.status = status as any;
     if (caseId) filters.caseId = Number(caseId);
 
-    const appointments = await appointmentService.getAppointmentsByClinicianId(
-      Number(clinicianId),
+    const appointments = await appointmentService.getAppointmentsByAthleteId(
+      Number(athleteId),
       filters
     );
 

@@ -28,7 +28,7 @@ export const getAthleteDashboard = async (req: Request, res: Response) => {
     // Execute all queries in parallel - first page only
     const [upcomingAppointments, cases, treatments, exams, labTests] = await Promise.all([
       ApptService.getUpcomingAppointmentsByAthleteId(athleteIdNum),
-      CaseService.getCasesByAthleteId(athleteIdNum),
+      CaseService.getCases({ athleteId: athleteIdNum, page: 1, limit: 10 }),
       TreatmentService.getTreatmentsByAthleteId(athleteIdNum, 1, 10),
       ExamService.getExamsByAthleteId(athleteIdNum, 1, 10),
       LabTestService.getLabTestsByAthleteId(athleteIdNum, 1, 10)
@@ -41,10 +41,7 @@ export const getAthleteDashboard = async (req: Request, res: Response) => {
           count: upcomingAppointments.length,
           appointments: upcomingAppointments
         },
-        report: {
-          count: cases.length,
-          cases: cases
-        },
+        report: cases,
         prescriptions: treatments,
         imaging: exams,
         tests: labTests

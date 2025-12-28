@@ -14,7 +14,7 @@ import {
 } from "../../hooks/useAppointments";
 
 // [ADAPTER] Dynamically selects the correct hook based on User Role
-const useAppointmentDataAdapter = () => {
+const useAppointmentDataAdapter = (page: number, pageSize: number) => {
   const { user, profile } = useAuth();
   
   // Determine the ID to use: Profile ID is preferred (specific to Athlete/Clinician table), fallback to User ID
@@ -24,17 +24,17 @@ const useAppointmentDataAdapter = () => {
   const isAthlete = user?.role === 'ATHLETE';
 
   // React Hooks must always be called. We control execution via the arguments (passing 0 disables the query).
-  const clinicianQuery = useClinicianAppointments(isClinician ? entityId : 0);
-  const athleteQuery = useAthleteAppointments(isAthlete ? entityId : 0);
+  const clinicianQuery = useClinicianAppointments(isClinician ? entityId : 0, page, pageSize);
+  const athleteQuery = useAthleteAppointments(isAthlete ? entityId : 0, page, pageSize);
 
   // Select the active query result based on role
   const { data, isLoading } = isClinician ? clinicianQuery : athleteQuery;
 
   return {
-    // The hooks are configured to select 'response.data', so 'data' here is Appointment[]
-    data: data || [],
+    // The hooks are configured to select 'response.data', so 'data' here is { appointments: [...], pagination: {...} }
+    data: data?.appointments || [],
     isLoading,
-    totalItems: data?.length || 0, 
+    totalItems: data?.pagination?.total || 0,
   };
 };
 

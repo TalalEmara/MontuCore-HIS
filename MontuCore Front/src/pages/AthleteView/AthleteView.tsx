@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import TopBar from "../../components/level-1/TopBar/TopBar";
 import Button from "../../components/level-0/Button/Bottom";
@@ -16,7 +16,12 @@ import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 
 function AthleteView() {
   const [activeTab, setActiveTab] = useState<"reports" | "prescriptions" | "imaging" | "Lab tests">("reports");
-  const [currentPage, setPage] = useState(1);
+  const [pageStates, setPageStates] = useState<Record<string, number>>({
+    reports: 1,
+    prescriptions: 1,
+    imaging: 1,
+    "Lab tests": 1
+  });
   const [isBooking, setIsBooking] = useState<boolean>(false)
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
@@ -38,8 +43,8 @@ function AthleteView() {
   // Fetch Data
   const { dashboard, isLoading, refetch } = useAthleteDashboard(
     baseAthleteData.id,
-    currentPage,
-    1,
+    pageStates[activeTab],
+    10,
     activeTab
   );
 
@@ -104,7 +109,6 @@ function AthleteView() {
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
-    setPage(1);
   };
   const handleCancel = (appointmentId: number) => {
     if (window.confirm("Are you sure you want to cancel this appointment?")) {
@@ -162,6 +166,15 @@ function AthleteView() {
         return 1;
     }
   })();
+
+  const currentPage = Math.min(pageStates[activeTab], totalPages);
+
+  // Update pageStates if currentPage changed due to clamping
+  useEffect(() => {
+    if (pageStates[activeTab] > totalPages) {
+      setPageStates(prev => ({ ...prev, [activeTab]: totalPages }));
+    }
+  }, [totalPages, activeTab]);
 
   return (
     <div className="athlete-viewer-container">
@@ -349,7 +362,7 @@ function AthleteView() {
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={(page) => setPage(page)}
+                    onPageChange={(page) => setPageStates(prev => ({ ...prev, [activeTab]: page }))}
                   />)}
               </div>
             </div>

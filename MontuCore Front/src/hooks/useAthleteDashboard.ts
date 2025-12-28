@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { 
   Appointment, 
@@ -183,7 +184,9 @@ export const useAthleteDashboard = (
   limit: number = 1,
   activeTab: string
 ) => {
+  const page1DataRef = useRef<AthleteDashboardData | null>(null);
   const { token } = useAuth();
+
   const queryInfo = useQuery({
     queryKey: ['dashboard', 'athlete', athleteId, page, activeTab],
     queryFn: () => fetchAthleteDashboard(athleteId, page, limit, token!, activeTab),
@@ -193,27 +196,31 @@ export const useAthleteDashboard = (
     select: (response): AthleteDashboardResult => {
       const data = response.data;
 
+      // For page 1, store the data
+      if (page === 1) {
+        page1DataRef.current = data;
+      }
+
       //  PAGE 2+
       if (page > 1) {
+        // Merge with page 1 data to keep appointments and other tabs' data
+        const baseData = page1DataRef.current || {
+          upcomingAppointments: { appointments: [] },
+          report: { cases: [] },
+          prescriptions: { treatments: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } },
+          imaging: { exams: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } },
+          tests: { labTests: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } },
+          latestVitals: { height: null, weight: null, status: 'Loading...' }
+        };
+
         return {
           dashboard: {
-            // Keep vital keys as empty arrays to prevent "undefined" errors in UI
-            upcomingAppointments: { appointments: [] },
-            latestVitals: { height: null, weight: null, status: 'Loading...' },
-            // Populate ONLY the active tab's data
-            report: { cases: activeTab === 'reports' ? (data as any).cases || [] : [] },
-            prescriptions: { 
-              treatments: activeTab === 'prescriptions' ? (data as any).treatments || [] : [], 
-              pagination: (data as any).pagination 
-            },
-            imaging: { 
-              exams: activeTab === 'imaging' ? (data as any).exams || [] : [], 
-              pagination: (data as any).pagination 
-            },
-            tests: { 
-              labTests: activeTab === 'Lab tests' ? (data as any).labTests || [] : [], 
-              pagination: (data as any).pagination 
-            },
+            ...baseData,
+            // Update only the active tab's data
+            report: activeTab === 'reports' ? { cases: (data as any).cases || [], pagination: (data as any).pagination } : baseData.report,
+            prescriptions: activeTab === 'prescriptions' ? { treatments: (data as any).treatments || [], pagination: (data as any).pagination } : baseData.prescriptions,
+            imaging: activeTab === 'imaging' ? { exams: (data as any).exams || [], pagination: (data as any).pagination } : baseData.imaging,
+            tests: activeTab === 'Lab tests' ? { labTests: (data as any).labTests || [], pagination: (data as any).pagination } : baseData.tests,
           } as any,
           message: "Page loaded",
         };
