@@ -237,7 +237,7 @@ function CaseView() {
                 variant="secondary" 
                 width="20%" 
                 className={styles.addbutton}
-                onClick={() => navigate({ to: "/physician/consult" })}
+                onClick={() => navigate({ to: `/physician/consult/${caseRecord?.appointments.at(-1)?.athleteId}` })}
               >
                 consult
               </Button>

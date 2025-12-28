@@ -28,6 +28,7 @@ function PatientPortalView() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const params = useParams({ strict: false });
   const Token = params.token || 0;
+  const athleteId = params.athelteId || 0;
   const [shareNotes, setShareNotes] = useState("Please review the selected medical records and provide your expert opinion.");
   const [expiryHours, setExpiryHours] = useState("1");
   const search: any = useSearch({ strict: false });
@@ -51,7 +52,7 @@ function PatientPortalView() {
     isAuthorized && isExternal
   );
   const { dashboard, isLoading: isDashboardLoading } = useAthleteDashboard(
-    5 || 0,
+    athleteId || 0,
     1,
     10, // Limit
     "reports" 
