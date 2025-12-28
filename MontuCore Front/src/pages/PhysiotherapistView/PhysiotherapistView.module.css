@@ -96,7 +96,7 @@ cursor: pointer;
   border-color: hsl(from var(--accent) h s l / 0.2);
   border-left: 6px solid var(--accent);
 }
-.appointmentRow[data-status="canceled"] {
+.appointmentRow[data-status="cancelled"] {
   background: hsl(from var(--secondary-color) h s l / 0.1);
   border-color: hsl(from var(--secondary-color) h s l / 0.2);
   border-left: 6px solid var(--secondary-color);
@@ -116,7 +116,7 @@ cursor: pointer;
 }
 .status.completed { background: var(--success); color: black; }
 .status.scheduled { background: var(--accent); color: black; }
-.status.canceled { background: var(--secondary-color); color: white; }
+.status.cancelled { background: var(--secondary-color); color: white; }
 
 .rehabContainer {
   padding: 1.5rem;
