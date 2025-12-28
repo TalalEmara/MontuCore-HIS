@@ -7,6 +7,7 @@ import styles from "./LoginView.module.css";
 import loginVisual from "../../assets/images/Login.webp"; 
 import { useLogin } from "../../hooks/useLogin";
 // import { useAuth } from "../../context/AuthContext"; // Not strictly needed unless you want to use 'user' right here
+import { useNavigate } from "@tanstack/react-router";
 
 const loginSchema = z.object({
   email: z.string()
@@ -18,6 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 function LoginView() {
+  const navigate = useNavigate(); // Initialize navigate
   const [formData, setFormData] = useState<Partial<LoginFormData>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -34,10 +36,26 @@ function LoginView() {
         { email: validData.email, password: validData.password }, 
         {
           onSuccess: (data) => {
-             // 'data' here is the response from the API (LoginResponse)
-             alert(`Logged in as: ${data.result.user.fullName}`);
-             // Navigate here if needed, e.g., navigate('/dashboard');
+          const user = data.result.user;
+          const profile = data.result.profile; 
+
+        if (user.role === 'ADMIN') {
+          navigate({ to: '/manager' });
+        } 
+        else if (user.role === 'CLINICIAN') {
+          if (profile?.specialty?.toLowerCase() === 'physiotherapist') {
+            navigate({ to: '/physio' });
+          } else {
+            navigate({ to: '/physician' });
           }
+        } 
+        else if (user.role === 'ATHLETE') {
+          navigate({ to: '/athlete' });
+        } 
+        else {
+          navigate({ to: '/profile' });
+        }
+      }
         }
       );
     } catch (error) {
