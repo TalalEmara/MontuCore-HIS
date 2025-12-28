@@ -33,6 +33,13 @@ router.get('/case/:caseId', physioProgramController.getPhysioProgramsByCaseId);
 router.get('/clinician/:clinicianId', physioProgramController.getPhysioProgramsByClinicianId);
 
 /***
+ * @route GET /api/physio-programs/athlete/:athleteId
+ * @desc Get physio programs by athlete ID
+ * @access Admin, Clinician, Athlete (own)
+ */
+router.get('/athlete/:athleteId', physioProgramController.getPhysioProgramsByAthleteId);
+
+/***
  * @route GET /api/physio-programs
  * @desc Get all physio programs
  * @query page, limit

@@ -212,16 +212,79 @@ export const updateAppointment = async(appointmentID: number, appointmentData : 
     const updatedData: any = {};
     if (appointmentData.athleteId) updatedData.athleteId = appointmentData.athleteId;
     if (appointmentData.clinicianId) updatedData.clinicianId = appointmentData.clinicianId;
+    let newScheduledDate: Date | null = null;
     if (appointmentData.scheduledAt) {
       // Convert local time (Egypt timezone) to UTC for storage
       const offset = getTimezoneOffsetInMinutes(appointmentData.timezone || DEFAULT_TIMEZONE);
-      updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
+      newScheduledDate = localToUTC(appointmentData.scheduledAt, offset);
+      updatedData.scheduledAt = newScheduledDate;
     }
     if (appointmentData.height !== undefined) updatedData.height = appointmentData.height;
     if (appointmentData.weight !== undefined) updatedData.weight = appointmentData.weight;
     if (appointmentData.status) updatedData.status = appointmentData.status;
     if (appointmentData.diagnosisNotes !== undefined) updatedData.diagnosisNotes = appointmentData.diagnosisNotes;
     if (appointmentData.caseId !== undefined) updatedData.caseId = appointmentData.caseId;
+
+    // If scheduledAt is being updated, check for conflicts
+    if (newScheduledDate) {
+      const now = new Date();
+      if (newScheduledDate <= now){
+        throw new Error('Appointment must be scheduled for a future date and time');
+      }
+
+      // Check for clinician conflicts
+      const clinicianId = appointmentData.clinicianId || existingAppointment.clinicianId;
+      const appointmentConflicted = await prisma.appointment.findFirst(
+        {
+          where: {
+            clinicianId: clinicianId,
+            scheduledAt: newScheduledDate,
+            status: ApptStatus.SCHEDULED,
+            id: { not: appointmentID } // Exclude the current appointment
+          }
+        }
+      );
+      if (appointmentConflicted){
+        throw new Error('Clinician already has an appointment at this time');
+      }
+
+      // Check for athlete conflicts
+      const athleteId = appointmentData.athleteId || existingAppointment.athleteId;
+      const athleteAppointmentConflicted = await prisma.appointment.findFirst(
+        {
+          where: {
+            athleteId: athleteId,
+            scheduledAt: newScheduledDate,
+            status: ApptStatus.SCHEDULED,
+            id: { not: appointmentID } // Exclude the current appointment
+          }
+        }
+      );
+      if (athleteAppointmentConflicted){
+        throw new Error('Athlete already has an appointment at this time');
+      }
+
+      // Check for at least 30 minutes gap between appointments for the same clinician
+      const thirtyMinutes = 30 * 60 * 1000; // in milliseconds
+      const startRange = new Date(newScheduledDate.getTime() - thirtyMinutes);
+      const endRange = new Date(newScheduledDate.getTime() + thirtyMinutes);
+      const overlappingAppointment = await prisma.appointment.findFirst({
+        where: {
+          clinicianId: clinicianId,
+          scheduledAt: {
+            gte: startRange,
+            lte: endRange
+          },
+          status: ApptStatus.SCHEDULED,
+          id: { not: appointmentID } // Exclude the current appointment
+        }
+      });
+      if (overlappingAppointment){
+        const availableTime = new Date(overlappingAppointment.scheduledAt.getTime() + thirtyMinutes);
+        throw new Error('Booked appointments must have at least 30 minutes gap. Next available time is ' + availableTime.toISOString());
+      }
+    }
+
     const updatedAppointment = await prisma.appointment.update({
       where: {
         id: appointmentID

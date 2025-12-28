@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./PatientPortalView.module.css";
 import ProfileCard from "../../components/level-1/userProfileCard/userProfileCard";
 import InfoCard from "../../components/level-0/InfoCard/InfoCard";
@@ -70,6 +70,21 @@ function PatientPortalView() {
     },
     enabled: !!effectiveAthleteId && !!token && !isExternal, // Only fetch for internal/consulting views
   });
+
+  // Fetch physio programs for the athlete
+  const { data: physioData, isLoading: isPhysioLoading } = useQuery({
+    queryKey: ['physio-programs', effectiveAthleteId],
+    queryFn: async () => {
+      const response = await fetch(`http://localhost:3000/api/physio-programs/athlete/${effectiveAthleteId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch physio programs');
+      return response.json();
+    },
+    enabled: !!effectiveAthleteId && !!token && !isExternal, // Only fetch for internal/consulting views
+  });
   const handlePasscodeSuccess = (enteredCode: string) => {
     setAccessCode(enteredCode);
     setIsAuthorized(true);
@@ -122,6 +137,20 @@ const prescriptions: Prescription[] = dataSource?.prescriptions?.treatments?.map
     date: new Date(t.date).toLocaleDateString(),
     clinician: t.providerName
   })) || [];
+
+  // Calculate physio progress stats from physio programs
+  const physioStats = React.useMemo(() => {
+    if (!physioData?.data?.programs) {
+      return { totalSessions: 0, completedSessions: 0, weeklySessions: 0 };
+    }
+
+    const programs = physioData.data.programs;
+    const totalSessions = programs.reduce((sum, program) => sum + (program.numberOfSessions || 0), 0);
+    const completedSessions = programs.reduce((sum, program) => sum + (program.sessionsCompleted || 0), 0);
+    const weeklySessions = programs.reduce((sum, program) => sum + (program.weeklyRepetition || 0), 0);
+
+    return { totalSessions, completedSessions, weeklySessions };
+  }, [physioData]);
 
   const filterData = <T extends { id: number }>(data: T[], category: string) => {
     if (!isExternal) return data;
@@ -298,7 +327,7 @@ const prescriptions: Prescription[] = dataSource?.prescriptions?.treatments?.map
             <div className={styles.physioContainer}>
               <div className={styles.physioHeader}><h2 className={styles.physioTitle}>Physio Progress</h2></div>
               <div className={styles.physioContent}>
-                <div className={styles.physioStats}><InfoCard label="Sessions" value={20} /><InfoCard label="Done" value={8} /><InfoCard label="Weekly" value={3} /></div>
+                <div className={styles.physioStats}><InfoCard label="Sessions" value={physioStats.totalSessions} /><InfoCard label="Done" value={physioStats.completedSessions} /><InfoCard label="Weekly" value={physioStats.weeklySessions} /></div>
               </div>
             </div>
           </div>

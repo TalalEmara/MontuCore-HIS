@@ -61,8 +61,6 @@ export default function AppointmentsTable() {
     
     rescheduleMutation.mutate({
       appointmentId: selectedAppointment.id,
-      athleteId: selectedAppointment.athleteId,
-      clinicianId: selectedAppointment.clinicianId,
       scheduledAt: new Date(newDate).toISOString()
     }, {
       onSuccess: () => {
@@ -86,19 +84,24 @@ export default function AppointmentsTable() {
             variant={row.status === "COMPLETED" ? "success" : row.status === "CANCELLED" ? "warning" : "pending"} 
           />
           {/* Only show actions for future appointments that aren't already cancelled */}
-          {new Date(row.scheduledAt) > new Date() && row.status !== "CANCELLED" && (
-            <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => {
-                setSelectedAppointment(row);
-                setIsRescheduleOpen(true);
-              }}>
-                <Calendar size={14} />
-              </Button>
-              <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => handleCancelAction(row.id)}>
-                <X size={14} />
-              </Button>
-            </div>
-          )}
+          {(() => {
+            const isFuture = new Date(row.scheduledAt) > new Date();
+            const isNotCancelled = row.status !== "CANCELLED";
+            console.log('Appointment:', row.id, 'scheduledAt:', row.scheduledAt, 'isFuture:', isFuture, 'status:', row.status, 'isNotCancelled:', isNotCancelled);
+            return isFuture && isNotCancelled && (
+              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => {
+                  setSelectedAppointment(row);
+                  setIsRescheduleOpen(true);
+                }}>
+                  <Calendar size={14} />
+                </Button>
+                <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => handleCancelAction(row.id)}>
+                  <X size={14} />
+                </Button>
+              </div>
+            );
+          })()}
         </div>
       ) 
     },

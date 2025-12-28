@@ -76,10 +76,17 @@ export interface CreateAppointmentResponse {
 
 // Updated Interface for Reschedule to include data needed for the new booking
 export interface RescheduleAppointmentRequest {
-  appointmentId: number; // ID of the appointment to cancel
-  athleteId: number;     // ID for the new appointment
-  clinicianId: number;   // ID for the new appointment
+  appointmentId: number; // ID of the appointment to update
   scheduledAt: string;   // New time
+  diagnosisNotes?: string;
+  height?: number;
+  weight?: number;
+}
+
+export interface UpdateAppointmentRequest {
+  athleteId?: number;
+  clinicianId?: number;
+  scheduledAt?: string;
   diagnosisNotes?: string;
   height?: number;
   weight?: number;
@@ -165,23 +172,35 @@ export const cancelAppointmentApi = async (appointmentId: number, token: string)
   return response.json();
 };
 
-// [NEW] API Call for Rescheduling (Cancel Old -> Book New)
+// [NEW] API Call for Rescheduling (Update Existing Appointment)
 export const rescheduleAppointmentApi = async (data: RescheduleAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
-  // 1. Cancel the existing appointment
-  await cancelAppointmentApi(data.appointmentId, token);
-
-  // 2. Create the new appointment with the same IDs
-  const newData: CreateAppointmentRequest = {
-    athleteId: data.athleteId,
-    clinicianId: data.clinicianId,
+  // Update the existing appointment with new scheduled time and optional fields
+  const updateData: UpdateAppointmentRequest = {
     scheduledAt: data.scheduledAt,
     diagnosisNotes: data.diagnosisNotes,
     height: data.height,
     weight: data.weight,
-    status: 'SCHEDULED' // Ensure the new one is scheduled
   };
 
-  return bookAppointmentApi(newData, token);
+  return updateAppointmentApi(data.appointmentId, updateData, token);
+};
+
+// [NEW] API Call for Updating Appointment Details
+export const updateAppointmentApi = async (appointmentId: number, data: UpdateAppointmentRequest, token: string): Promise<CreateAppointmentResponse> => {
+  const response = await fetch(`http://localhost:3000/api/appointments/update-appointment-details/${appointmentId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to update appointment');
+  }
+  return response.json();
 };
 
 // --- Custom Hooks ---
@@ -230,7 +249,7 @@ export const useRescheduleAppointment = () => {
   return useMutation({
     mutationFn: (data: RescheduleAppointmentRequest) => rescheduleAppointmentApi(data, token!),
     onSuccess: (response) => {
-      console.log('Reschedule successful: Old cancelled, New created.');
+      console.log('Reschedule successful: Appointment updated.');
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
     },
     onError: (error) => {

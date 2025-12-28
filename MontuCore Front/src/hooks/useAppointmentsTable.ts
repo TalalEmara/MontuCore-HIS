@@ -36,8 +36,6 @@ export interface CreateAppointmentRequest {
 
 export interface RescheduleAppointmentRequest {
   appointmentId: number;
-  athleteId: number;
-  clinicianId: number;
   scheduledAt: string;
   diagnosisNotes?: string;
   height?: number;
@@ -157,31 +155,20 @@ export const useRescheduleAppointment = () => {
   const { token } = useAuth();
   return useMutation({
     mutationFn: async (data: RescheduleAppointmentRequest) => {
-      // 1. Cancel existing
-      const cancelRes = await fetch(`http://localhost:3000/api/appointments/update-appointment-status/`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: data.appointmentId, status: 'CANCELLED' }),
-      });
-      if (!cancelRes.ok) throw new Error('Failed to cancel old appointment during reschedule');
-
-      // 2. Book new
-      const bookRes = await fetch('http://localhost:3000/api/appointments/create-appointment', {
+      // Update the existing appointment with new scheduled time
+      const updateRes = await fetch(`http://localhost:3000/api/appointments/update-appointment-details/${data.appointmentId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-          athleteId: data.athleteId,
-          clinicianId: data.clinicianId,
           scheduledAt: data.scheduledAt,
-          status: 'SCHEDULED',
           diagnosisNotes: data.diagnosisNotes,
           height: data.height,
           weight: data.weight
         }),
       });
-      if (!bookRes.ok) throw new Error('Failed to book new appointment during reschedule');
+      if (!updateRes.ok) throw new Error('Failed to reschedule appointment');
       
-      return bookRes.json();
+      return updateRes.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
   });

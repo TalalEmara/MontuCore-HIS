@@ -146,6 +146,26 @@ async function main() {
     appointments.push(appointment);
   }
 
+  // Create some future appointments for testing reschedule
+  for (let i = 0; i < 5; i++) {
+    const athleteIndex = i % athletes.length;
+    const clinicianIndex = i % clinicians.length;
+    const daysFuture = i + 1; // 1 to 5 days in the future
+
+    const appointment = await prisma.appointment.create({
+      data: {
+        athleteId: athletes[athleteIndex]!.id,
+        clinicianId: clinicians[clinicianIndex]!.id,
+        scheduledAt: new Date(now.getTime() + daysFuture * 24 * 60 * 60 * 1000),
+        height: 170 + (i * 2),
+        weight: 65 + (i * 1.5),
+        status: ApptStatus.SCHEDULED,
+        diagnosisNotes: `Future appointment for testing - ${i + 1}`
+      }
+    });
+    appointments.push(appointment);
+  }
+
   // Special athlete (David Martinez, index 4) gets many more appointments
   const specialAthleteId = athletes[4]!.id;
   for (let i = 0; i < 30; i++) {

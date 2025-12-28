@@ -165,3 +165,23 @@ export const getPhysioProgramsByClinicianId = async (req: Request, res: Response
     });
   }
 };
+
+/**
+ * Get physio programs by athlete
+ */
+export const getPhysioProgramsByAthleteId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { athleteId } = req.params;
+    const programs = await physioProgramService.getPhysioProgramsByAthleteId(Number(athleteId));
+
+    res.status(200).json({
+      success: true,
+      data: programs
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};

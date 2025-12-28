@@ -21,6 +21,7 @@ interface UpdatePhysioProgramData {
 interface GetPhysioProgramsFilterParams {
   caseId?: number;
   clinicianId?: number;
+  athleteId?: number;
   page?: number;
   limit?: number;
 }
@@ -141,11 +142,12 @@ export const getPhysioProgramById = async (programId: number) => {
  */
 export const getPhysioPrograms = async (filters: GetPhysioProgramsFilterParams = {}) => {
   try {
-    const { caseId, clinicianId, page = 1, limit = 10 } = filters;
+    const { caseId, clinicianId, athleteId, page = 1, limit = 10 } = filters;
 
     const where: any = {};
     if (caseId) where.caseId = caseId;
     if (clinicianId) where.medicalCase = { managingClinicianId: clinicianId };
+    if (athleteId) where.medicalCase = { ...where.medicalCase, athleteId };
 
     const skip = (page - 1) * limit;
 
@@ -349,6 +351,14 @@ export const getPhysioProgramsByClinicianId = async (clinicianId: number) => {
   try {
     const result = await getPhysioPrograms({ clinicianId });
     return result.programs;
+  } catch (error) {
+    throw error;
+  }
+};
+export const getPhysioProgramsByAthleteId = async (athleteId: number) => {
+  try {
+    const programs = await getPhysioPrograms({ athleteId });
+    return programs;
   } catch (error) {
     throw error;
   }
