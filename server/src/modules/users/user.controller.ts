@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../index.js'
-// const prisma = new PrismaClient();
+
 
 /**
  * Get user by ID along with profile
