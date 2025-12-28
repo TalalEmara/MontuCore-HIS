@@ -103,12 +103,40 @@ export default function CreateCase({ isOpen, onClose, initialAthlete, appointmen
         setIsCreating(false);
       }
     } else {
-      setSuccessMsg(`Notes saved for ${initialAthlete.fullName}`);
-      setTimeout(() => {
-        reset();
-        setSuccessMsg("");
-        onClose();
-      }, 1200);
+      // Add Notes Only - Update appointment with clinical details
+      setIsCreating(true);
+      try {
+        const appointmentData = {
+          height: data.height ? parseFloat(data.height) : undefined,
+          weight: data.weight ? parseFloat(data.weight) : undefined,
+          diagnosisNotes: data.diagnosisNotes || "",
+          status: "COMPLETED"
+        };
+
+        const response = await fetch(`http://localhost:3000/api/appointments/update-appointment-details/${appointmentId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointmentData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update appointment');
+        }
+
+        setSuccessMsg(`Clinical notes saved and appointment completed for ${initialAthlete.fullName}`);
+        setTimeout(() => {
+          reset();
+          setSuccessMsg("");
+          onClose();
+        }, 2000);
+      } catch (error) {
+        console.error('Error updating appointment:', error);
+        alert('Failed to save clinical notes. Please try again.');
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -213,7 +241,7 @@ export default function CreateCase({ isOpen, onClose, initialAthlete, appointmen
             <div className={styles.actions}>
               <Button type="button" variant="secondary" onClick={onClose} height="36px" disabled={isCreating}>Cancel</Button>
               <Button type="submit" height="36px" disabled={isCreating}>
-                {isCreating ? "Creating..." : (isNewCase === "yes" ? "Continue" : "Save Entry")}
+                {isCreating ? "Saving..." : (isNewCase === "yes" ? "Continue" : "Save Entry")}
               </Button>
             </div>
           </form>
