@@ -55,6 +55,50 @@ export const createPhysioProgram = async (programData: PhysioProgramData) => {
       }
     });
 
+    // 🔗 Auto-attach to invoice if exists
+    try {
+      const invoice = await prisma.invoice.findFirst({
+        where: { caseId: newProgram.caseId }
+      });
+
+      if (invoice) {
+        const items: any = invoice.items || {};
+        if (!items.physioPrograms) items.physioPrograms = [];
+
+        const totalCost =
+          newProgram.costPerSession
+            ? newProgram.costPerSession * newProgram.numberOfSessions
+            : 0;
+
+        items.physioPrograms.push({
+          id: newProgram.id,
+          type: 'Physio Program',
+          description: newProgram.title,
+          numberOfSessions: newProgram.numberOfSessions,
+          costPerSession: newProgram.costPerSession || 0,
+          totalCost
+        });
+
+        const subtotal =
+          (items.appointment?.cost || 0) +
+          (items.exams?.reduce((s: any, e: any) => s + (e.cost || 0), 0) || 0) +
+          (items.labTests?.reduce((s: any, l: any) => s + (l.cost || 0), 0) || 0) +
+          (items.treatments?.reduce((s: any, t: any) => s + (t.cost || 0), 0) || 0) +
+          (items.physioPrograms?.reduce((s: any, p: any) => s + (p.totalCost || 0), 0) || 0);
+
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            items,
+            subtotal,
+            totalAmount: subtotal
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Failed updating invoice for physio program', err);
+    }
+
     return newProgram;
   } catch (error) {
     throw error;
