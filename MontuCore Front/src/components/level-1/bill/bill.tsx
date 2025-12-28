@@ -4,12 +4,14 @@ import { generateBillPDF } from "./billPdfGeneration";
 import { useInvoiceByCaseId } from "../../../hooks/useBilling"; 
 
 interface BillProps {
+  // In CaseView, you pass <Bill invoiceId={caseId} />, so this prop holds the Case ID.
   invoiceId?: number; 
 }
 
 export default function Bill({ invoiceId }: BillProps) {
   const [open, setOpen] = useState(false);
 
+  // Fetch data only when the modal is open to save resources
   const { 
     data: invoice, 
     isLoading, 
@@ -26,6 +28,7 @@ export default function Bill({ invoiceId }: BillProps) {
     generateBillPDF(invoice);
   };
 
+  // Calculate remaining balance
   const remaining = invoice ? invoice.totalAmount - invoice.paidAmount : 0;
 
   return (
@@ -47,54 +50,92 @@ export default function Bill({ invoiceId }: BillProps) {
 
             <div className={styles.content}>
               {isLoading ? (
-                <div className={styles.loader}>Loading...</div>
+                <div className={styles.loader}>Loading Invoice...</div>
               ) : isError ? (
                 <div className={styles.error}>
                   <p>Error loading invoice data.</p>
-                  <small>Ensure an invoice exists for Case #{invoiceId}</small>
+                  <small>Could not find an invoice for Case #{invoiceId}</small>
                 </div>
               ) : invoice ? (
                 <>
-                  <h1>
-                    INVOICE <span>#{invoice.invoiceNumber}</span>
-                  </h1>
-                  <p><strong>Status:</strong> {invoice.status.replace("_", " ")}</p>
-                  <p><strong>Date:</strong> {invoice.invoiceDate}</p>
-                  <p><strong>Due Date:</strong> {invoice.dueDate}</p>
-                  <p><strong>Patient:</strong> {invoice.patient.name} (ID: {invoice.patient.id})</p>
-                  <p><strong>Email:</strong> {invoice.patient.email}</p>
-                  {invoice.caseId && <p><strong>Case:</strong> {invoice.caseId}</p>}
-                  {invoice.notes && <p><strong>Notes:</strong> {invoice.notes}</p>}
-                  <p><strong>Created By:</strong> {invoice.createdBy || 'Unknown'}</p>
+                  <div className={styles.invoiceHeader}>
+                    <h1>INVOICE <span>#{invoice.invoiceNumber}</span></h1>
+                  </div>
+                  
+                  <div className={styles.metaInfo}>
+                    <p><strong>Status:</strong> <span style={{ textTransform: 'capitalize' }}>{invoice.status.replace(/_/g, " ").toLowerCase()}</span></p>
+                    <p><strong>Date:</strong> {invoice.invoiceDate}</p>
+                    <p><strong>Due Date:</strong> {invoice.dueDate}</p>
+                    <p><strong>Patient:</strong> {invoice.patient.name} (ID: {invoice.patient.id})</p>
+                    <p><strong>Email:</strong> {invoice.patient.email || 'N/A'}</p>
+                    {invoice.caseId && <p><strong>Case ID:</strong> {invoice.caseId}</p>}
+                    <p><strong>Created By:</strong> {invoice.createdBy || 'System'}</p>
+                  </div>
+
+                  {invoice.notes && (
+                    <div className={styles.notesSection}>
+                      <strong>Notes:</strong> {invoice.notes}
+                    </div>
+                  )}
 
                   <table className={styles.table}>
                     <thead>
                       <tr>
                         <th>Description</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
+                        <th style={{ textAlign: 'center' }}>Qty</th>
+                        <th style={{ textAlign: 'right' }}>Price</th>
+                        <th style={{ textAlign: 'right' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {invoice.items.map((item, i) => (
-                        <tr key={i}>
-                          <td>{item.description}</td>
-                          <td>{item.quantity}</td>
-                          <td>${item.unitPrice.toFixed(2)}</td>
-                          <td>${item.total.toFixed(2)}</td>
+                      {invoice.items.length > 0 ? (
+                        invoice.items.map((item, i) => (
+                          <tr key={i}>
+                            <td>{item.description}</td>
+                            <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                            <td style={{ textAlign: 'right' }}>${item.unitPrice.toFixed(2)}</td>
+                            <td style={{ textAlign: 'right' }}>${item.total.toFixed(2)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} style={{ textAlign: "center", fontStyle: "italic" }}>
+                            No billable items found.
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
 
                   <div className={styles.totals}>
-                    <div><span>Subtotal:</span> <span>${invoice.subtotal.toFixed(2)}</span></div>
-                    <div><span>Tax:</span> <span>${invoice.tax.toFixed(2)}</span></div>
-                    <div><span>Discount:</span> <span>-${invoice.discount.toFixed(2)}</span></div>
-                    <div><strong>Total:</strong> <strong>${invoice.totalAmount.toFixed(2)}</strong></div>
-                    <div><span>Paid:</span> <span>-${invoice.paidAmount.toFixed(2)}</span></div>
-                    <div><span>Remaining:</span> <span>${remaining.toFixed(2)}</span></div>
+                    <div className={styles.totalRow}>
+                       <span>Subtotal:</span> 
+                       <span>${invoice.subtotal.toFixed(2)}</span>
+                    </div>
+                    {invoice.tax > 0 && (
+                      <div className={styles.totalRow}>
+                         <span>Tax:</span> 
+                         <span>${invoice.tax.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {invoice.discount > 0 && (
+                      <div className={styles.totalRow}>
+                         <span>Discount:</span> 
+                         <span>-${invoice.discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className={`${styles.totalRow} ${styles.grandTotal}`}>
+                       <strong>Total:</strong> 
+                       <strong>${invoice.totalAmount.toFixed(2)}</strong>
+                    </div>
+                    <div className={styles.totalRow}>
+                       <span>Paid:</span> 
+                       <span>-${invoice.paidAmount.toFixed(2)}</span>
+                    </div>
+                    <div className={`${styles.totalRow} ${styles.balance}`}>
+                       <span>Balance Due:</span> 
+                       <span>${remaining.toFixed(2)}</span>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -108,7 +149,7 @@ export default function Bill({ invoiceId }: BillProps) {
                 onClick={downloadPDF} 
                 disabled={!invoice}
               >
-                Download
+                Download PDF
               </button>
               <button 
                 className={styles.closeModalBtn} 
