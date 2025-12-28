@@ -6,6 +6,7 @@ import TextInput from "../../level-0/TextInput/TextInput";
 import { Activity, BrainCircuit, Upload } from "lucide-react"; // Added icons for visual flair
 
 export interface AnalysisData {
+  heatmap: any;
   primary: string;
   severity: "normal" | "low" | "moderate" | "high";
   details: string;
@@ -175,7 +176,28 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
                     <div className={styles.cdssDetails}>
                       {cdssResult.details}
                     </div>
-                    
+                    {/* RENDER THE HEATMAP IMAGE(S) */}
+                      {cdssResult.heatmap && cdssResult.heatmap.length > 0 && (
+                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px' }}>
+                            Activation Map
+                          </div>
+                          
+                            <img 
+                              // Ensure you have the correct prefix. 
+                              // If your API sends raw base64, use `data:image/png;base64,`
+                              src={`data:image/png;base64,${cdssResult.heatmap}`} 
+                              alt={`Heatmap `}
+                              style={{ 
+                                width: '100%', 
+                                borderRadius: '4px', 
+                                border: '1px solid #cbd5e1',
+                                marginBottom: '5px' 
+                              }} 
+                            />
+                          ))
+                        </div>
+                      )}
                   </>
                 ) : (
                   <span className={styles.placeholderText}>
