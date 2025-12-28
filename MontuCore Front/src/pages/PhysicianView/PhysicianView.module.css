@@ -38,6 +38,7 @@
   height: 100%;    
   box-sizing: border-box;
   padding-bottom: 0.5rem;
+  
 }
 .athleteHandlingContainer {
   padding: 1rem;
@@ -154,7 +155,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.625rem;
+  padding: 1.25rem 1rem;
   border-radius: 0.75rem;
   background: hsl(from var(--accent) h s l / 0.1 );
   box-shadow: 0 0.125rem 0.375rem hsl(from var(--accent) h s l / 0.05);
@@ -238,6 +239,17 @@
   margin-bottom: 0.5rem;
 }
 
+.scheduleList {
+  flex: 1;
+  overflow-y: auto; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  scrollbar-width: thin; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
+}
+
 .cardFooter {
   display: flex;
   justify-content: center;
@@ -248,6 +260,159 @@
   margin-top: auto;
   background: transparent;
 }
+
+.scheduleInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px; 
+}
+
+.appointmentTime {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* 1. The Full-Screen Overlay */
+.overlay {
+  position: fixed;
+  inset: 0; /* covers top, bottom, left, right: 0 */
+  background-color: rgba(0, 0, 0, 0.75); /* Dark semi-transparent background */
+  backdrop-filter: blur(6px); /* Blurs the dashboard behind the popup */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Ensure it's above everything */
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* 2. The Modal Box */
+.modal {
+  width: 95%;
+  max-width: 500px;
+  background-color: var(--background-color);
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. Header Styling */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.closeButton:hover {
+  color: var(--secondary-color);
+}
+
+/* 4. Form Content Layout */
+.formContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 5. Status Grid (Horizontal Chips) */
+.automationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.statusChip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.statusChip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.statusChip.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.errorText {
+  color: var(--secondary-color);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.successMsg {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--success);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
 
 
 @media (max-width: 75rem) {

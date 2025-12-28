@@ -1,0 +1,101 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal {
+  width: 90%;
+  max-width: 440px;
+  background-color: #121212; /* Replace with var(--background-color) */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.headerTitles .title {
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  margin: 0;
+  color: #aaa;
+}
+
+.formContent {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; 
+}
+
+.toggleContainer {
+  background: var(--background-color);
+  padding: 0.6rem;
+  border-radius: 8px;
+}
+
+.radioWrapper {
+  display: flex;
+  gap: 1.5rem; /* Buttons side-by-side */
+  justify-content: center;
+}
+
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.metricsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.yesHint {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1rem 0;
+  border-radius: 6px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.successMsg {
+  padding: 3rem;
+  text-align: center;
+  color: var(--success);
+}
+.closeButton {
+  background:var(--primary-color);
+
+  color: var(--text-color);
+    width: 32px;
+  height: 32px;
+  border-radius: 10000rem; 
+  
+  cursor: pointer;
+}
+

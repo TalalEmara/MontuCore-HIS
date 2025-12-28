@@ -11,7 +11,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointments";
 import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 import Button from "../../components/level-0/Button/Bottom";
-import { Calendar, X } from "lucide-react";
+import { Calendar, X, Pencil } from "lucide-react";
+import CreateCase from "../../components/level-1/CreateCase/CreateCase";
 
 const PhysicianView: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +23,9 @@ const PhysicianView: React.FC = () => {
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [newDate, setNewDate] = useState<string>("");
+
+  const [isCreateCaseOpen, setIsCreateCaseOpen] = useState(false);
+  const [activeAthleteForCase, setActiveAthleteForCase] = useState<any>(null);
 
   const physicianData = {
     fullName: "Olivia Black",
@@ -138,8 +142,14 @@ const PhysicianView: React.FC = () => {
           </div>
         </div>
       </BasicOverlay>
+      <CreateCase 
+      isOpen={isCreateCaseOpen} 
+      onClose={() => setIsCreateCaseOpen(false)} 
+      initialAthlete={activeAthleteForCase} 
+    />
+
       <div className={styles.physicianMainContent}>
-        <TopBar Name={`Dr. ${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
+        <TopBar Name={`${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
 
         {/* 2. LOADING STATE */}
         {isLoading ? (
@@ -224,41 +234,67 @@ const PhysicianView: React.FC = () => {
                     <div className={styles.emptyState}>No appointments today</div>
                   )}
 
-                  {dashboard?.todaysAppointments.appointments.map(
-                    (appointment: any, idx: number) => (
-                      <div key={idx} className={styles.scheduleRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div className={styles.scheduleInfo}>
-                          <span className={styles.athleteName}>
-                            {appointment.athlete.fullName}
-                          </span>
-                        </div>
-                        
-                        {/* New Actions Section */}
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                           {/* Status Badge */}
-                           <div
-                            className={`${styles.status} ${styles[appointment.status]}`}
-                            style={{ marginRight: '10px' }}
-                          >
-                            {appointment.status}
-                          </div>
+        {dashboard?.todaysAppointments.appointments.map((appointment: any, idx: number) => {
+          const appointmentDate = new Date(appointment.scheduledAt);
+          const now = new Date();
+          
+          const isFuture = appointmentDate > now;
 
-                          <div onClick={() => openRescheduleModal(appointment)}>
-                            <Button variant="secondary" height="28px" width="30px">
-                              <Calendar size={14} />
-                            </Button>
-                          </div>
-                          
-                          <div onClick={() => handleCancel(appointment.id)}>
-                            <Button variant="secondary" height="28px" width="30px">
-                              <X size={14} />
-                            </Button>
-                          </div>
-                        </div>
+           const diffInMinutes = (appointmentDate.getTime() - now.getTime()) / 60000;
+          const isClose = diffInMinutes <= 10 && diffInMinutes > -10; // 10 mins before or during
 
-                      </div>
-                    )
+          return (
+            <div key={idx} className={styles.scheduleRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className={styles.scheduleInfo}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className={styles.athleteName}>
+                    {appointment.athlete.fullName}
+                  </span>
+                  <span className={styles.appointmentTime}>
+                    {appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className={`${styles.status} ${styles[appointment.status]}`} style={{ marginRight: '10px' }}>
+                  {appointment.status}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {isClose && (
+                    <div onClick={() => {
+                        setActiveAthleteForCase(appointment.athlete); 
+                        setIsCreateCaseOpen(true); 
+                      }}>
+                      <Button variant="primary" height="28px" width="30px">
+                        <Pencil size={14} />
+                      </Button>
+                    </div>
                   )}
+
+                  {isFuture && (
+                    <>
+                      <div onClick={() => openRescheduleModal(appointment)}>
+                        <Button variant="secondary" height="28px" width="30px">
+                          <Calendar size={14} />
+                        </Button>
+                      </div>
+                      
+                      <div onClick={() => handleCancel(appointment.id)}>
+                        <Button variant="secondary" height="28px" width="30px">
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+  
+
                 </div>
                 <div className={styles.cardFooter}>
                 {totalPages > 1 && (
@@ -336,6 +372,7 @@ const PhysicianView: React.FC = () => {
           </div>
         )}
       </div>
+      
     </div>
   );
 };
