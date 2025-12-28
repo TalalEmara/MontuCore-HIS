@@ -188,7 +188,7 @@ const physicianConsultRoute = createRoute({
 
 const physioConsultRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
-  path: "physio/consult",
+  path: "physio/consult/$athelteId",
   component: PatientPortalView,
   validateSearch: (): PortalSearch => ({ view: 'consulting' }),
 });
