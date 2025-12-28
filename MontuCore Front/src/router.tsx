@@ -194,7 +194,7 @@ const physioConsultRoute = createRoute({
 });
 const athletePortalExternalRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "athlete/portal/external",
+  path: "athlete/portal/external/$token",
   component: PatientPortalView,
   validateSearch: (): PortalSearch => ({ view: 'external' }),
 });
