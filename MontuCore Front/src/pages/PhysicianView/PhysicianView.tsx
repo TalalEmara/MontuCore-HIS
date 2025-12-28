@@ -234,67 +234,66 @@ const PhysicianView: React.FC = () => {
                     <div className={styles.emptyState}>No appointments today</div>
                   )}
 
-        {dashboard?.todaysAppointments.appointments.map((appointment: any, idx: number) => {
-          const appointmentDate = new Date(appointment.scheduledAt);
-          const now = new Date();
-          
-          const isFuture = appointmentDate > now;
+               {dashboard?.todaysAppointments.appointments.map((appointment: any, idx: number) => {
+                const appointmentDate = new Date(appointment.scheduledAt);
+                const now = new Date();
+                
+                const diffInMinutes = (appointmentDate.getTime() - now.getTime()) / 60000;
+                const isClose = diffInMinutes <= 10 && diffInMinutes > -10;
 
-           const diffInMinutes = (appointmentDate.getTime() - now.getTime()) / 60000;
-          const isClose = diffInMinutes <= 10 && diffInMinutes > -10; // 10 mins before or during
+                const currentStatus = appointment.status?.toLowerCase();
+                const showActions = currentStatus !== 'completed' && currentStatus !== 'cancelled';
 
-          return (
-            <div key={idx} className={styles.scheduleRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className={styles.scheduleInfo}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className={styles.athleteName}>
-                    {appointment.athlete.fullName}
-                  </span>
-                  <span className={styles.appointmentTime}>
-                    {appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div className={`${styles.status} ${styles[appointment.status]}`} style={{ marginRight: '10px' }}>
-                  {appointment.status}
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {isClose && (
-                    <div onClick={() => {
-                        setActiveAthleteForCase(appointment.athlete); 
-                        setIsCreateCaseOpen(true); 
-                      }}>
-                      <Button variant="primary" height="28px" width="30px">
-                        <Pencil size={14} />
-                      </Button>
+                return (
+                  <div key={idx} className={styles.scheduleRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className={styles.scheduleInfo}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className={styles.athleteName}>
+                          {appointment.athlete.fullName}
+                        </span>
+                        <span className={styles.appointmentTime}>
+                          {appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     </div>
-                  )}
+                    
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {showActions && (
+                          <>
+                            {isClose && (
+                              <div onClick={() => {
+                                  setActiveAthleteForCase(appointment.athlete); 
+                                  setIsCreateCaseOpen(true); 
+                                }}>
+                                <Button variant="secondary" height="28px" width="30px">
+                                  <Pencil size={14} />
+                                </Button>
+                              </div>
+                            )}
 
-                  {isFuture && (
-                    <>
-                      <div onClick={() => openRescheduleModal(appointment)}>
-                        <Button variant="secondary" height="28px" width="30px">
-                          <Calendar size={14} />
-                        </Button>
+                            <div onClick={() => openRescheduleModal(appointment)}>
+                              <Button variant="secondary" height="28px" width="30px">
+                                <Calendar size={14} />
+                              </Button>
+                            </div>
+                            
+                            <div onClick={() => handleCancel(appointment.id)}>
+                              <Button variant="secondary" height="28px" width="30px">
+                                <X size={14} />
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      
-                      <div onClick={() => handleCancel(appointment.id)}>
-                        <Button variant="secondary" height="28px" width="30px">
-                          <X size={14} />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-  
 
+                      <div className={`${styles.status} ${styles[appointment.status]}`}>
+                        {appointment.status}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
                 </div>
                 <div className={styles.cardFooter}>
                 {totalPages > 1 && (

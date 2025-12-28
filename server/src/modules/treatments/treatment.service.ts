@@ -128,7 +128,7 @@ export const createTreatment = async (data: CreateTreatmentData) => {
     }
   });
 
-  // 🔗 Attach to invoice if exists
+  // 🔗 Attach to invoice if exists (no recalculation)
   try {
     const existingInvoice = await prisma.invoice.findFirst({
       where: { caseId: treatment.caseId }
@@ -146,20 +146,9 @@ export const createTreatment = async (data: CreateTreatmentData) => {
         cost: treatment.cost || 0
       });
 
-      const subtotal =
-        (items.appointment?.cost || 0) +
-        (items.exams?.reduce((s: any, e: any) => s + (e.cost || 0), 0) || 0) +
-        (items.labTests?.reduce((s: any, l: any) => s + (l.cost || 0), 0) || 0) +
-        (items.treatments?.reduce((s: any, t: any) => s + (t.cost || 0), 0) || 0) +
-        (items.physioPrograms?.reduce((s: any, p: any) => s + (p.cost || 0), 0) || 0);
-
       await prisma.invoice.update({
         where: { id: existingInvoice.id },
-        data: {
-          items,
-          subtotal,
-          totalAmount: subtotal
-        }
+        data: { items }
       });
     }
   } catch (e) {

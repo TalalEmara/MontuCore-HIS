@@ -87,39 +87,25 @@ export const createCase = async (caseData: CaseData) => {
 
       // Build invoice items JSON (even if empty)
       const invoiceItems = {
-        appointment: {
+        appointments: [{
           id: caseData.initialAppointmentId,
-          type: 'Appointment',
-          description: 'Initial Consultation',
           cost: APPOINTMENT_PRICE
-        },
+        }],
         exams: exams.map(exam => ({
           id: exam.id,
-          type: 'Exam',
-          description: `${exam.modality} - ${exam.bodyPart}`,
           cost: exam.cost || 0,
-          status: exam.status
         })),
         labTests: labTests.map(lab => ({
           id: lab.id,
-          type: 'Lab Test',
-          description: lab.testName,
           cost: lab.cost || 0,
-          status: lab.status
         })),
         treatments: treatments.map(treatment => ({
           id: treatment.id,
-          type: 'Treatment',
-          description: treatment.description,
           cost: treatment.cost || 0,
-          provider: treatment.providerName
         })),
         physioPrograms: physioPrograms.map(physio => ({
           id: physio.id,
-          type: 'Physio Program',
-          description: physio.title,
-          cost: (physio.costPerSession || 0) * physio.numberOfSessions,
-          sessions: physio.numberOfSessions
+          totalCost: (physio.costPerSession || 0) * physio.numberOfSessions,
         }))
       };
 
@@ -131,13 +117,11 @@ export const createCase = async (caseData: CaseData) => {
         ...physioPrograms.map(p => (p.costPerSession || 0) * p.numberOfSessions)
       ].reduce((sum, cost) => sum + cost, 0);
 
-      const invoiceData: any = {
+      const invoiceData = {
         athleteId: newCase.athleteId,
         clinicianId: newCase.managingClinicianId,
         caseId: newCase.id,
         items: invoiceItems,
-        subtotal,
-        totalAmount: subtotal,
         notes: 'Automatically generated invoice for new case',
         createdBy: newCase.managingClinicianId
       };

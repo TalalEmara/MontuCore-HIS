@@ -1,0 +1,65 @@
+meta {
+  name: Update Invoice
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:3000/api/billing/invoices/2
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2OTAxNDI1LCJleHAiOjE3NjcxNjA2MjV9.ttPIZHw26wId2kXhFE3b0tyS8umYm08I-VZUm67oDtg
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "items": {
+      "appointments": [
+        {
+          "id": 1,
+          "cost": 150
+        },
+        {
+          "id": 2,
+          "cost": 200
+        }
+      ],
+      "exams": [
+        {
+          "id": 1,
+          "cost": 250
+        }
+      ],
+      "labTests": [
+        {
+          "id": 1,
+          "cost": 100
+        }
+      ],
+      "treatments": [
+        {
+          "id": 1,
+          "cost": 75
+        }
+      ],
+      "physioPrograms": [
+        {
+          "id": 1,
+          "totalCost": 400
+        }
+      ]
+    },
+    "notes": "Updated invoice with additional appointment and modified physio cost",
+    "dueDate": "2025-12-31T00:00:00.000Z",
+    "caseId": 24
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
