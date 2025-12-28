@@ -21,6 +21,7 @@ import managerDashboardRoutes from './modules/aggregators/Manager_Dashboard/dash
 
 import cdssRoutes from './modules/cdss/cdss.routes.js';
 import physioDashboardRoutes from './modules/aggregators/PhysioTherapist_Dashboard/dashboard.routes.js';
+import physioProgramRoutes from './modules/physioPrograms/physioProgram.routes.js';
 import consultRoutes from './modules/consults/consult.routes.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/athlete', athleteDashboardRoutes);
 app.use('/api/cdss', cdssRoutes);
 app.use('/api/physio-therapist', physioDashboardRoutes);
 app.use('/api/consults', consultRoutes);
+app.use('/api/physio-programs', physioProgramRoutes);
 app.use('/api/dashboard/manager', managerDashboardRoutes);
 
 // Health Check
