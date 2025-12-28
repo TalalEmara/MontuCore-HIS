@@ -276,13 +276,13 @@ function AthleteView() {
                         </div>
                         <div className="appointment-actions">
                           {/* [UPDATED] Reschedule Button */}
-                          <div onClick={() => openRescheduleModal(appt.raw)}>
+                          <div onClick={() => openRescheduleModal(appt.raw.clinicianId)}>
                             <Button variant="secondary" height="30px">
                               <Calendar size={16} />
                             </Button>
                           </div>
                           {/* [UPDATED] Cancel Button */}
-                          <div onClick={() => handleCancel(appt.raw.clinicianId)}>
+                          <div onClick={() => handleCancel(appt.raw.id)}>
                             <Button variant="secondary" height="30px">
                               <X size={16} />
                             </Button>
