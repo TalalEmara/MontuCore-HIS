@@ -215,7 +215,7 @@ const navigate = useNavigate();
             <h3 className={styles.analysisSectionHeading}>Clinicians Analysis</h3>
           <div>
             <input className={styles.tableSearchInput} placeholder="Search clinicians..." onChange={e => setStaffSearchQuery(e.target.value)} />
-          <Button  variant="primary" onClick={()=>navigate({ to: `/register` })}>Register</Button> 
+          <Button  variant="primary" onClick={()=>navigate({ to: `/register` })}>+</Button> 
           </div>
           </div>
 
