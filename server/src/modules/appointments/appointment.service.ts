@@ -79,7 +79,8 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
   try{
     // Convert local time (Egypt timezone) to UTC for storage
     let scheduledDate = new Date(appointmentData.scheduledAt);
-    // scheduledDate = localToUTC(appointmentData.scheduledAt, offset); // Input is already UTC
+    const offset = getTimezoneOffsetInMinutes(appointmentData.timezone || DEFAULT_TIMEZONE);
+    scheduledDate = localToUTC(appointmentData.scheduledAt, offset);
 
     /*
       Some Important Checks
@@ -98,7 +99,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       {
         where: {
           clinicianId: appointmentData.clinicianId,
-          scheduledAt: new Date(appointmentData.scheduledAt),
+          scheduledAt: scheduledDate,
           status: ApptStatus.SCHEDULED
         }
       }
@@ -112,7 +113,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       {
         where: {
           athleteId: appointmentData.athleteId,
-          scheduledAt: new Date(appointmentData.scheduledAt),
+          scheduledAt: scheduledDate,
           status: ApptStatus.SCHEDULED
         }
       }
@@ -148,7 +149,7 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
       data: {
         athleteId: appointmentData.athleteId,
         clinicianId: appointmentData.clinicianId,
-        scheduledAt: new Date(appointmentData.scheduledAt),
+        scheduledAt: scheduledDate,
         height: appointmentData.height ?? null,
         weight: appointmentData.weight ?? null,
         status: appointmentData.status || ApptStatus.SCHEDULED,
@@ -185,9 +186,8 @@ export const updateAppointment = async(appointmentID: number, appointmentData : 
     if (appointmentData.clinicianId) updatedData.clinicianId = appointmentData.clinicianId;
     if (appointmentData.scheduledAt) {
       // Convert local time (Egypt timezone) to UTC for storage
-      // const offset = getTimezoneOffsetInMinutes();
-      // updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
-      updatedData.scheduledAt = new Date(appointmentData.scheduledAt); // Input is already UTC
+      const offset = getTimezoneOffsetInMinutes(appointmentData.timezone || DEFAULT_TIMEZONE);
+      updatedData.scheduledAt = localToUTC(appointmentData.scheduledAt, offset);
     }
     if (appointmentData.height !== undefined) updatedData.height = appointmentData.height;
     if (appointmentData.weight !== undefined) updatedData.weight = appointmentData.weight;

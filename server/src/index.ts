@@ -15,7 +15,7 @@ import athleteDashboardRoutes from './modules/aggregators/Athlete_Dashboard/dash
 import treatmentRoutes from './modules/treatments/treatment.routes.js';
 import examRoutes from './modules/imaging/exam.routes.js';
 import labTestRoutes from './modules/lab_tests/labtest.routes.js';
-import physioProgramRoutes from './modules/physio_program/physioprogram.routes.js';
+// import physioProgramRoutes from './modules/physio_program/physioprogram.routes.js';
 import caseViewRoutes from './modules/aggregators/Case_View/caseview.routes.js';
 import managerDashboardRoutes from './modules/aggregators/Manager_Dashboard/dashboard.routes.js';
 
