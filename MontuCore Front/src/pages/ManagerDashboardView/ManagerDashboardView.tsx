@@ -7,6 +7,8 @@ import styles from "./ManagerDashboardView.module.css";
 import { useManagerDashboard } from "../../hooks/useManagerDashboard";
 import { da } from "zod/v4/locales";
 import { useAuth } from "../../context/AuthContext";
+import Button from "../../components/level-0/Button/Bottom";
+import { useNavigate } from "@tanstack/react-router";
 
 // const athlete_data = [
 //   { id: 1, athleteFullName: "Lionel Messi", athleteFieldPosition: "Forward", athleteJerseyNumber: 10, caseStatus: "ACTIVE", Severity: "MILD" },
@@ -28,7 +30,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const ManagerDashboard: React.FC = () => {
   const { user } = useAuth();
-
+const navigate = useNavigate();
   const [caseSearchQuery, setCaseSearchQuery] = useState("");
   const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [currentPage, setPage] = useState(1);
@@ -188,6 +190,7 @@ const ManagerDashboard: React.FC = () => {
 
       <div className={styles.athleteTableGrid}>
         <AdjustableCard className={styles.athleteTable}>
+          
           <div className={styles.tableHeaderControls}>
             <h3 className={styles.analysisSectionHeading}>Athletes Analysis</h3>
             <input className={styles.tableSearchInput} placeholder="Filter athletes..." onChange={e => setCaseSearchQuery(e.target.value)} />
@@ -200,15 +203,20 @@ const ManagerDashboard: React.FC = () => {
 
           />
 
-          <div className={styles.tablePaginationContainer}>
+          {/* <div className={styles.tablePaginationContainer}>
               {totalPages > 1 && ( <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={page => setPage(page)} /> )}
-          </div>
+          </div> */}
+        
         </AdjustableCard>
+        
 
         <AdjustableCard className={styles.staffTable}>
           <div className={styles.tableHeaderControls}>
             <h3 className={styles.analysisSectionHeading}>Clinicians Analysis</h3>
+          <div>
             <input className={styles.tableSearchInput} placeholder="Search clinicians..." onChange={e => setStaffSearchQuery(e.target.value)} />
+          <Button  variant="primary" onClick={()=>navigate({ to: `/register` })}>Register</Button> 
+          </div>
           </div>
 
           <List
