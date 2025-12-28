@@ -60,8 +60,7 @@ function AthleteView() {
       : (dashboard?.latestVitals?.status == "RECOVERED" ? "Fit" : dashboard?.latestVitals?.status == "ACTIVE" ? "Injured" : "Unknown"),
   };
 
-  // [UPDATED] Map appointments to include raw data for rescheduling
-  // Removed the duplicate 'appointments' declaration that was here previously
+
   const appointments = dashboard?.upcomingAppointments.appointments.map(
     (appt, indx) => ({
       displayId: indx + 1,
@@ -114,20 +113,16 @@ function AthleteView() {
     }
   };
 
-  // [NEW] Open Reschedule Modal
   const openRescheduleModal = (appointment: any) => {
     setSelectedAppointment(appointment);
     setNewDate(""); // Reset date input
     setIsRescheduleOpen(true);
   };
 
-  // [NEW] Submit Reschedule
+
   const handleRescheduleSubmit = () => {
     if (!selectedAppointment || !newDate) return;
 
-    // 1. Get athleteId from the current user's data (athleteData.id)
-    // 2. Get clinicianId from the nested clinician object in selectedAppointment
-    // const clinicianId = selectedAppointment.clinician?.id;
     const clinicianId = 2;
     
     if (!clinicianId) {
@@ -167,9 +162,9 @@ function AthleteView() {
     <div className="athlete-viewer-container">
       <BookingPanel isOpen={isBooking} onClose={function (): void {
         setIsBooking(false);
-        refetch(); // Fixed: Added parenthesis to actually call the function
+        refetch(); 
       }} athleteId={athleteData.id} />
-      {/* [NEW] Reschedule Overlay */}
+      {/*  Reschedule Overlay */}
       <BasicOverlay
         isOpen={isRescheduleOpen}
         onClose={() => setIsRescheduleOpen(false)}

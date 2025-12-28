@@ -1,19 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-
+import type { 
+  Appointment, 
+} from '../types/models';
 // --- Interfaces ---
-export interface Appointment {
-  id: number;
-  athleteId: number;
-  clinicianId: number;
-  scheduledAt: string;
-  height: number;
-  weight: number;
-  status: string; 
-  diagnosisNotes: string;
-  athlete: { fullName: string; };
-  clinician: { fullName: string; };
-}
+// export interface Appointment {
+//   id: number;
+//   athleteId: number;
+//   clinicianId: number;
+//   scheduledAt: string;
+//   height: number;
+//   weight: number;
+//   status: string; 
+//   diagnosisNotes: string;
+//   athlete: { fullName: string; };
+//   clinician: { fullName: string; };
+// }
 
 export interface AppointmentsResponse {
   success: boolean;
@@ -23,22 +25,22 @@ export interface AppointmentsResponse {
 export interface AppointmentClinician { fullName: string; }
 export interface AppointmentAthlete { fullName: string; }
 
-export interface AthleteAppointment {
-  id: number;
-  athleteId: number;
-  clinicianId: number;
-  scheduledAt: string;
-  height: number;
-  weight: number;
-  status: string;
-  diagnosisNotes: string;
-  clinician: AppointmentClinician;
-  athlete: AppointmentAthlete;
-}
+// export interface AthleteAppointment {
+//   id: number;
+//   athleteId: number;
+//   clinicianId: number;
+//   scheduledAt: string;
+//   height: number;
+//   weight: number;
+//   status: string;
+//   diagnosisNotes: string;
+//   clinician: AppointmentClinician;
+//   athlete: AppointmentAthlete;
+// }
 
 export interface AthleteAppointmentsResponse {
   success: boolean;
-  data: AthleteAppointment[];
+  data: Appointment[];
 }
 
 export interface CreateAppointmentRequest {

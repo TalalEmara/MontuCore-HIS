@@ -13,6 +13,7 @@ import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D"; // NEW
 import { useExamLoader } from "../../hooks/DicomViewer/useExamLoader";
 import { DicomSidebar } from "../../components/DicomView/DicomSideBar/DicomSideBar";
 import { useCDSS } from "../../hooks/DicomViewer/useCDSS";
+import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
 
 interface ViewportData {
   id: string;
@@ -55,9 +56,20 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   };
 
   // --- HOOK: Passive Loader (No ID passed here) ---
-  const { loadExam, isLoading } = useExamLoader(handleNewDicomFiles);
+  const { handleFileChange: processLocalFiles } = useDicomFileHandler(handleNewDicomFiles);
+  const { loadExam, isLoading , examMetadata} = useExamLoader(handleNewDicomFiles);
   const { analyzeImages, isAnalyzing, cdssResult } = useCDSS();
 
+  const modality = examMetadata?.modality || "Unknown Modality";
+  const bodyPart = examMetadata?.bodyPart || "Unknown Body Part";
+  const dateStr = examMetadata?.performedAt 
+    ? new Date(examMetadata.performedAt).toLocaleString() 
+    : "";
+    const patientName = examMetadata?.medicalCase?.athlete?.fullName || "No Patient Loaded";
+  const patientId = examMetadata?.medicalCase?.athlete?.id || "--";
+  const radiologistNotes = examMetadata?.radiologistNotes || null;
+
+  const viewerTitle = `${bodyPart} - ${modality} ${dateStr}`;
   // --- ACTIONS ---
   const handleRunAI = () => {
     // Assuming you have access to currentImageIds from your viewports state
@@ -95,7 +107,10 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
       })
     );
   };
-
+const onLocalUpload = (files: FileList) => {
+    const mockEvent = { target: { files } } as React.ChangeEvent<HTMLInputElement>;
+    processLocalFiles(mockEvent);
+  };
   return (
     <div className={styles.dicomViewPage}>
       <DicomTopBar
@@ -110,27 +125,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
         onViewModeChange={setViewMode}
       />
 
-      <div style={{ position: "fixed", right: 20, top: 80, zIndex: 100 }}>
-        {/* BUTTON: Manually triggers load with ID 16 */}
-        <button
-          onClick={() => loadExam(13)}
-          disabled={isLoading}
-          style={{
-            display: "flex",
-            gap: 6,
-            padding: "8px 16px",
-            borderRadius: 4,
-            border: "none",
-            background: "#2563eb",
-            color: "white",
-            cursor: "pointer",
-            alignItems: "center",
-          }}
-        >
-          <Download size={16} />
-          {isLoading ? "Loading..." : `Load Exam 16`}
-        </button>
-      </div>
+     
 
       <div className={styles.viewContainer}>
         <DicomSidebar
@@ -141,8 +136,10 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
             console.log("Clicked exam ID:", examID);
             loadExam(16);
           }}
-          patientId={""}
-          patientName={""}
+        patientId={patientId}
+          patientName={patientName}
+          radiologistNotes={radiologistNotes}
+          onLocalUpload={onLocalUpload}
         />
         {/* RENDER AREA */}
         {viewMode === "stack" && (
@@ -162,6 +159,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
                 }
               >
                 <DicomViewer
+                  title={viewerTitle}
                   viewportId={vp.id}
                   imageIds={vp.imageIds}
                   activeTool={activeTool}
