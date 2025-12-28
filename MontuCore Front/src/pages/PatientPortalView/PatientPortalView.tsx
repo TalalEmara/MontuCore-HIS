@@ -10,6 +10,7 @@ import TextInput from "../../components/level-0/TextInput/TextInput";
 import { useGenerateShareLink, useExternalConsultation } from "../../hooks/useConsultation";
 import PasscodeOverlay from "../../components/level-2/PasscodeOverlay/PasscodeOverlay";
 import { useParams, useSearch } from "@tanstack/react-router";
+import { useAthleteDashboard } from "../../hooks/useAthleteDashboard";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 type RecordTab = "cases" | "exams" | "labs" | "prescriptions"; // Renamed imaging to exams
@@ -26,7 +27,7 @@ function PatientPortalView() {
   const [activeTab, setActiveTab] = useState<RecordTab>("cases");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const params = useParams({ strict: false });
-  const Token = Number(params.token) || 0;
+  const Token = params.token || 0;
   const [shareNotes, setShareNotes] = useState("Please review the selected medical records and provide your expert opinion.");
   const [expiryHours, setExpiryHours] = useState("1");
   const search: any = useSearch({ strict: false });
@@ -49,7 +50,12 @@ function PatientPortalView() {
     accessCode, 
     isAuthorized && isExternal
   );
-
+  const { dashboard, isLoading: isDashboardLoading } = useAthleteDashboard(
+    5 || 0,
+    1,
+    10, // Limit
+    "reports" 
+  );
   const handlePasscodeSuccess = (enteredCode: string) => {
     setAccessCode(enteredCode);
     setIsAuthorized(true);
@@ -61,32 +67,47 @@ function PatientPortalView() {
     }
   }, [isExtError]);
 
-  const appointmentsData: Appointment[] = [
-    { id: 1, clinician: "Dr. Smith", date: "2025-01-05", status: "COMPLETED" },
-    { id: 2, clinician: "Dr. Jones", date: "2025-01-18", status: "CANCELLED" },
-    { id: 3, clinician: "Dr. Taylor", date: "2025-01-25", status: "SCHEDULED" },
-  ];
+// --- Data Mapping ---
+  // Map the 'useAthleteDashboard' result to the local interfaces expected by the List components.
+  // If loading or external, we fallback to empty arrays here (external is handled in getListConfig).
 
-  const cases: MedicalCase[] = [
-    { id: 1, name: "Complete ACL Tear", severity: "SEVERE", date: "12/07/2025", status: "ACTIVE" },
-    { id: 10, name: "Rotator Cuff Strain", severity: "MODERATE", date: "12/17/2025", status: "ACTIVE" },
-  ];
+  const appointmentsData: Appointment[] = dashboard?.upcomingAppointments.appointments.map(appt => ({
+    id: appt.id,
+    clinician: appt.clinician?.fullName || "Unassigned",
+    date: new Date(appt.scheduledAt).toLocaleDateString(),
+    status: appt.status as ApptStatus
+  })) || [];
 
-  // Renamed from imaging to exams
-  const examsData: ExamRecord[] = [
-    { id: 13, modality: "MRI", bodyPart: "Knee", status: "COMPLETED", scheduledAt: "2025-12-09T13:50:06.658Z" },
-    { id: 10, modality: "X-RAY", bodyPart: "Knee", status: "COMPLETED", scheduledAt: "2025-12-08T13:50:06.658Z" },
-  ];
+  const cases: MedicalCase[] = dashboard?.report?.cases?.map(c => ({
+    id: c.id,
+    name: c.diagnosisName,
+    severity: c.severity as Severity,
+    date: new Date(c.injuryDate).toLocaleDateString(),
+    status: c.status as CaseStatus
+  })) || [];
 
-  const labsData: LabRecord[] = [
-    { id: 1, testName: "Complete Blood Count", category: "Hematology", status: "COMPLETED", date: "2025-12-11" },
-    { id: 7, testName: "Coagulation Profile", category: "Hematology", status: "COMPLETED", date: "2025-12-11" },
-  ];
+  const examsData: ExamRecord[] = dashboard?.imaging?.exams?.map(e => ({
+    id: e.id,
+    modality: e.modality,
+    bodyPart: e.bodyPart,
+    status: e.status,
+    scheduledAt: e.scheduledAt
+  })) || [];
 
-  const prescriptions: Prescription[] = [
-    { id: 1, name: "Ibuprofen 400mg", date: "2024-10-15", clinician: "Dr. Smith" },
-    { id: 5, name: "Diclofenac Gel", date: "2024-06-25", clinician: "Dr. Taylor" },
-  ];
+  const labsData: LabRecord[] = dashboard?.tests?.labTests?.map(l => ({
+    id: l.id,
+    testName: l.testName,
+    category: l.category,
+    status: l.status,
+    date: new Date(l.sampleDate).toLocaleDateString()
+  })) || [];
+
+  const prescriptions: Prescription[] = dashboard?.prescriptions?.treatments?.map(t => ({
+    id: t.id,
+    name: t.description, // using description as name
+    date: new Date(t.date).toLocaleDateString(),
+    clinician: t.providerName
+  })) || [];
 
   const filterData = <T extends { id: number }>(data: T[], category: string) => {
     if (!isExternal) return data;

@@ -50,7 +50,7 @@ export const generateShareLink = async (req: Request, res: Response) => {
 
     // 3. Generate the Frontend Link
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const link = `${frontendUrl}/external/view/${share.token}`;
+    const link = `${frontendUrl}/athlete/portal/external/${share.token}`;
 
     res.status(201).json({
       success: true,
