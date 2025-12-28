@@ -348,13 +348,38 @@ GET /api/case-view/1?table=appointments,exams           # Multiple tables with d
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/invoices` | Create a new invoice | Required |
-| GET | `/invoices` | Get all invoices | Required |
-| GET | `/invoices/:id` | Get invoice by ID | Required |
-| PUT | `/invoices/:id` | Update invoice | Required |
-| POST | `/invoices/:id/payments` | Record payment | Required |
-| GET | `/patients/:patientId/summary` | Get patient billing summary | Required |
+| GET | `/invoices` | Get all invoices (optional athleteId query param) | Required |
+| GET | `/invoices/:id` | Get invoice by ID with calculated totals | Required |
+| PUT | `/invoices/:id` | Update invoice items, notes, due date, and status | Required |
+| GET | `/invoices/case/:caseId` | Get all invoices for a specific case | Required |
+| POST | `/invoices/:id/recalculate` | Manually recalculate invoice totals | Required |
 
-**Bruno Collection:** (May need to be created)
+**Query Parameters (GET /invoices):**
+- `athleteId`: Filter invoices by athlete ID (optional)
+
+**Invoice Items Structure:**
+```json
+{
+  "appointments": [{"id": 1, "cost": 150}],
+  "exams": [{"id": 1, "cost": 200}],
+  "labTests": [{"id": 1, "cost": 100}],
+  "treatments": [{"id": 1, "cost": 75}],
+  "physioPrograms": [{"id": 1, "totalCost": 300}]
+}
+```
+
+**Update Invoice Body (PUT /invoices/:id):**
+```json
+{
+  "items": { /* same structure as create */ },
+  "notes": "Updated notes",
+  "dueDate": "2025-12-31T00:00:00.000Z",
+  "status": "PAID",
+  "caseId": 24
+}
+```
+
+**Bruno Collection:** `Billing/`
 
 ---
 

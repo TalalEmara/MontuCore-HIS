@@ -1,0 +1,61 @@
+meta {
+  name: Create Invoice
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/billing/invoices
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "athleteId": 1,
+    "clinicianId": 1,
+    "items": {
+      "appointments": [
+        {
+          "id": 1,
+          "cost": 150
+        }
+      ],
+      "exams": [
+        {
+          "id": 1,
+          "cost": 200
+        }
+      ],
+      "labTests": [
+        {
+          "id": 1,
+          "cost": 100
+        }
+      ],
+      "treatments": [
+        {
+          "id": 1,
+          "cost": 75
+        }
+      ],
+      "physioPrograms": [
+        {
+          "id": 1,
+          "totalCost": 300
+        }
+      ]
+    },
+    "notes": "Invoice for knee injury treatment"
+  }
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2OTAxNDI1LCJleHAiOjE3NjcxNjA2MjV9.ttPIZHw26wId2kXhFE3b0tyS8umYm08I-VZUm67oDtg
+  Content-Type: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

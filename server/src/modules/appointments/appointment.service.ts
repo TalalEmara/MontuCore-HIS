@@ -161,6 +161,34 @@ export const createAppointment = async(appointmentData : AppointmentData) => {
     if(!newAppointment){
       throw new Error('Failed to create appointment');
     }
+
+    // 🔗 Auto-attach to invoice if exists (for case-related appointments) - NO RECALCULATION
+    if (appointmentData.caseId) {
+      try {
+        const invoice = await prisma.invoice.findFirst({
+          where: { caseId: appointmentData.caseId }
+        });
+
+        if (invoice) {
+          const items: any = invoice.items || {};
+          if (!items.appointments) items.appointments = [];
+
+          items.appointments.push({
+            id: newAppointment.id,
+            cost: 150 // Standard appointment cost
+          });
+
+          // Update invoice items WITHOUT recalculating totals
+          await prisma.invoice.update({
+            where: { id: invoice.id },
+            data: { items }
+          });
+        }
+      } catch (err) {
+        console.error('Failed updating invoice for appointment', err);
+      }
+    }
+
     return newAppointment;
   }
 

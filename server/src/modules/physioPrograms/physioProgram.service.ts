@@ -55,7 +55,7 @@ export const createPhysioProgram = async (programData: PhysioProgramData) => {
       }
     });
 
-    // 🔗 Auto-attach to invoice if exists
+    // 🔗 Auto-attach to invoice if exists (no recalculation)
     try {
       const invoice = await prisma.invoice.findFirst({
         where: { caseId: newProgram.caseId }
@@ -79,20 +79,9 @@ export const createPhysioProgram = async (programData: PhysioProgramData) => {
           totalCost
         });
 
-        const subtotal =
-          (items.appointment?.cost || 0) +
-          (items.exams?.reduce((s: any, e: any) => s + (e.cost || 0), 0) || 0) +
-          (items.labTests?.reduce((s: any, l: any) => s + (l.cost || 0), 0) || 0) +
-          (items.treatments?.reduce((s: any, t: any) => s + (t.cost || 0), 0) || 0) +
-          (items.physioPrograms?.reduce((s: any, p: any) => s + (p.totalCost || 0), 0) || 0);
-
         await prisma.invoice.update({
           where: { id: invoice.id },
-          data: {
-            items,
-            subtotal,
-            totalAmount: subtotal
-          }
+          data: { items }
         });
       }
     } catch (err) {
