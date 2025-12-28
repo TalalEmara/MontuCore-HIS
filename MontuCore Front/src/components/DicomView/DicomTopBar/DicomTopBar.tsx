@@ -2,20 +2,16 @@ import React from "react";
 import {
   Move, Search, Sun, Ruler, Layers, Triangle, Plus, Minus,
   Activity,
-  SwitchCamera,
-  Grid, // New Icon
-  Box,  // New Icon
+  Grid,
+  Box,
 } from "lucide-react";
 import DicomButton from "../DicomButton/DicomButton";
 import styles from "./DicomTopBar.module.css";
-// Import the Type from Viewer if shared, or redefine
 import { type VoiPreset } from "../../level-1/DicomViewer/DicomViewer";
 
 export type ToolMode = "WindowLevel" | "Pan" | "Zoom" | "Length" | "Angle" | "StackScroll";
-export type ViewMode = 'stack' | 'mpr' | '3d'; // NEW TYPE
+export type ViewMode = 'stack' | 'mpr' | '3d';
 
-// Define Standard Medical Presets
-// eslint-disable-next-line react-refresh/only-export-components
 export const PRESETS: VoiPreset[] = [
   { id: 'soft-tissue', label: 'Soft Tissue (Smooth)', windowWidth: 400, windowCenter: 40 },
   { id: 'lung', label: 'Lung (Sharpen)', windowWidth: 1500, windowCenter: -600 },
@@ -29,11 +25,8 @@ interface DicomTopBarProps {
   isSyncActive: boolean;
   onAddViewport?: () => void;
   onRemoveViewport?: () => void;
-  
-  // UPDATED: Replaced simple switch with mode change
   viewMode?: ViewMode; 
   onViewModeChange?: (mode: ViewMode) => void; 
-  
   onPresetChange: (preset: VoiPreset) => void;
 }
 
@@ -45,40 +38,38 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
   onAddViewport,    
   onRemoveViewport,
   onPresetChange,
-  viewMode = 'stack', // Default
+  viewMode = 'stack', 
   onViewModeChange,
 }) => {
   const iconSize = 20;
 
-  // Helper to handle the cycle
-  const handleSwitchClick = () => {
-    if (!onViewModeChange) return;
-    if (viewMode === 'stack') onViewModeChange('mpr');
-    else if (viewMode === 'mpr') onViewModeChange('3d');
-    else onViewModeChange('stack');
-  };
-
-  // Helper for Button Appearance
-  const getSwitchProps = () => {
-    switch (viewMode) {
-      case 'stack': return { label: "To MPR", icon: <Grid size={iconSize} /> };
-      case 'mpr': return { label: "To 3D", icon: <Box size={iconSize} /> };
-      case '3d': return { label: "To 2D", icon: <Layers size={iconSize} /> };
-      default: return { label: "Switch", icon: <SwitchCamera size={iconSize} /> };
-    }
-  };
-
-  const switchBtn = getSwitchProps();
+  // No more switch logic needed.
+  // We handle clicks directly in the buttons below.
 
   return (
     <div className={styles.dicomTopBar}>
-      {/* UPDATED SWITCH BUTTON */}
+      
+      {/* --- NEW: 3 DISTINCT VIEW MODE BUTTONS --- */}
       <DicomButton
-        label={switchBtn.label}
-        icon={switchBtn.icon}
-        onClick={handleSwitchClick}
-        isActive={true} // Highlighted to show it's a main action
+        label="2D Stack"
+        icon={<Layers size={iconSize} />}
+        isActive={viewMode === 'stack'}
+        onClick={() => onViewModeChange && onViewModeChange('stack')}
       />
+      <DicomButton
+        label="MPR"
+        icon={<Grid size={iconSize} />}
+        isActive={viewMode === 'mpr'}
+        onClick={() => onViewModeChange && onViewModeChange('mpr')}
+      />
+      <DicomButton
+        label="3D Volume"
+        icon={<Box size={iconSize} />}
+        isActive={viewMode === '3d'}
+        onClick={() => onViewModeChange && onViewModeChange('3d')}
+      />
+
+      <Divider />
       
       {/* GROUP 1: ADJUSTMENT & FILTERS */}
       <DicomButton
@@ -110,7 +101,6 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
       <Divider />
 
       {/* GROUP 2: NAVIGATION */}
-      {/* Disable 2D tools if in 3D mode (optional, but good UX) */}
       {viewMode !== '3d' && (
         <>
           <DicomButton
@@ -127,14 +117,12 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
           />
           <DicomButton
             label="Scroll"
-            icon={<Layers size={iconSize} />}
+            icon={<Layers size={iconSize} />} // Re-using Layers icon or choose another like 'Scroll'
             isActive={activeTool === "StackScroll"}
             onClick={() => onToolChange("StackScroll")}
           />
         </>
       )}
-
-     
 
       {/* GROUP 3: MEASUREMENTS */}
       {viewMode === 'stack' && (
@@ -154,24 +142,20 @@ export const DicomTopBar: React.FC<DicomTopBarProps> = ({
           />
           <Divider />
           {/* GROUP 4: VIEWPORTS */}
-      <DicomButton
-        label="Add View"
-        icon={<Plus size={iconSize} />}
-        onClick={onAddViewport|| (() => {})}
-      />
-      <DicomButton
-        label="Less View"
-        icon={<Minus size={iconSize} />}
-        onClick={onRemoveViewport|| (() => {})}
-      />
+          <DicomButton
+            label="Add View"
+            icon={<Plus size={iconSize} />}
+            onClick={onAddViewport|| (() => {})}
+          />
+          <DicomButton
+            label="Less View"
+            icon={<Minus size={iconSize} />}
+            onClick={onRemoveViewport|| (() => {})}
+          />
         </>
-        
       )}
-
-      
-
-      <p className={styles.atheleteName}> Athelete Athelete </p>
     </div>
   );
 };
+
 export default DicomTopBar;
