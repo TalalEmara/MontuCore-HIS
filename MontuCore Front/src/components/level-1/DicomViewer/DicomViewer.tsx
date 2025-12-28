@@ -14,6 +14,7 @@ export interface VoiPreset {
 }
 
 interface DicomViewerProps {
+  title: string;
   imageIds: string[];
   activeTool: string;
   viewportId: string;
@@ -34,6 +35,7 @@ const {
 } = cornerstoneTools;
 
 const DicomViewer: React.FC<DicomViewerProps> = ({ 
+  title,
   imageIds, 
   activeTool, 
   viewportId, 
@@ -203,11 +205,16 @@ useEffect(() => {
     };
   }, [isReady]); // Re-run if ready state changes to ensure engine exist
   return (
+    <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "black" }}>
+     <div style={{ position: "absolute", top: 8, left: 8, color: "white", zIndex: 10, fontWeight: "bold", fontSize: "14px", textShadow: "0 0 2px black" }}>
+      {title}
+    </div>
     <div 
       ref={elementRef} 
       style={{ width: '100%', height: '100%', overflow: 'hidden'}}
       onContextMenu={(e) => e.preventDefault()} 
     />
+    </div>
   );
 };
 

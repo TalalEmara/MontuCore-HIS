@@ -1,20 +1,15 @@
 import { useState } from "react";
 import styles from "./CaseView.module.css";
-import UsersList from "../../components/level-1/UserList/UsersList";
 import AdjustableCard from "../../components/level-1/AdjustableCard/AdjustableCard";
 import Button from "../../components/level-0/Button/Bottom";
 import ReportStepper from "../../components/level-1/ReportStepper/ReportStepper";
 
 import InfoCard from "../../components/level-0/InfoCard/InfoCard";
 import { BodyComponent } from "@darshanpatel2608/human-body-react";
-import TreatmentsList from "../../components/level-1/TreatmentsList/TreatmentsList";
-import DivomLocalViewer from "../../components/level-1/DicomViewer/DicomViewer";
-// should take specific case data
 
 import Bill from "../../components/level-1/bill/bill";
 import { useCaseRecord } from "../../hooks/useCaseRecord";
-import Badge from "../../components/level-0/Badge/badge";
-import { success } from "zod";
+import Badge from "../../components/level-0/Badge/Badge";
 import List from "../../components/level-0/List/List";
 
 function CaseView() {
@@ -23,6 +18,59 @@ function CaseView() {
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
   const { caseRecord, isLoading: caseLoading } = useCaseRecord(caseId);
 
+  const [bodyParts, setBodyParts] = useState<any>({});
+
+  const renderBodyComponent = () => {
+    if (caseRecord?.exams) {
+    const updatedParts: any = {
+        head: { show: true, selected: false },
+        chest: { show: true, selected: false },
+        stomach: { show: true, selected: false },
+        left_shoulder: { show: true, selected: false },
+        right_shoulder: { show: true, selected: false },
+        left_arm: { show: true, selected: false },
+        right_arm: { show: true, selected: false },
+        left_hand: { show: true, selected: false },
+        right_hand: { show: true, selected: false },
+        left_leg_upper: { show: true, selected: false },
+        right_leg_upper: { show: true, selected: false },
+        left_leg_lower: { show: true, selected: false },
+        right_leg_lower: { show: true, selected: false },
+        left_foot: { show: true, selected: false },
+        right_foot: { show: true, selected: false },
+    };
+
+    caseRecord.exams.forEach((exam: any) => {
+      const rawPart = exam.bodyPart.toLowerCase().trim();
+      let partKey = "";
+
+      if (rawPart.includes("head") || rawPart.includes("skull")) partKey = "head";
+        else if (rawPart.includes("chest") || rawPart.includes("thorax")) partKey = "chest";
+        else if (rawPart.includes("shoulder")) partKey = "left_shoulder"; // Default to left if not specified
+        else if (rawPart.includes("hand")) partKey = "left_hand";
+        else if (rawPart.includes("foot") || rawPart.includes("ankle")) partKey = "left_foot";
+        else if (rawPart.includes("knee") || rawPart.includes("leg")) partKey = "left_leg_upper";
+        else if (rawPart.includes("arm")) partKey = "left_arm";
+        else {
+          partKey = rawPart.replace(" ", "_");
+        }
+
+      if (partKey && updatedParts[partKey]) {
+        updatedParts[partKey] = { 
+          ...updatedParts[partKey], 
+          selected: true,
+           };
+      }
+    });
+
+    return  <BodyComponent 
+             height="75%"
+            mode="pain"
+            onClick={(id: string) => {
+              console.log(id);
+            }}
+            partsInput={updatedParts} />} }
+ 
   // const appointments = caseRecord?.
   const treatments = caseRecord?.treatments.map((treatment , indx) => [
     indx+1,
@@ -36,6 +84,12 @@ function CaseView() {
     `${exam.bodyPart}-${exam.modality}`,
     <Badge label={exam.status == "IMAGING_COMPLETE"? "Completed" : "pending"} variant={exam.status == "IMAGING_COMPLETE"? "success" : "pending"}/>
   ])
+  
+  const Appointments = [
+  { id: 1, clinician: "Dr. Smith", date: "2025-01-05", status: "COMPLETED" },
+  { id: 2, clinician: "Dr. Jones", date: "2025-01-18", status: "CANCELLED" },
+  { id: 3, clinician: "Dr. Taylor", date: "2025-01-25", status: "SCHEDULED" },
+  ];
 
 const physioProgram = caseRecord?.physioPrograms.at(-1);
   
@@ -59,35 +113,26 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
           </Button>
         </div>
         {activeTab === "overview" && (
-          <BodyComponent
-            height="75%"
-            mode="pain"
-            onClick={(id: string) => {
-              console.log(id);
-            }}
-            partsInput={{
-              head: { show: true },
-              leftShoulder: { show: true },
-              rightShoulder: { show: true },
-              leftArm: { show: true },
-              rightArm: { show: true },
-              chest: { show: true },
-              stomach: { show: true },
-              leftLeg: { show: true },
-              rightLeg: { show: true },
-              leftHand: { show: true },
-              rightHand: { show: true },
-              leftFoot: { show: true },
-              rightFoot: { show: true },
-            }}
-          />
+        renderBodyComponent()
         )}
 
         {activeTab === "images" && (
           <div className={styles.imagesList}>
-           
-            <List header={["#","exam","status"]} data={exams} />
-          </div>
+          <List 
+            header={["#", "Modality", "Body Part", "Date", "Status"]} 
+            data={caseRecord?.exams.map((exam) => [
+              `#${exam.id}`,
+              exam.modality,
+              exam.bodyPart,
+              new Date(exam.performedAt || exam.scheduledAt).toLocaleDateString(),
+              <Badge 
+                label={exam.status === "IMAGING_COMPLETE" ? "Completed" : "Pending"} 
+                variant={exam.status === "IMAGING_COMPLETE" ? "success" : "pending"} 
+              />
+            ]) || []} 
+            gridTemplateColumns=".5fr 1fr 1fr 1.5fr 1.2fr"
+          />
+        </div>
         )}
        <p className={styles.title}>
        case #{caseId} <span>{caseRecord?.managingClinician.fullName}</span>
@@ -95,20 +140,23 @@ const physioProgram = caseRecord?.physioPrograms.at(-1);
     </p>
         
       </div>
-      <div className={styles.reports}>
-        {/* <p> reports</p> */}
-        <AdjustableCard title="Reports" maxHeight="100%">
-          <UsersList
-            data={[
-              ["01", "Lionel Messi", "Forward", "Pending", "View"],
-              ["02", "Cristiano Ronaldo", "Forward", "Injured", "Edit"],
-              ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-              ["03", "Kevin De Bruyne", "Midfielder", "Pending", "View"],
-              ["04", "Virgil van Dijk", "Defender", "Fit", "Disable"],
-            ]}
-          />
-        </AdjustableCard>
-      </div>
+     <div className={styles.reports}>
+     <AdjustableCard title="Appointments" maxHeight="100%">
+      <List
+      header={["#", "Clinician", "Date", "Status"]}
+      data={Appointments.map(app => [
+        app.id, 
+        app.clinician, 
+        app.date, 
+        <Badge 
+        label={app.status === "COMPLETED" ? "Completed" : app.status === "CANCELLED" ? "Cancelled" : "Scheduled"} 
+        variant={app.status === "COMPLETED" ? "success" : app.status === "CANCELLED" ? "warning" : "pending"} 
+      />
+      ])}
+      gridTemplateColumns="1fr 2fr 2fr 1.1fr" 
+    />
+    </AdjustableCard>
+    </div>
       <div className={styles.treatments}>
         <AdjustableCard title="Treatments" maxHeight="100%" maxWidth="100%">
           <List header = {["#","treatment","date","provider"]} data={treatments} gridTemplateColumns=".2fr 1fr 1fr 1fr"/>

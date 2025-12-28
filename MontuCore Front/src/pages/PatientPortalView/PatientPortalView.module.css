@@ -4,7 +4,7 @@
 .patientPortalDashboardGrid {
   display: grid;
   grid-template-columns: 1fr 1.5fr 1.5fr;
-  grid-template-rows: 20rem auto; 
+  grid-template-rows: 20rem 22rem; 
   gap: 1rem;
   padding: 0 1rem 1rem 1rem;
   width: 100%;
@@ -157,4 +157,10 @@
     font-weight: 900;
     text-align: center;
     letter-spacing: 4px;
+}
+
+.shareOptionsArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;    
 }

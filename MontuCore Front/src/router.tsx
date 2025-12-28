@@ -19,6 +19,11 @@ import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
 import DicomTestPage from "./components/DicomViewer/DicomTestPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
 import TablePage from "./pages/TablePage/TablePage";
+import AppointmentsTable from "./pages/TablePage/AppointmentsTable";
+import CasesTablePage from "./pages/TablePage/CasesTable";
+import LabTable from "./pages/TablePage/LabTestsTable";
+import ExamTable from "./pages/TablePage/ExamTable";
+import PhysioProgressTable from "./pages/TablePage/PhysioProgressTable";
 import TestTablePage from "./pages/TablePage/test";
 import LoginView from "./pages/LoginView/LoginView";
 import ManagerDashboard from "./pages/ManagerDashboardView/ManagerDashboardView";
@@ -37,6 +42,10 @@ const sidebarLayoutRoute = createRoute({
   id: 'dashboard', // Logical grouping
   component: SidebarLayout,
 });
+
+type PortalSearch = {
+  view?: 'internal' | 'external' | 'consulting';
+};
 
 // Moved the old RootLayout logic here
 function SidebarLayout() {
@@ -94,10 +103,93 @@ export const DicomRoute = createRoute({
   component: DicomViewPage,
 });
 
-export const DicomTestRoute = createRoute({
+const physicianAppointmentRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physician/Appointment",
+  component: AppointmentsTable,
+});
+
+// Define the Appointment Route for Physio
+const physioAppointmentRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio/Appointment",
+  component: AppointmentsTable,
+});
+
+// Define the Appointment Route for Athlete
+const athleteAppointmentRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "athlete/Appointment",
+  component: AppointmentsTable,
+});
+
+const physicianCasesRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physician/cases",
+  component: CasesTablePage,
+});
+
+// Physio Cases
+const physioCasesRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio/cases",
+  component: CasesTablePage,
+});
+
+const physicianLabsRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physician/labs",
+  component: LabTable,
+});
+
+const physicianExamsRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physician/exams",
+  component: ExamTable,
+});
+
+const physioLabsRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio/labs",
+  component: LabTable, 
+});
+
+const physioExamsRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio/exams",
+  component: ExamTable, 
+});
+
+const physioProgressRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: '/physio/progress',
+  component: PhysioProgressTable,
+})
+// export const DicomTestRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "dicom-test",
+//   component: DicomTestPage,
+// });
+
+const athletePortalRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "athlete/portal",
+  component: PatientPortalView,
+validateSearch: (): PortalSearch => ({ view: 'internal' }),
+});
+
+const athletePortalConsultingRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "dicom-test",
-  component: DicomTestPage,
+  path: "athlete/portal/consulting",
+  component: PatientPortalView,
+  validateSearch: (): PortalSearch => ({ view: 'consulting' }),
+});
+
+const athletePortalExternalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "athlete/portal/external",
+  component: PatientPortalView,
+  validateSearch: (): PortalSearch => ({ view: 'external' }),
 });
 
 const registerRoute = createRoute({
@@ -130,11 +222,7 @@ const ProfileRoute = createRoute({
   component: ProfilePage,
 });
 
-const PatientPortalRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "patientPortal",
-  component: PatientPortalView,
-});
+
 
 // 5. Build Tree
 const routeTree = rootRoute.addChildren([
@@ -142,6 +230,17 @@ const routeTree = rootRoute.addChildren([
     physicianViewRoute,
     athleteViewRoute,
     PhysiotherapistViewRoute,
+    physicianAppointmentRoute,
+    physioAppointmentRoute,
+    athleteAppointmentRoute,
+    physicianCasesRoute,
+    physioCasesRoute,
+    physicianLabsRoute,
+    physicianExamsRoute,
+    physioProgressRoute,
+    physioLabsRoute,     
+    physioExamsRoute,
+    athletePortalRoute,
     cases,
     ProfileRoute
   ]),
@@ -151,8 +250,9 @@ const routeTree = rootRoute.addChildren([
   registerRoute,
   LoginRoute,
   ManagerRoute,
-  ExternalConsultationRoute,
-  PatientPortalRoute
+  // ExternalConsultationRoute,
+  athletePortalConsultingRoute,
+  athletePortalExternalRoute,
 ]);
 
 

@@ -1,11 +1,14 @@
 export const SYMPTOMS = [
   "Swelling",
   "Bruising",
-  "Limited ROM",
+  "Locked",
   "Instability",
-  "Numbness",
-  "Tenderness",
-  "Muscle weakness",
+  "Clicks",
+  "Soreness",
+  "Weakness",
+  "Aching",
+  "Stiffness",
+  "Loose",
 ] as const;
 
 export const INJURY_TYPES = [

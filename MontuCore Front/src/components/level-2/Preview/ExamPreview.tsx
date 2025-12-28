@@ -1,9 +1,8 @@
-// src/components/level-2/Preview/ExamPreview.tsx
-import React from 'react';
 import { Preview } from './Preview';
 import styles from './Preview.module.css';
 import List from '../../level-0/List/List';
-import { StatusBadge, Status } from '../../level-0/Badge/badge';
+import { StatusBadge, Status } from '../../level-0/Badge/Badge';
+import Button from '../../level-0/Button/Bottom'; 
 
 interface ExamData {
   modality: string;
@@ -31,26 +30,34 @@ const mockExam: ExamData = {
   ]
 };
 
-export default function ExamPreview({ onClose }: { onClose?: () => void }) {
+export default function ExamPreview({ 
+  onClose, 
+  onSeeDetails 
+}: { 
+  onClose?: () => void; 
+  onSeeDetails?: () => void 
+}) {
   return (
     <Preview onClose={onClose}>
-      {/* Col 1: Modality Info & Status */}
-      <div className={styles.headerSection}>
+      <div className={styles.headerSection} style={{ position: 'relative' }}>
         <div className={styles.titleRow}>
            <h2>{mockExam.modality} Scan</h2>
-           {/* Status is specific to Exams */}
            <StatusBadge status={mockExam.status} />
         </div>
         
-        {/* Added Athlete & Doctor here */}
         <div className={styles.subHeader}>
            <strong>Athlete:</strong> {mockExam.athleteName} 
            <span className={styles.separator}>|</span> 
            <strong>Ordered By:</strong> {mockExam.doctorName}
         </div>
+
+        <div style={{ position: 'absolute', top: 0, right: 0 }}>
+          <Button variant="secondary" height="2rem" onClick={onSeeDetails}>
+            See Details
+          </Button>
+        </div>
       </div>
 
-      {/* Col 2: Order Details */}
       <div className={styles.detailsSection}>
          <h3 className={styles.sectionTitle}>Order Info</h3>
          <div className={styles.infoGrid}>
@@ -73,7 +80,6 @@ export default function ExamPreview({ onClose }: { onClose?: () => void }) {
          </div>
       </div>
 
-      {/* Col 3: Files List */}
       <div className={styles.listSection}>
          <h3 className={styles.sectionTitle}>DICOM Series</h3>
          <div style={{ flex: 1, overflow: 'hidden' }}>

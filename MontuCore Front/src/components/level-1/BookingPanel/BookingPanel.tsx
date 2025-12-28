@@ -11,7 +11,7 @@ import ComboBox from "../../level-0/ComboBox/ComboBox";
 
 // Hook
 import { useBookAppointment } from "../../../hooks/useAppointments";
-import { useUsersByRole } from "../../../hooks/useUsers";
+import { useAllClinicians, useUsersByRole } from "../../../hooks/useUsers";
 
 // --- Schema Validation ---
 const bookingSchema = z.object({
@@ -31,7 +31,7 @@ interface BookingPanelProps {
 
 export default function BookingPanel({ isOpen, onClose, athleteId }: BookingPanelProps) {
   const { mutate: bookAppointment, isPending, isSuccess, error } = useBookAppointment();
-  const { data: users } = useUsersByRole("CLINICIAN");
+  const { data: users } = useAllClinicians();
   const [successMsg, setSuccessMsg] = useState("");
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm<BookingFormData>({

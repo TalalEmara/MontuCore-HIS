@@ -28,7 +28,7 @@ export default function Step4Treatment({ form }: Step4TreatmentProps) {
           type="button" 
           variant="primary" 
           onClick={() => append({ 
-            type: "Medication", 
+            type: "", 
             description: "", 
             providerName: "", 
             date: new Date().toISOString().split("T")[0], 

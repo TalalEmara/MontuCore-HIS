@@ -1,65 +1,21 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-
+import type { 
+  User, 
+  UserDetail,
+  Appointment, 
+  MedicalCase, 
+  Treatment, 
+  Exam, 
+  LabTest,
+  PhysioProgram 
+} from '../types/models';
 // ... (Interfaces omitted) ...
 export interface CaseRecordResult { caseRecord: any; message: string; }
 
 // --- 1. Interfaces ---
 
-export interface UserDetail {
-  id: number;
-  fullName: string;
-  email: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: string;
-}
 
-export interface Exam {
-  id: number;
-  modality: string;
-  bodyPart: string;
-  status: string;
-  scheduledAt: string;
-  performedAt?: string;
-  radiologistNotes?: string;
-  conclusion?: string;
-  cost: number;
-  dicomFileName?: string;
-  dicomPublicUrl?: string;
-  dicomUploadedAt?: string;
-}
-
-export interface LabTest {
-  id: number;
-  testName: string;
-  category: string;
-  status: string;
-  resultPdfUrl?: string | null;
-  resultValues?: Record<string, number | string>;
-  labTechnicianNotes?: string | null;
-  sampleDate: string;
-  cost: number;
-}
-
-export interface Treatment {
-  id: number;
-  type: string;
-  description: string;
-  providerName: string;
-  date: string;
-  cost: number;
-}
-
-export interface PhysioProgram {
-  id: number;
-  title: string;
-  numberOfSessions: number;
-  sessionsCompleted: number;
-  startDate: string;
-  weeklyRepetition: number;
-  costPerSession: number;
-}
 
 export interface CreateCaseRequest {
   athleteId: number;
@@ -80,7 +36,7 @@ export interface CaseRecordData {
   severity: 'MILD' | 'MODERATE' | 'SEVERE';
   status: string;
   injuryDate: string;
-  athlete: UserDetail;
+  athlete: User;
   managingClinician: UserDetail;
   exams: Exam[];
   labTests: LabTest[];
@@ -92,7 +48,7 @@ export interface CaseRecordData {
 
 export interface CaseRecordResponse {
   success: boolean;
-  data: CaseRecordData;
+  data: MedicalCase;
   message?: string;
 }
 

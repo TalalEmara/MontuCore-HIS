@@ -18,11 +18,7 @@ interface RehabCase {
   severity: Severity;
 }
 
-interface Appointment {
-  athleteName: string;
-  time: string;
-  status: string;
-}
+
 
 const PhysiotherapistView: React.FC = () => {
   const { user } = useAuth();

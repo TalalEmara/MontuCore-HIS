@@ -14,9 +14,20 @@ interface ExamData {
   modality: string;
   status: string;
   pacsImages: PacsImage[];
-  [key: string]: any; // Allow other fields like 'medicalCase'
+  bodyPart: string;       
+  performedAt: string;
+  radiologistNotes: string | null;
+  // Add the nested structure for patient info
+  medicalCase?: {
+    id: number;
+    diagnosisName: string;
+    athlete: {
+      id: number;
+      fullName: string;
+      email: string;
+    }
+  };
 }
-
 interface ApiResponse {
   success: boolean;
   data: ExamData;
@@ -34,6 +45,7 @@ export const useExamLoader = (
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [examMetadata, setExamMetadata] = useState<ExamData | null>(null);
   const loadExam = useCallback(async (examId: number | string) => {
     if (!examId) return;
 
@@ -54,7 +66,7 @@ export const useExamLoader = (
       if (!json.success || !json.data) {
         throw new Error('Invalid response format from server');
       }
-
+      setExamMetadata(json.data);
       const images = json.data.pacsImages || [];
 
       if (images.length === 0) {
@@ -84,6 +96,7 @@ export const useExamLoader = (
 
   return {
     loadExam,
+    examMetadata,
     isLoading,
     error,
   };
