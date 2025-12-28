@@ -54,7 +54,7 @@ export const useDicomUpload = (): UseDicomUploadReturn => {
 
       setUploadProgress(25); // Form data prepared
 
-      const response = await axios.post('/api/exams/with-multiple-dicoms', formData, {
+      const response = await axios.post('http://localhost:3000/api/exams/with-multiple-dicoms', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
