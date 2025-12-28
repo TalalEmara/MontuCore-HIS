@@ -1,8 +1,6 @@
 import type { Request, Response } from 'express';
 import * as ConsultService from './consult.service.js';
 import { AppError } from '../../utils/AppError.js';
-import * as authC from '../auth/auth.controller.js';
-import { prisma } from '../../config/db.js';
 
 /**
  * Generate a Share Link
@@ -11,28 +9,7 @@ import { prisma } from '../../config/db.js';
  */
 export const generateShareLink = async (req: Request, res: Response) => {
   try {
-    // TODO: Uncomment for production - Role Check
     // get the clinician ID from the authenticated user token
-    // const clinicianId = (req as any).user.id;
-    const authHeader = req.headers['authorization'] || '';
-    const userToken = authHeader.startsWith('Bearer ')  
-      ? authHeader.substring(7) 
-      : authHeader;
-    const verified = authC.verifyToken(userToken);
-    if (!verified) {
-      return res.status(401).json({
-        error: "Unauthorized: Invalid token",
-        code: 'UNAUTHORIZED'
-      });
-    }
-
-    const userRole = (verified as any).role;
-    if (userRole !== 'CLINICIAN' && userRole !== 'ADMIN') {
-      return res.status(403).json({ 
-        error: "Only clinicians can share medical records",
-        code: 'INSUFFICIENT_PERMISSIONS'
-      });
-    }
     const clinicianId = (req as any).user.id;
 
     if (!clinicianId) {
@@ -41,8 +18,6 @@ export const generateShareLink = async (req: Request, res: Response) => {
         code: 'UNAUTHORIZED'
       });
     }
-    // TESTING ONLY: Hardcoded clinician ID for testing without auth
-    // const clinicianId = 2; // Replace with actual clinician ID from your database
     
     const { athleteId, permissions, expiryHours } = req.body;
 
