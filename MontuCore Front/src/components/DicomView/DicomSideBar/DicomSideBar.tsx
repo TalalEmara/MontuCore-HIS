@@ -15,7 +15,7 @@ interface DicomSidebarProps {
   patientId: string | number;
   patientName: string;
   onExamClick: (examId: number) => void;
-  
+  radiologistNotes?: string | null;
   // --- NEW: CDSS Props ---
   onAnalyzeClick?: () => void;
   isAnalyzing?: boolean;
@@ -39,7 +39,8 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
   onExamClick,
   onAnalyzeClick,
   isAnalyzing = false,
-  cdssResult
+  cdssResult,
+  radiologistNotes
 }) => {
   const [activeTab, setActiveTab] = useState<'images' | 'notes'>('images');
   const [noteText, setNoteText] = useState('');
@@ -141,14 +142,11 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
             {/* Notes History */}
             <div className={styles.notesHistory}>
                <div className={styles.sectionTitle} style={{fontSize: '0.8rem'}}>
-                  <Activity size={14} /> History
+                  <Activity size={14} /> Radiologist Notes
                </div>
-               {savedNotes.map(note => (
-                 <div key={note.id} className={styles.noteItem}>
-                    <div className={styles.noteDate}>{note.date}</div>
-                    <div className={styles.noteText}>{note.text}</div>
+                 <div  className={styles.noteItem}>
+                    <div className={styles.noteText}>{radiologistNotes ? radiologistNotes : "No radiologist notes available."}</div>
                  </div>
-               ))}
             </div>
               {/* Input Area */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -55,9 +55,19 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   };
 
   // --- HOOK: Passive Loader (No ID passed here) ---
-  const { loadExam, isLoading } = useExamLoader(handleNewDicomFiles);
+  const { loadExam, isLoading , examMetadata} = useExamLoader(handleNewDicomFiles);
   const { analyzeImages, isAnalyzing, cdssResult } = useCDSS();
 
+  const modality = examMetadata?.modality || "Unknown Modality";
+  const bodyPart = examMetadata?.bodyPart || "Unknown Body Part";
+  const dateStr = examMetadata?.performedAt 
+    ? new Date(examMetadata.performedAt).toLocaleString() 
+    : "";
+    const patientName = examMetadata?.medicalCase?.athlete?.fullName || "No Patient Loaded";
+  const patientId = examMetadata?.medicalCase?.athlete?.id || "--";
+  const radiologistNotes = examMetadata?.radiologistNotes || null;
+  
+  const viewerTitle = `${bodyPart} - ${modality} ${dateStr}`;
   // --- ACTIONS ---
   const handleRunAI = () => {
     // Assuming you have access to currentImageIds from your viewports state
@@ -141,8 +151,9 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
             console.log("Clicked exam ID:", examID);
             loadExam(16);
           }}
-          patientId={""}
-          patientName={""}
+        patientId={patientId}
+          patientName={patientName}
+          radiologistNotes={radiologistNotes}
         />
         {/* RENDER AREA */}
         {viewMode === "stack" && (
@@ -162,6 +173,7 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
                 }
               >
                 <DicomViewer
+                  title={viewerTitle}
                   viewportId={vp.id}
                   imageIds={vp.imageIds}
                   activeTool={activeTool}
