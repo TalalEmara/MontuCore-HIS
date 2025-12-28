@@ -123,7 +123,7 @@ function AthleteView() {
   const handleRescheduleSubmit = () => {
     if (!selectedAppointment || !newDate) return;
 
-    const clinicianId = 2;
+    const clinicianId = selectedAppointment.clinicianId;
     
     if (!clinicianId) {
         console.error("Cannot reschedule: Clinician ID missing");
