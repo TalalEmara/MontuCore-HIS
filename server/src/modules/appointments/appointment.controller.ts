@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as appointmentService from './appointment.service.js';
 import * as authC from '../auth/auth.controller.js';
 import { prisma } from '../../config/db.js';
+import { error } from 'console';
 
 export const createAppointment = async (req: Request, res: Response): Promise<void> => {
   try{
@@ -10,27 +11,63 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
       : authHeader;
+
+    // Log the token for debugging
+    console.log('Authorization Header:', authHeader);
+    console.log('Extracted Token:', userToken);
+
+    // Validate token format
+    if (!userToken || userToken.split('.').length !== 3) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid token format',
+      });
+      return;
+    }
+
+    // Validate the token
+    if (!userToken) {
+      res.status(401).json({
+        success: false,
+        message: 'Authorization token is missing',
+      });
+      return;
+    }
+
+    try {
+      // Updated to handle decoded payload
       const validToken = await authC.verifyToken(userToken);
-      // if (validToken && (validToken as any).role in ['ADMIN', 'ATHLETE']){
+      if (!validToken || !['ADMIN', 'ATHLETE'].includes((validToken as any).role)) {
+        res.status(403).json({
+          success: false,
+          message: `Unauthorized role: ${(validToken as any).role || 'none'}`,
+        });
+        return;
+      }
+
+      // Proceed with appointment creation
       const createdAppointment = await appointmentService.createAppointment(appointmentData);
-      if (createdAppointment instanceof Error){
+      if (createdAppointment instanceof Error) {
         res.status(400).json({
           success: false,
           message: createdAppointment.message,
         });
+        return;
       }
 
       res.status(201).json({
         success: true,
         message: 'Appointment created successfully',
-        data: createdAppointment
+        data: createdAppointment,
       });
-    // }
-    // else{
-    //   res.status(401).json({
-    //     success: false,
-    //   });
-    // }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({
+        success: false,
+        message: 'Token validation failed',
+        error: errorMessage,
+      });
+    }
   }
 
   catch(error){
@@ -58,7 +95,7 @@ export const updateAppointmentStatus = async (req: Request, res: Response): Prom
       if (updatedAppointment instanceof Error){
         res.status(400).json({
           success: false,
-          message: 'Faileed to update appointment status: '
+          message: 'Failed to update appointment status: ' + updatedAppointment.message,
         });
       }
 
@@ -177,6 +214,7 @@ export const getAppointmentById = async (req: Request, res: Response): Promise<v
 export const deleteAppointment = async (req: Request, res: Response): Promise<void> => {
   try{
     const {id} = req.params;
+    console.log("Deleting appointment with ID:", id);
     const authHeader = req.headers['authorization'] || '';
     const userToken = authHeader.startsWith('Bearer ')  
       ? authHeader.substring(7) 
@@ -260,7 +298,7 @@ export const getAppointmentsByAthleteId = async (req: Request, res: Response): P
       ? authHeader.substring(7) 
       : authHeader;
     const validToken = await authC.verifyToken(userToken);
-    if (validToken && (authC.isAdmin(userToken) || authC.isAthlete(userToken)) ){
+    if (validToken && (authC.isAdmin(userToken) || authC.isAthlete(userToken)) || authC.isClinician(userToken) ){
       const userId = (validToken as any).id;
       if (authC.isAthlete(userToken)){
 

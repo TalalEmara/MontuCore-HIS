@@ -218,7 +218,7 @@ async function main() {
   
   for (let i = 0; i < cases.length; i++) {
     const hasDicom = i === 0 || i === 2; // Add DICOM to first and third exams
-    await prisma.exam.create({
+    const exam = await prisma.exam.create({
       data: {
         caseId: cases[i]!.id,
         modality: ['MRI', 'CT', 'X-RAY', 'ULTRASOUND'][i % 4]!,
@@ -228,15 +228,22 @@ async function main() {
         performedAt: i < 5 ? new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000) : null,
         radiologistNotes: i < 5 ? `Examination complete - findings documented` : null,
         conclusion: i < 5 ? `${['Normal', 'Abnormal'][i % 2]} findings observed` : null,
-        cost: 200 + (i * 50),
-        ...(hasDicom && {
-          dicomFileName: `demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
-          dicomSupabasePath: `dicom_images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
-          dicomPublicUrl: `https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
-          dicomUploadedAt: new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000)
-        })
+        cost: 200 + (i * 50)
       }
     });
+
+    // Create PACS images if hasDicom
+    if (hasDicom) {
+      await prisma.pACSImage.create({
+        data: {
+          examId: exam.id,
+          fileName: `demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          supabasePath: `dicom_images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          publicUrl: `https://your-supabase-url.supabase.co/storage/v1/object/public/dicom-images/demo_${i === 0 ? 'pure_acl' : 'dual_injury'}_${cases[i]!.id}.dcm`,
+          uploadedAt: new Date(now.getTime() - (i * 2 - 1) * 24 * 60 * 60 * 1000)
+        }
+      });
+    }
   }
 
   console.log(`✅ ${cases.length} exams created\n`);
@@ -370,13 +377,21 @@ async function main() {
       performedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000),
       radiologistNotes: 'Complete rupture of anterior cruciate ligament. Associated medial meniscus tear identified. Moderate joint effusion present.',
       conclusion: 'Complete ACL tear with medial meniscus damage. Surgical intervention recommended.',
-      cost: 2500.00,
-      dicomFileName: 'knee_mri_acl_tear.dcm',
-      dicomSupabasePath: 'scans/knee_mri_acl_tear.dcm',
-      dicomPublicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/knee_mri_acl_tear.dcm',
-      dicomUploadedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000)
+      cost: 2500.00
     }
   });
+
+  // Create PACS image for exam1
+  await prisma.pACSImage.create({
+    data: {
+      examId: exam1.id,
+      fileName: 'knee_mri_acl_tear.dcm',
+      supabasePath: 'scans/knee_mri_acl_tear.dcm',
+      publicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/knee_mri_acl_tear.dcm',
+      uploadedAt: new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000)
+    }
+  });
+
   consultationExams.push(exam1);
 
   const exam2 = await prisma.exam.create({
@@ -405,13 +420,21 @@ async function main() {
       performedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
       radiologistNotes: 'Partial thickness tear of supraspinatus tendon. Mild tendinopathy of infraspinatus.',
       conclusion: 'Rotator cuff strain with partial tear. Conservative management with possible surgical consideration if no improvement.',
-      cost: 2200.00,
-      dicomFileName: 'shoulder_mri_rotator_cuff.dcm',
-      dicomSupabasePath: 'scans/shoulder_mri_rotator_cuff.dcm',
-      dicomPublicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/shoulder_mri_rotator_cuff.dcm',
-      dicomUploadedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      cost: 2200.00
     }
   });
+
+  // Create PACS image for exam3
+  await prisma.pACSImage.create({
+    data: {
+      examId: exam3.id,
+      fileName: 'shoulder_mri_rotator_cuff.dcm',
+      supabasePath: 'scans/shoulder_mri_rotator_cuff.dcm',
+      publicUrl: 'https://demo-supabase-url.supabase.co/storage/v1/object/public/dicoms/scans/shoulder_mri_rotator_cuff.dcm',
+      uploadedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    }
+  });
+
   consultationExams.push(exam3);
 
   const exam4 = await prisma.exam.create({

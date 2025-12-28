@@ -1,0 +1,27 @@
+meta {
+  name: Update Appointment Status
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseURL}}/appointments/update-appointment-status
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBzcG9ydHNoaXMuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY2Nzc4OTIwLCJleHAiOjE3NjcwMzgxMjB9.XGCcEzGYdBvmpvwsnml9ifbsVqiRAn635X6rsE573_I
+}
+
+body:json {
+  {
+      "id" : 33,
+      "status" : "CANCELLED" 
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

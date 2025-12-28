@@ -1,5 +1,8 @@
 import type { Request, Response } from 'express';
 import * as sessionService from './session.service.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
+
 
 /**
  * Create a new session
