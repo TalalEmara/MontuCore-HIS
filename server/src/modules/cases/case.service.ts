@@ -378,6 +378,7 @@ export const deleteCase = async (caseId: number) => {
 export const getCases = async (filters: GetCasesFilterParams = {}) => {
   try {
     const { 
+      caseId,
       clinicianId, 
       athleteId, 
       status, 
@@ -390,6 +391,7 @@ export const getCases = async (filters: GetCasesFilterParams = {}) => {
     const where: any = {};
 
     // Apply filters
+    if (caseId) where.id = caseId;
     if (clinicianId) where.managingClinicianId = clinicianId;
     if (athleteId) where.athleteId = athleteId;
     if (status) where.status = status;
