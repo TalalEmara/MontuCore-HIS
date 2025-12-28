@@ -138,7 +138,7 @@ function PatientPortalView() {
     const labIds = selectedIds.filter(id => id.startsWith("labs-")).map(id => parseInt(id.split("-")[1]));
 
     mutate({
-      athleteId: 5,
+      athleteId: athleteId || 0,
       permissions: { caseIds, examIds, labIds, notes: shareNotes },
       expiryHours: parseInt(expiryHours) || 1
     });
