@@ -272,45 +272,29 @@ export const createExam = async (data: CreateExamData) => {
       throw new ValidationError('Failed to process DICOM file: ' + (error as Error).message);
     }
   }
-  // ⭐ AFTER exam is successfully created (and dicom processed if exists)
-try {
-  // Recalculate subtotal and update invoice
-  const caseId = exam.caseId;
+  // 🔗 Auto-attach to invoice if exists (no recalculation)
+  try {
+    const invoice = await prisma.invoice.findFirst({
+      where: { caseId: exam.caseId }
+    });
 
-  // Fetch all cost items of this case
-  const [exams, labTests, treatments, physioPrograms] = await Promise.all([
-    prisma.exam.findMany({ where: { caseId } }),
-    prisma.labTest.findMany({ where: { caseId } }),
-    prisma.treatment.findMany({ where: { caseId } }),
-    prisma.physioProgram.findMany({ where: { caseId } }),
-  ]);
+    if (invoice) {
+      const items: any = invoice.items || {};
+      if (!items.exams) items.exams = [];
 
-  const APPOINTMENT_PRICE = 150;
+      items.exams.push({
+        id: exam.id,
+        cost: exam.cost || 0
+      });
 
-  const subtotal =
-    APPOINTMENT_PRICE +
-    exams.reduce((s, e) => s + (e.cost || 0), 0) +
-    labTests.reduce((s, l) => s + (l.cost || 0), 0) +
-    treatments.reduce((s, t) => s + (t.cost || 0), 0) +
-    physioPrograms.reduce((s, p) => s + ((p.costPerSession || 0) * p.numberOfSessions), 0);
-
-  await prisma.invoice.updateMany({
-    where: { caseId },
-    data: {
-      subtotal,
-      totalAmount: subtotal,
-      items: {
-        exams: exams,
-        labTests,
-        treatments,
-        physioPrograms
-      }
+      await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { items }
+      });
     }
-  });
-
-} catch (err) {
-  console.error("Invoice update failed after Exam creation", err);
-}
+  } catch (err) {
+    console.error('Failed updating invoice for exam', err);
+  }
 
 
   // Return the exam with updated images

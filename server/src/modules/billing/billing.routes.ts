@@ -26,11 +26,25 @@ router.get('/invoices', authenticateToken, billingController.getAllInvoices);
 router.get('/invoices/:id', authenticateToken, billingController.getInvoiceById);
 
 /***
+ * @route PUT /api/billing/invoices/:id
+ * @desc Update invoice data and recalculate totals
+ * @access Protected
+ */
+router.put('/invoices/:id', authenticateToken, billingController.updateInvoice);
+
+/***
  * @route GET /api/billing/invoices/case/:caseId
  * @desc Get all invoices for a specific case
  * @access Protected
  */
 router.get('/invoices/case/:caseId', authenticateToken, billingController.getInvoicesByCaseId);
+
+/***
+ * @route POST /api/billing/invoices/:id/recalculate
+ * @desc Manually recalculate invoice totals
+ * @access Protected
+ */
+router.post('/invoices/:id/recalculate', authenticateToken, billingController.recalculateInvoice);
 
 export default router;
 
