@@ -9,7 +9,7 @@ import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 import TextInput from "../../components/level-0/TextInput/TextInput";
 import { useGenerateShareLink, useExternalConsultation } from "../../hooks/useConsultation";
 import PasscodeOverlay from "../../components/level-2/PasscodeOverlay/PasscodeOverlay";
-import { useSearch } from "@tanstack/react-router";
+import { useParams, useSearch } from "@tanstack/react-router";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 type RecordTab = "cases" | "exams" | "labs" | "prescriptions"; // Renamed imaging to exams
@@ -25,13 +25,14 @@ interface Prescription { id: number; name: string; date: string; clinician: stri
 function PatientPortalView() {
   const [activeTab, setActiveTab] = useState<RecordTab>("cases");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  
+  const params = useParams({ strict: false });
+  const Token = Number(params.token) || 0;
   const [shareNotes, setShareNotes] = useState("Please review the selected medical records and provide your expert opinion.");
   const [expiryHours, setExpiryHours] = useState("1");
   const search: any = useSearch({ strict: false });
   const isConsulting = search.view === "consulting";
   const isExternal = search.view === "external";
-  const Token = "aac6d477-079b-4ae8-bb0d-d16fd057834e";
+  // const Token = "aac6d477-079b-4ae8-bb0d-d16fd057834e";
   
   const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(!isExternal);
