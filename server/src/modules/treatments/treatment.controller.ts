@@ -1,8 +1,14 @@
 import type { Request, Response } from 'express';
 import * as TreatmentService from './treatment.service.js';
-import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
-export const getTreatments = asyncHandler(async (req: Request, res: Response) => {
+/**
+ * Get treatments with filters
+ * @route GET /api/treatments
+ * @query athleteId, caseId, type, page, limit
+ */
+export const getTreatments = async (req: Request, res: Response) => {
   try {
   const { athleteId, caseId, type, page = 1, limit = 10 } = req.query;
 
@@ -28,7 +34,7 @@ export const getTreatments = asyncHandler(async (req: Request, res: Response) =>
       error: error.message || 'Failed to fetch treatments'
     });
   }
-});
+};
 
 /**
  * Get treatments by athlete ID

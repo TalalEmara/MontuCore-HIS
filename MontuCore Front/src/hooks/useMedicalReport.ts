@@ -115,28 +115,42 @@ export const useMedicalReport = () => {
                 throw new Error("Case ID could not be determined");
             }
 
-            // --- 3. Create Rehab Program ---
-            console.log("[useMedicalReport] Step 3: Processing rehab program");
-            console.log("[useMedicalReport] Rehab program value:", data.rehabProgram);
-            if (data.rehabProgram && data.rehabProgram !== "None") {
-                console.log("[useMedicalReport] Creating physio program:", data.rehabProgram);
-                await fetch(`${API_URL}/physio-programs`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                    body: JSON.stringify({
-                        caseId,
-                        title: data.rehabProgram,
-                        numberOfSessions: 10,
-                        startDate: new Date().toISOString(),
-                    }),
-                }).then(r => {
-                    console.log("[useMedicalReport] Physio program response status:", r.status);
-                    return r;
-                }).catch(e => console.error("[useMedicalReport] Failed to create physio program:", e));
-            } else {
-                console.log("[useMedicalReport] No rehab program specified");
-            }
+          // --- 3. Book Physio Appointment ---
+            // Replaces "Create Rehab Program" logic based on user request to book appointment instead.
+            console.log("[useMedicalReport] Step 3: Processing physio appointment booking");
+            console.log("[useMedicalReport] Selected Clinician ID (from physiotherapistProgram):", data.physiotherapistProgram);
 
+            if (data.physiotherapistProgram && data.physiotherapistProgram !== "None") {
+                // Parse the ID provided in the field
+                const physioClinicianId = Number(data.physiotherapistProgram);
+
+                if (!isNaN(physioClinicianId)) {
+                    console.log("[useMedicalReport] Booking appointment for Clinician ID:", physioClinicianId);
+
+                    // Calculate date "within a week" (Setting to exactly 7 days from now)
+                    const physioDate = new Date();
+                    physioDate.setDate(physioDate.getDate() + 10);
+
+                    try {
+                        await bookAppointmentApi({
+                            athleteId: athleteId,
+                            clinicianId: physioClinicianId,
+                            scheduledAt: physioDate.toISOString(),
+                            status: "SCHEDULED",
+                            caseId: caseId,
+                            diagnosisNotes: `Referral from Case #${caseId}` // Linking the appointment to the case
+                        }, token);
+                        
+                        console.log(`[useMedicalReport] Physio appointment booked successfully ${caseId}`);
+                    } catch (e) {
+                        console.error("[useMedicalReport] Failed to book physio appointment:", e);
+                    }
+                } else {
+                    console.warn("[useMedicalReport] Invalid Clinician ID format in physiotherapistProgram:", data.physiotherapistProgram);
+                }
+            } else {
+                console.log("[useMedicalReport] No physio clinician selected (None)");
+            }
             // --- 4. Create Exams (Pending/Ordered) ---
             console.log("[useMedicalReport] Step 4: Processing exams");
             console.log("[useMedicalReport] Exams data:", data.exam);

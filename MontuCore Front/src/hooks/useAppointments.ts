@@ -49,6 +49,7 @@ export interface CreateAppointmentRequest {
   weight?: number;
   status?: string; 
   diagnosisNotes?: string;
+  caseId?: number;
 }
 
 export interface CreateAppointmentResponse {

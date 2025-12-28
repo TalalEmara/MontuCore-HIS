@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import * as ConsultService from './consult.service.js';
 import { AppError } from '../../utils/AppError.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
 /**
  * Generate a Share Link
@@ -12,7 +14,19 @@ export const generateShareLink = async (req: Request, res: Response) => {
     // TODO: Uncomment for production - Role Check
     // get the clinician ID from the authenticated user token
     // const clinicianId = (req as any).user.id;
-    const userRole = (req as any).user?.role;
+    const authHeader = req.headers['authorization'] || '';
+    const userToken = authHeader.startsWith('Bearer ')  
+      ? authHeader.substring(7) 
+      : authHeader;
+    const verified = authC.verifyToken(userToken);
+    if (!verified) {
+      return res.status(401).json({
+        error: "Unauthorized: Invalid token",
+        code: 'UNAUTHORIZED'
+      });
+    }
+
+    const userRole = (verified as any).role;
     if (userRole !== 'CLINICIAN' && userRole !== 'ADMIN') {
       return res.status(403).json({ 
         error: "Only clinicians can share medical records",
@@ -50,7 +64,7 @@ export const generateShareLink = async (req: Request, res: Response) => {
 
     // 3. Generate the Frontend Link
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const link = `${frontendUrl}/external/view/${share.token}`;
+    const link = `${frontendUrl}/athlete/portal/external/${share.token}`;
 
     res.status(201).json({
       success: true,

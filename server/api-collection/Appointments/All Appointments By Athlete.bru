@@ -1,0 +1,24 @@
+meta {
+  name: All Appointments By Athlete
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseURL}}/appointments/athlete/5
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJwaHlzaW9Ac3BvcnRzaGlzLmNvbSIsInJvbGUiOiJDTElOSUNJQU4iLCJpYXQiOjE3NjY3ODI2NTcsImV4cCI6MTc2NzA0MTg1N30.TWtn7jidwAO92sFrDov034CP9fcN6K1zN1b4S7RfcpI
+}
+
+vars:pre-request {
+  athleteId: 5
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
