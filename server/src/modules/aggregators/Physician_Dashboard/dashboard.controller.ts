@@ -24,7 +24,7 @@ export const getPhysicianDashboard = async (req: Request, res: Response) => {
     const [todaysAppointments, criticalCases, activesCases] = await Promise.all([
       ApptService.getTodaysAppointmentsByClinicianId(clinicianIdNum),
       CaseService.getCriticalCasesByClinicianId(clinicianIdNum),
-      CaseService.getActiveCasesByClinicianId(clinicianIdNum, 1, 10)
+      CaseService.getActiveCasesByClinicianId(clinicianIdNum, 1, 100)
     ]);
 
     res.status(200).json({

@@ -33,7 +33,7 @@ const fetchPhysicianDashboard = async (
 export const usePhysicianDashboard = (
   clinicianId: number, 
   page: number = 1, 
-  limit: number = 10
+  limit: number = 50
 ) => {
   const { token } = useAuth();
   
