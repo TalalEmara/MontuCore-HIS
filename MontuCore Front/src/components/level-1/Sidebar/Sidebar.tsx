@@ -26,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
     { icon: <FaUserInjured />, label: "Cases", to: "/physician/cases" },
     { icon: <FaFileMedical />, label: "Lab Tests", to: "/physician/labs" }, 
     { icon: <FaMicroscope />, label: "Exams", to: "/physician/exams" }, 
+    { icon: <FaClipboardList />, label: "Consult", to: "/physician/consult" }
   ];
 
  const physioTabs = [
@@ -35,6 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
     { icon: <FaFileMedical />, label: "Lab Tests", to: "/physio/labs" }, 
     { icon: <FaMicroscope />, label: "Exams", to: "/physio/exams" }, 
     { icon: <FaRunning />, label: "Physio Progress", to: "/physio/progress" },
+    { icon: <FaClipboardList />, label: "Consult", to: "/physio/consult" },
   ];
 
   const athleteTabs = [
@@ -42,9 +44,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
     { icon: <FaCalendarAlt />, label: "Appointments", to: "/athlete/Appointment" },
 { icon: <FaClipboardList />, label: "Athlete Portal", to: "/athlete/portal?view=internal" },  ];
 
-  let navTabs = athleteTabs; 
-  if (currentRole === "physician") navTabs = physicianTabs;
-  else if (currentRole === "physio") navTabs = physioTabs;
+ let navTabs = athleteTabs; 
+
+if (currentPath.includes("/physician")) {
+  navTabs = physicianTabs;
+} 
+else if (currentPath.includes("/physio")) {
+  navTabs = physioTabs;
+}
 
   return (
     <div className={`sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}>
@@ -60,17 +67,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
       </div>
 
       <div className="sidebar-tabs">
-        {navTabs.map((tab, idx) => (
-          <div
-            key={idx}
-            className={`tab-item ${currentPath === tab.to ? "selected" : ""}`}
-            onClick={() => navigate({ to: tab.to })}
-          >
-            <div className="tab-icon">{tab.icon}</div>
-            {isOpen && <span className="tab-label">{tab.label}</span>}
-          </div>
-        ))}
-      </div>
+          {navTabs.map((tab, idx) => {
+            const basePath = tab.to.split('?')[0];
+            
+            const isSelected = currentPath === basePath;
+
+            return (
+              <div
+                key={idx}
+                className={`tab-item ${isSelected ? "selected" : ""}`}
+                onClick={() => navigate({ to: tab.to })}
+              >
+                <div className="tab-icon">{tab.icon}</div>
+                {isOpen && <span className="tab-label">{tab.label}</span>}
+              </div>
+            );
+          })}
+        </div>
 
       <div className="sidebar-footer">
        

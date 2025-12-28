@@ -178,13 +178,19 @@ const athletePortalRoute = createRoute({
 validateSearch: (): PortalSearch => ({ view: 'internal' }),
 });
 
-const athletePortalConsultingRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "athlete/portal/consulting",
+const physicianConsultRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physician/consult",
   component: PatientPortalView,
   validateSearch: (): PortalSearch => ({ view: 'consulting' }),
 });
 
+const physioConsultRoute = createRoute({
+  getParentRoute: () => sidebarLayoutRoute,
+  path: "physio/consult",
+  component: PatientPortalView,
+  validateSearch: (): PortalSearch => ({ view: 'consulting' }),
+});
 const athletePortalExternalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "athlete/portal/external",
@@ -241,6 +247,9 @@ const routeTree = rootRoute.addChildren([
     physioLabsRoute,     
     physioExamsRoute,
     athletePortalRoute,
+    physicianConsultRoute,
+    physioConsultRoute,
+
     cases,
     ProfileRoute
   ]),
@@ -251,7 +260,6 @@ const routeTree = rootRoute.addChildren([
   LoginRoute,
   ManagerRoute,
   // ExternalConsultationRoute,
-  athletePortalConsultingRoute,
   athletePortalExternalRoute,
 ]);
 

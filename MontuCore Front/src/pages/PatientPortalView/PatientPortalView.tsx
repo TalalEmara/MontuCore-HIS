@@ -31,7 +31,7 @@ function PatientPortalView() {
   const search: any = useSearch({ strict: false });
   const isConsulting = search.view === "consulting";
   const isExternal = search.view === "external";
-  const Token = "f4e97d5d-dbc7-449f-9e62-13a772bc2b1a";
+  const Token = "aac6d477-079b-4ae8-bb0d-d16fd057834e";
   
   const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(!isExternal);
