@@ -314,10 +314,18 @@ const PhysicianView: React.FC = () => {
                   <h2 className={styles.physioNotesTitle}>Physio Risk Notes</h2>
                 </div>
                 <div className={styles.physioNotesList}>
-                  {physioNotes.map(({ athleteName, note }, idx) => (
+                  {/* Handle empty state */}
+                  {(!dashboard?.physioRiskNotes || dashboard.physioRiskNotes.length === 0) && (
+                     <div className={styles.emptyState}>No risk notes reported</div>
+                  )}
+
+                  {/* Map over the parsed physioRiskNotes from the hook */}
+                  {dashboard?.physioRiskNotes?.map((noteItem: any, idx: number) => (
                     <div key={idx} className={styles.physioNoteRow}>
-                      <div className={styles.athleteName}>{athleteName}</div>
-                      <div className={styles.physioNote}>{note}</div>
+                      <div className={styles.athleteName}>{noteItem.athleteName}</div>
+                      <div className={styles.physioNote} title={noteItem.note}>
+                        {noteItem.note}
+                      </div>
                     </div>
                   ))}
                 </div>
