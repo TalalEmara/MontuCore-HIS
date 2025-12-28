@@ -1,32 +1,41 @@
+/* src/pages/TablePage/TablePage.module.css */
+
 .pageContainer {
-  /* 1. Use absolute height so children can inherit it, OR use Flexbox */
   height: 100vh; 
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevents double scrollbars */
+  overflow: hidden; 
 }
 
 .topBar {
-  /* Ensure TopBar doesn't shrink */
   flex-shrink: 0;
+  padding: 1rem 2rem;
 }
 
 .contentArea {
-  /* 2. FLEX: 1 makes it fill ALL remaining space automatically */
   flex: 1; 
-  
-  /* 3. Fix the grid. If you want the table to take full space: */
-  display: grid;
-  grid-template-rows: 3fr 2fr; /* Only 1 row for the 1 child */
-  
-  overflow: hidden; /* accurate scrolling inside the table */
+  display: flex; /* Changed from grid to flex */
+  flex-direction: row; /* Ensure children are side-by-side */
+  overflow: hidden;
+  position: relative;
 }
 
 .tableWrapper {
-  /* This ensures the wrapper inside fills the grid cell */
+  flex: 1; /* Table takes all space when preview is closed */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Allow table to scroll if needed */
+  transition: flex 0.3s ease; /* Smooth transition when preview opens */
+}
+
+/* If you want the table to shrink when the preview is open */
+.contentArea:has(.panel) .tableWrapper {
+  flex: 0.6; 
+}
+
+.tableWrapper {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
-
-/* If you want the footer to stick to the bottom */

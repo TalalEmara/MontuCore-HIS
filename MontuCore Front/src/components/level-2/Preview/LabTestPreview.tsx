@@ -1,76 +1,37 @@
 import { Preview } from './Preview';
 import styles from './Preview.module.css';
-import { StatusBadge, Status } from '../../level-0/Badge/Badge';
+import { StatusBadge } from '../../level-0/Badge/Badge';
 import List from '../../level-0/List/List';
 import Button from '../../level-0/Button/Bottom';
 
-interface LabData {
-  testName: string;
-  category: string;
-  status: Status;
-  sampleDate: string;
-  technician: string;
-  results: (string | number)[][]; 
-}
+export default function LabTestPreview({ onClose, onSeeDetails, data }: any) {
+  if (!data) return null;
 
-const mockLab: LabData = {
-  testName: "Complete Blood Count (CBC)",
-  category: "Hematology",
-  status: "COMPLETED" as Status,
-  sampleDate: "2024-05-12",
-  technician: "Lab Corp Inc.",
-  results: [
-    ["Hemoglobin", "14.5 g/dL"],
-    ["WBC", "6.5 K/uL"],
-    ["Platelets", "250 K/uL"],
-    ["RBC", "5.1 M/uL"],
-  ]
-};
+  // Convert resultValues object from backend into List format
+  const results = data.resultValues 
+    ? Object.entries(data.resultValues).map(([key, val]) => [key, String(val)]) 
+    : [];
 
-export default function LabTestPreview({ 
-  onClose, 
-  onSeeDetails 
-}: { 
-  onClose?: () => void; 
-  onSeeDetails?: () => void 
-}) {
   return (
     <Preview onClose={onClose}>
       <div className={styles.headerSection} style={{ position: 'relative' }}>
         <div className={styles.titleRow}>
-           <h2 style={{ fontSize: '1.5rem' }}>{mockLab.testName}</h2>
-           <StatusBadge status={mockLab.status} />
+           <h2 style={{ fontSize: '1.2rem' }}>{data.testName}</h2>
+           <StatusBadge status={data.status} />
         </div>
-        <div className={styles.subHeader}>
-           <strong>Category:</strong> {mockLab.category}
-        </div>
-
         <div style={{ position: 'absolute', top: 0, right: 0 }}>
-          <Button variant="secondary" height="2rem" onClick={onSeeDetails}>
-            See Details
-          </Button>
+          <Button variant="secondary" height="2rem" onClick={onSeeDetails}>See Details</Button>
         </div>
       </div>
-
       <div className={styles.detailsSection}>
-         <h3 className={styles.sectionTitle}>Sample Details</h3>
          <div className={styles.infoGrid}>
-            <div className={styles.infoItem}>
-               <span className={styles.label}>Sample Date</span>
-               <span className={styles.value}>{mockLab.sampleDate}</span>
-            </div>
-            <div className={styles.infoItem}>
-               <span className={styles.label}>Lab Technician</span>
-               <span className={styles.value}>{mockLab.technician}</span>
-            </div>
+            <div className={styles.infoItem}><span className={styles.label}>Category</span><span className={styles.value}>{data.category}</span></div>
+            <div className={styles.infoItem}><span className={styles.label}>Date</span><span className={styles.value}>{new Date(data.sampleDate).toLocaleDateString()}</span></div>
          </div>
       </div>
-
       <div className={styles.listSection}>
-         <h3 className={styles.sectionTitle}>Results</h3>
-         <div style={{ flex: 1, overflow: 'hidden' }}>
-            <List header={["Parameter", "Value"]} data={mockLab.results} />
-         </div>
+         <h3 className={styles.sectionTitle}>Quick Results</h3>
+         <List header={["Parameter", "Value"]} data={results} />
       </div>
     </Preview>
   );

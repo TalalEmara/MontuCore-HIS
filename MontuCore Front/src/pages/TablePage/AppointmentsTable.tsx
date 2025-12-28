@@ -5,67 +5,57 @@ import Badge from "../../components/level-0/Badge/Badge";
 import Button from "../../components/level-0/Button/Bottom";
 import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 import { Calendar, X } from "lucide-react";
-import { useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointments";
-import { useAuth } from "../../context/AuthContext";
+import { useAppointments, useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointmentsTable";
+
+// [ADAPTER] Matches your pattern: Ignores pagination inputs, returns full dataset
+const useAppointmentDataAdapter = () => {
+  const { data: apiResponse, isLoading } = useAppointments(); 
+
+  return {
+    data: apiResponse?.data || [],
+    isLoading,
+    // totalItems matches data length to inform TablePage there's only 1 page
+    totalItems: apiResponse?.data?.length || 0, 
+  };
+};
 
 export default function AppointmentsTable() {
-  const { user } = useAuth();
   const location = useLocation();
   const rescheduleMutation = useRescheduleAppointment();
   const cancelMutation = useCancelAppointment();
 
-  const isAthleteView = location.pathname.includes("/athlete");
   const isClinicianView = location.pathname.includes("/physician") || location.pathname.includes("/physio");
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [newDate, setNewDate] = useState<string>("");
 
-  const appointments = [
-    { id: 1, athlete: "Cristiano Ronaldo", clinician: "Dr. Olivia Black", date: "2024-01-10T10:00:00", status: "COMPLETED" },
-    { id: 2, athlete: "Lionel Messi", clinician: "Dr. Olivia Black", date: "2026-02-15T14:30:00", status: "SCHEDULED" },
-    { id: 3, athlete: "Cristiano Ronaldo", clinician: "Dr. Jones", date: "2026-03-20T09:00:00", status: "SCHEDULED" },
-  ];
-
-  const useTest = (page: number, size: number) => {
-    return {
-      data: appointments,
-      isLoading: false,
-      totalItems: appointments.length,
-    };
-  };
-
   const handleCancelAction = (appointmentId: number) => {
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm("Are you sure you want to cancel this appointment?")) {
       cancelMutation.mutate(appointmentId);
     }
   };
 
-  const openRescheduleAction = (appointment: any) => {
-    setSelectedAppointment(appointment);
-    setNewDate(""); 
-    setIsRescheduleOpen(true);
+  const handleRescheduleSubmit = () => {
+    if (!newDate || !selectedAppointment) return;
+    rescheduleMutation.mutate({
+      appointmentId: selectedAppointment.id,
+      athleteId: selectedAppointment.athleteId,
+      clinicianId: selectedAppointment.clinicianId,
+      scheduledAt: new Date(newDate).toISOString()
+    }, {
+      onSuccess: () => {
+        setIsRescheduleOpen(false);
+        setNewDate("");
+      }
+    });
   };
 
-  const isFuture = (dateStr: string) => new Date(dateStr) > new Date();
-
-  const allColumns = [
-    { 
-      header: "#", 
-      cell: (row: any) => row.id 
-    },
-    { 
-      header: "Athlete", 
-      cell: (row: any) => <strong>{row.athlete}</strong> 
-    },
-    { 
-      header: "Clinician", 
-      cell: (row: any) => row.clinician 
-    },
-    { 
-      header: "Date", 
-      cell: (row: any) => new Date(row.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-    },
+  const columns = [
+    { header: "#", cell: (row: any) => row.id },
+    { header: "Athlete", cell: (row: any) => <strong>{row.athlete?.fullName}</strong> },
+    { header: "Clinician", cell: (row: any) => row.clinician?.fullName },
+    { header: "Date", cell: (row: any) => new Date(row.scheduledAt).toLocaleString() },
     { 
       header: "Status", 
       cell: (row: any) => (
@@ -74,9 +64,12 @@ export default function AppointmentsTable() {
             label={row.status} 
             variant={row.status === "COMPLETED" ? "success" : row.status === "CANCELLED" ? "warning" : "pending"} 
           />
-          {isFuture(row.date) && row.status !== "CANCELLED" && (
+          {new Date(row.scheduledAt) > new Date() && row.status !== "CANCELLED" && (
             <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => openRescheduleAction(row)}>
+              <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => {
+                setSelectedAppointment(row);
+                setIsRescheduleOpen(true);
+              }}>
                 <Calendar size={14} />
               </Button>
               <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => handleCancelAction(row.id)}>
@@ -89,36 +82,32 @@ export default function AppointmentsTable() {
     },
   ];
 
-  const appointmentColumns = isClinicianView 
-    ? allColumns.filter(col => col.header !== "Clinician") 
-    : allColumns;
-
   return (
     <>
       <TablePage 
         title="Schedule Management" 
-        useDataHook={useTest} 
-        columns={appointmentColumns} 
+        useDataHook={useAppointmentDataAdapter} 
+        columns={isClinicianView ? columns.filter(c => c.header !== "Clinician") : columns} 
       />
 
-      <BasicOverlay isOpen={isRescheduleOpen} onClose={() => setIsRescheduleOpen(false)} title="Reschedule Appointment">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.625rem' }}>
-          <p>
-            Rescheduling appointment for <strong>{selectedAppointment?.athlete}</strong>.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label>Select New Date & Time</label>
-            <input 
-              type="datetime-local" 
-              value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
-              className="custom-date-input" 
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.625rem' }}>
-            <Button variant="secondary" onClick={() => setIsRescheduleOpen(false)} height="2.2rem">Cancel</Button>
-            <Button variant="primary" onClick={() => setIsRescheduleOpen(false)} height="2.2rem">Confirm</Button>
+      <BasicOverlay isOpen={isRescheduleOpen} onClose={() => setIsRescheduleOpen(false)} title="Reschedule">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+          <p>Select a new date for <strong>{selectedAppointment?.athlete?.fullName}</strong></p>
+          <input 
+            type="datetime-local" 
+            value={newDate} 
+            onChange={(e) => setNewDate(e.target.value)} 
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+            <Button variant="secondary" onClick={() => setIsRescheduleOpen(false)}>Back</Button>
+            <Button 
+                variant="primary" 
+                onClick={handleRescheduleSubmit}
+                disabled={rescheduleMutation.isPending || !newDate}
+            >
+              {rescheduleMutation.isPending ? "Confirming..." : "Confirm"}
+            </Button>
           </div>
         </div>
       </BasicOverlay>
