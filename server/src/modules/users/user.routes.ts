@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getUserProfile } from './user.controller.js';
 import { mockAuthMiddleware } from '../../middleware/autrhMiddleware.js';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply middleware to all routes in this router
 router.use(mockAuthMiddleware);
