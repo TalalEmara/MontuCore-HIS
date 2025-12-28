@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-import type { Appointment, UserStub } from '../types/models';
+import type { Appointment } from '../types/models';
 
 // --- Interfaces ---
 
-export interface PaginatedAppointmentsResponse {
+export interface AppointmentsResponse {
   success: boolean;
   data: Appointment[];
-  pagination: {
+  // Pagination is optional based on the provided JSON sample
+  pagination?: {
     page: number;
     limit: number;
     total: number;
@@ -22,16 +23,30 @@ export interface AppointmentFilters {
   caseId?: number;
 }
 
+export interface CreateAppointmentRequest {
+  athleteId: number;
+  clinicianId: number;
+  scheduledAt: string;
+  height?: number;
+  weight?: number;
+  status?: string;
+  diagnosisNotes?: string;
+  caseId?: number;
+}
+
 export interface RescheduleAppointmentRequest {
   appointmentId: number;
   athleteId: number;
   clinicianId: number;
   scheduledAt: string;
+  diagnosisNotes?: string;
+  height?: number;
+  weight?: number;
 }
 
-// --- API Fetcher ---
+// --- API Fetchers ---
 
-const fetchAppointments = async (filters: AppointmentFilters, token: string): Promise<PaginatedAppointmentsResponse> => {
+const fetchAppointments = async (filters: AppointmentFilters, token: string): Promise<AppointmentsResponse> => {
   const queryParams = new URLSearchParams();
   // Fixed limit to 100 to simulate "No Pagination" as requested
   queryParams.append('limit', '100');
@@ -54,8 +69,26 @@ const fetchAppointments = async (filters: AppointmentFilters, token: string): Pr
   return response.json();
 };
 
+const bookAppointmentApi = async (data: CreateAppointmentRequest, token: string) => {
+  const response = await fetch('http://localhost:3000/api/appointments/create-appointment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to book appointment');
+  }
+  return response.json();
+};
+
 // --- Custom Hooks ---
 
+// 1. Generic Hook (Flexible for any filter)
 export const useAppointments = (filters: AppointmentFilters = {}) => {
   const { token } = useAuth();
   return useQuery({
@@ -65,43 +98,90 @@ export const useAppointments = (filters: AppointmentFilters = {}) => {
   });
 };
 
+// 2. Specific Hook for Athletes (Returns Appointment[])
+export const useAthleteAppointments = (athleteId: number | undefined) => {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: ['appointments', 'list', { athleteId }],
+    queryFn: () => fetchAppointments({ athleteId }, token!),
+    enabled: !!athleteId && !!token,
+    select: (response) => response.data, // Selects the array directly
+  });
+};
+
+// 3. Specific Hook for Clinicians (Returns Appointment[])
+export const useClinicianAppointments = (clinicianId: number | undefined) => {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: ['appointments', 'list', { clinicianId }],
+    queryFn: () => fetchAppointments({ clinicianId }, token!),
+    enabled: !!clinicianId && !!token,
+    select: (response) => response.data, // Selects the array directly
+  });
+};
+
+// 4. Create Appointment
+export const useBookAppointment = () => {
+  const queryClient = useQueryClient();
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (data: CreateAppointmentRequest) => bookAppointmentApi(data, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
+};
+
+// 5. Cancel Appointment
 export const useCancelAppointment = () => {
   const queryClient = useQueryClient();
   const { token } = useAuth();
   return useMutation({
     mutationFn: async (id: number) => {
-      await fetch(`http://localhost:3000/api/appointments/update-appointment-status/`, {
+      const response = await fetch(`http://localhost:3000/api/appointments/update-appointment-status/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ id, status: 'CANCELLED' }),
       });
+      if (!response.ok) throw new Error('Failed to cancel appointment');
+      return response.json();
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
   });
 };
 
+// 6. Reschedule Appointment
 export const useRescheduleAppointment = () => {
   const queryClient = useQueryClient();
   const { token } = useAuth();
   return useMutation({
     mutationFn: async (data: RescheduleAppointmentRequest) => {
       // 1. Cancel existing
-      await fetch(`http://localhost:3000/api/appointments/update-appointment-status/`, {
+      const cancelRes = await fetch(`http://localhost:3000/api/appointments/update-appointment-status/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ id: data.appointmentId, status: 'CANCELLED' }),
       });
+      if (!cancelRes.ok) throw new Error('Failed to cancel old appointment during reschedule');
+
       // 2. Book new
-      await fetch('http://localhost:3000/api/appointments/create-appointment', {
+      const bookRes = await fetch('http://localhost:3000/api/appointments/create-appointment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           athleteId: data.athleteId,
           clinicianId: data.clinicianId,
           scheduledAt: data.scheduledAt,
-          status: 'SCHEDULED'
+          status: 'SCHEDULED',
+          diagnosisNotes: data.diagnosisNotes,
+          height: data.height,
+          weight: data.weight
         }),
       });
+      if (!bookRes.ok) throw new Error('Failed to book new appointment during reschedule');
+      
+      return bookRes.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
   });

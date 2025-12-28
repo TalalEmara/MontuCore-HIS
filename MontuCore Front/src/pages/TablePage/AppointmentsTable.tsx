@@ -5,17 +5,36 @@ import Badge from "../../components/level-0/Badge/Badge";
 import Button from "../../components/level-0/Button/Bottom";
 import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 import { Calendar, X } from "lucide-react";
-import { useAppointments, useCancelAppointment, useRescheduleAppointment } from "../../hooks/useAppointmentsTable";
+import { useAuth } from "../../context/AuthContext";
+import { 
+  useClinicianAppointments, 
+  useAthleteAppointments, 
+  useCancelAppointment, 
+  useRescheduleAppointment 
+} from "../../hooks/useAppointments";
 
-// [ADAPTER] Matches your pattern: Ignores pagination inputs, returns full dataset
+// [ADAPTER] Dynamically selects the correct hook based on User Role
 const useAppointmentDataAdapter = () => {
-  const { data: apiResponse, isLoading } = useAppointments(); 
+  const { user, profile } = useAuth();
+  
+  // Determine the ID to use: Profile ID is preferred (specific to Athlete/Clinician table), fallback to User ID
+  const entityId = user?.id || user?.id || 0;
+
+  const isClinician = user?.role === 'CLINICIAN';
+  const isAthlete = user?.role === 'ATHLETE';
+
+  // React Hooks must always be called. We control execution via the arguments (passing 0 disables the query).
+  const clinicianQuery = useClinicianAppointments(isClinician ? entityId : 0);
+  const athleteQuery = useAthleteAppointments(isAthlete ? entityId : 0);
+
+  // Select the active query result based on role
+  const { data, isLoading } = isClinician ? clinicianQuery : athleteQuery;
 
   return {
-    data: apiResponse?.data || [],
+    // The hooks are configured to select 'response.data', so 'data' here is Appointment[]
+    data: data || [],
     isLoading,
-    // totalItems matches data length to inform TablePage there's only 1 page
-    totalItems: apiResponse?.data?.length || 0, 
+    totalItems: data?.length || 0, 
   };
 };
 
@@ -24,6 +43,7 @@ export default function AppointmentsTable() {
   const rescheduleMutation = useRescheduleAppointment();
   const cancelMutation = useCancelAppointment();
 
+  // Determine view mode for column visibility
   const isClinicianView = location.pathname.includes("/physician") || location.pathname.includes("/physio");
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
@@ -38,6 +58,7 @@ export default function AppointmentsTable() {
 
   const handleRescheduleSubmit = () => {
     if (!newDate || !selectedAppointment) return;
+    
     rescheduleMutation.mutate({
       appointmentId: selectedAppointment.id,
       athleteId: selectedAppointment.athleteId,
@@ -64,6 +85,7 @@ export default function AppointmentsTable() {
             label={row.status} 
             variant={row.status === "COMPLETED" ? "success" : row.status === "CANCELLED" ? "warning" : "pending"} 
           />
+          {/* Only show actions for future appointments that aren't already cancelled */}
           {new Date(row.scheduledAt) > new Date() && row.status !== "CANCELLED" && (
             <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem' }}>
               <Button variant="secondary" height="1.75rem" width="1.875rem" onClick={() => {
@@ -87,6 +109,7 @@ export default function AppointmentsTable() {
       <TablePage 
         title="Schedule Management" 
         useDataHook={useAppointmentDataAdapter} 
+        // Hides Clinician column if the user is viewing as a clinician to reduce redundancy
         columns={isClinicianView ? columns.filter(c => c.header !== "Clinician") : columns} 
       />
 
