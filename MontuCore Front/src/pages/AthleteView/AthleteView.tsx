@@ -282,7 +282,7 @@ function AthleteView() {
                             </Button>
                           </div>
                           {/* [UPDATED] Cancel Button */}
-                          <div onClick={() => handleCancel(appt.raw.id)}>
+                          <div onClick={() => handleCancel(appt.raw.clinicianId)}>
                             <Button variant="secondary" height="30px">
                               <X size={16} />
                             </Button>
