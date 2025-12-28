@@ -11,7 +11,7 @@ import Bill from "../../components/level-1/bill/bill";
 import { useCaseRecord } from "../../hooks/useCaseRecord";
 import Badge from "../../components/level-0/Badge/Badge";
 import List from "../../components/level-0/List/List";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 
 // Imports for Overlays and Types
 import AppointmentOverlay from "../../components/level-2/DetailsOverlay/AppointmentOverlay";
@@ -20,12 +20,15 @@ import { type Appointment, type Treatment } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 
 function CaseView() {
-  const caseId = 2;
+  const params = useParams({ strict: false });
+  const caseId = Number(params.caseId);
   const navigate = useNavigate();
-  const { user } = useAuth(); // Access user from AuthContext
+  const { user } = useAuth();
   
   const [isReporting, setIsReporting] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "images">("overview");
+  
+
   const { caseRecord, isLoading: caseLoading } = useCaseRecord(caseId);
 
   // --- Overlay State ---
@@ -35,59 +38,29 @@ function CaseView() {
   const [selectedTreatment, setSelectedTreatment] = useState<TreatmentData | undefined>(undefined);
   const [showTreatmentOverlay, setShowTreatmentOverlay] = useState(false);
 
-  const [bodyParts, setBodyParts] = useState<any>({});
-
-  // --- Mock Appointments Data (Full Objects) ---
-  const appointmentsData: Appointment[] = [
-    { 
-      id: 1, 
-      athleteId: 29,
-      clinicianId: 101,
-      scheduledAt: "2025-01-05T09:00:00Z", 
-      status: "COMPLETED",
-      clinician: { id: 101, fullName: "Dr. Smith", email: "smith@clinic.com" },
-      athlete: { id: 29, fullName: "Marco Reus", email: "marco@bvb.de" },
-      diagnosisNotes: "Routine checkup completed. Recovery on track."
-    },
-    { 
-      id: 2, 
-      athleteId: 29,
-      clinicianId: 102,
-      scheduledAt: "2025-01-18T14:30:00Z", 
-      status: "CANCELLED",
-      clinician: { id: 102, fullName: "Dr. Jones", email: "jones@clinic.com" },
-      athlete: { id: 29, fullName: "Marco Reus", email: "marco@bvb.de" }
-    },
-    { 
-      id: 3, 
-      athleteId: 29,
-      clinicianId: 103,
-      scheduledAt: "2025-01-25T10:00:00Z", 
-      status: "SCHEDULED",
-      clinician: { id: 103, fullName: "Dr. Taylor", email: "taylor@clinic.com" },
-      athlete: { id: 29, fullName: "Marco Reus", email: "marco@bvb.de" },
-      diagnosisNotes: "Scheduled for MRI review."
-    },
-  ];
+  // --- Derived Data ---
+  const appointmentsData = caseRecord?.appointments || [];
+  const treatmentsList = caseRecord?.treatments || [];
+  const physioProgram = caseRecord?.physioPrograms?.at(-1);
 
   const renderBodyComponent = () => {
     if (caseRecord?.exams) {
       const updatedParts: any = {
-          head: { show: true, selected: false },
-          chest: { show: true, selected: false },
-          stomach: { show: true, selected: false },
-          left_shoulder: { show: true, selected: false },
-          right_shoulder: { show: true, selected: false },
-          left_arm: { show: true, selected: false },
-          right_arm: { show: true, selected: false },
-          left_hand: { show: true, selected: false },
-          right_hand: { show: true, selected: false },
-          left_leg_upper: { show: true, selected: false },
-          right_leg_upper: { show: true, selected: false },
-          left_leg_lower: { show: true, selected: false },
-          right_leg_lower: { show: true, selected: false },
-          left_foot: { show: true, selected: false },
-          right_foot: { show: true, selected: false },
+          head: { show: true, selected: true },
+          chest: { show: true, selected: true },
+          stomach: { show: true, selected: true },
+          left_shoulder: { show: true, selected: true },
+          right_shoulder: { show: true, selected: true },
+          left_arm: { show: true, selected: true },
+          right_arm: { show: true, selected: true },
+          left_hand: { show: true, selected: true },
+          right_hand: { show: true, selected: true },
+          left_leg_upper: { show: true, selected: true },
+          right_leg_upper: { show: true, selected: true },
+          left_leg_lower: { show: true, selected: true },
+          right_leg_lower: { show: true, selected: true },
+          left_foot: { show: true, selected: true },
+          right_foot: { show: true, selected: true },
       };
 
       caseRecord.exams.forEach((exam: any) => {
@@ -108,7 +81,7 @@ function CaseView() {
         if (partKey && updatedParts[partKey]) {
           updatedParts[partKey] = { 
             ...updatedParts[partKey], 
-            selected: true,
+            selected: false,
              };
         }
       });
@@ -123,9 +96,9 @@ function CaseView() {
              />
     } 
   }
- 
-  // Prepare Treatments Data
-  const treatmentsList = caseRecord?.treatments || [];
+
+  // --- Prepare Rows for Lists ---
+
   const treatmentsRows = treatmentsList.map((treatment: Treatment, indx: number) => [
     indx + 1,
     treatment.type,
@@ -133,13 +106,15 @@ function CaseView() {
     treatment.providerName
   ]);
 
-  const exams = caseRecord?.exams.map((exam , indx)=>[
-    indx+1,
-    `${exam.bodyPart}-${exam.modality}`,
-    <Badge label={exam.status == "IMAGING_COMPLETE"? "Completed" : "pending"} variant={exam.status == "IMAGING_COMPLETE"? "success" : "pending"}/>
+  const appointmentsRows = appointmentsData.map((app: Appointment) => [
+    app.id, 
+    app.clinician?.fullName || 'Unknown', 
+    new Date(app.scheduledAt).toLocaleDateString(), 
+    <Badge 
+      label={app.status === "COMPLETED" ? "Completed" : app.status === "CANCELLED" ? "Cancelled" : "Scheduled"} 
+      variant={app.status === "COMPLETED" ? "success" : app.status === "CANCELLED" ? "warning" : "pending"} 
+    />
   ]);
-  
-  const physioProgram = caseRecord?.physioPrograms.at(-1);
   
   return (
     <div className={styles.caseView}>
@@ -184,7 +159,7 @@ function CaseView() {
           </div>
         )}
         <p className={styles.title}>
-          case #{caseId} <span>{caseRecord?.managingClinician.fullName}</span>
+          case #{caseRecord?.id || caseId} <span>{caseRecord?.managingClinician?.fullName}</span>
         </p>
       </div>
 
@@ -192,20 +167,13 @@ function CaseView() {
         <AdjustableCard title="Appointments" maxHeight="100%">
           <List
             header={["#", "Clinician", "Date", "Status"]}
-            data={appointmentsData.map(app => [
-              app.id, 
-              app.clinician?.fullName, 
-              new Date(app.scheduledAt).toLocaleDateString(), 
-              <Badge 
-                label={app.status === "COMPLETED" ? "Completed" : app.status === "CANCELLED" ? "Cancelled" : "Scheduled"} 
-                variant={app.status === "COMPLETED" ? "success" : app.status === "CANCELLED" ? "warning" : "pending"} 
-              />
-            ])}
+            data={appointmentsRows}
             gridTemplateColumns="1fr 2fr 2fr 1.1fr"
-            // Click Handler for Appointments
             onRowClick={(index) => {
-              setSelectedAppointment(appointmentsData[index]);
-              setShowAppointmentOverlay(true);
+              if (appointmentsData[index]) {
+                setSelectedAppointment(appointmentsData[index]);
+                setShowAppointmentOverlay(true);
+              }
             }} 
           />
         </AdjustableCard>
@@ -217,19 +185,19 @@ function CaseView() {
             header={["#","treatment","date","provider"]} 
             data={treatmentsRows} 
             gridTemplateColumns=".2fr 1fr 1fr 1fr"
-            // Click Handler for Treatments
             onRowClick={(index) => {
-              // Convert model Treatment to TreatmentData if necessary, or just pass if compatible
               const t = treatmentsList[index];
-              setSelectedTreatment({
-                id: t.id,
-                type: t.type,
-                description: t.description,
-                providerName: t.providerName,
-                date: t.date,
-                cost: t.cost
-              });
-              setShowTreatmentOverlay(true);
+              if (t) {
+                setSelectedTreatment({
+                  id: t.id,
+                  type: t.type,
+                  description: t.description,
+                  providerName: t.providerName,
+                  date: t.date,
+                  cost: t.cost
+                });
+                setShowTreatmentOverlay(true);
+              }
             }}
           />
         </AdjustableCard>
@@ -239,12 +207,12 @@ function CaseView() {
         <AdjustableCard title="Physiotherapy" height="100%" maxWidth="100%">
           <div className={styles.physioContent}>
             <div className={styles.physioCards}>
-              <InfoCard label="Sessions" value={physioProgram?.numberOfSessions } />
-              <InfoCard label="Completed" value={physioProgram?.sessionsCompleted} />
-              <InfoCard label="per week" value={physioProgram?.weeklyRepetition} />
+              <InfoCard label="Sessions" value={physioProgram?.numberOfSessions || "" } />
+              <InfoCard label="Completed" value={physioProgram?.sessionsCompleted || ""} />
+              <InfoCard label="per week" value={physioProgram?.weeklyRepetition || ""} />
             </div>
             <p>
-              {physioProgram?.title} 
+              {physioProgram?.title || "No Active Program"} 
             </p>
           </div>
         </AdjustableCard>
@@ -254,10 +222,8 @@ function CaseView() {
         {/* Role-Based Button Rendering */}
         {user ? (
           user.role === 'ATHLETE' ? (
-            // Athlete View: Only Bill
             <Bill invoiceId={caseId} />
           ) : (
-            // Clinician/Admin View: Add Report, Consult, and Bill
             <>
               <Button 
                 variant="secondary" 
@@ -278,7 +244,7 @@ function CaseView() {
               <Bill invoiceId={caseId} /> 
             </>
           )
-        ) : null /* Undefined user: No buttons */}
+        ) : null}
       </div>
 
       {/* --- Overlays --- */}
@@ -286,10 +252,10 @@ function CaseView() {
       <ReportStepper
         isOpen={isReporting}
         onClose={() => setIsReporting(false)}
-        caseId={18}
-        clinicianId={1}
-        athleteId={29}
-        appointmentId={30}
+        caseId={caseId}
+        clinicianId={user?.id || 1}
+        athleteId={caseRecord?.athlete?.id || 0}
+        appointmentId={0} // Pass specific appointment if needed
       />
 
       <AppointmentOverlay 

@@ -10,12 +10,8 @@ import type {
   LabTest,
   PhysioProgram 
 } from '../types/models';
-// ... (Interfaces omitted) ...
-export interface CaseRecordResult { caseRecord: any; message: string; }
 
-// --- 1. Interfaces ---
-
-
+// --- Interfaces ---
 
 export interface CreateCaseRequest {
   athleteId: number;
@@ -28,38 +24,49 @@ export interface CreateCaseRequest {
   severity: string;
   medicalGrade: string;
 }
-// -- Main Data Structure --
 
-export interface CaseRecordData {
-  id: number;
-  diagnosisName: string;
-  severity: 'MILD' | 'MODERATE' | 'SEVERE';
-  status: string;
-  injuryDate: string;
-  athlete: User;
-  managingClinician: UserDetail;
+// -- Main Data Structure for UI (Flattened) --
+export interface CaseRecordData extends MedicalCase {
   exams: Exam[];
   labTests: LabTest[];
   treatments: Treatment[];
   physioPrograms: PhysioProgram[];
+  appointments: Appointment[]; // Added appointments
 }
 
-// -- API Response Wrapper --
+// -- Raw API Response Interfaces --
+interface ApiListResponse<T> {
+  count: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  data: T[];
+}
 
-export interface CaseRecordResponse {
+interface CaseViewApiResponse {
   success: boolean;
-  data: MedicalCase;
+  data: {
+    case: MedicalCase;
+    appointments: ApiListResponse<Appointment>;
+    treatments: ApiListResponse<Treatment>;
+    exams: ApiListResponse<Exam>;
+    labTests: ApiListResponse<LabTest>;
+    physioPrograms: ApiListResponse<PhysioProgram>;
+  };
   message?: string;
 }
 
 // -- Hook Return Type --
-
 export interface CaseRecordResult {
   caseRecord: CaseRecordData | undefined;
   message: string;
 }
 
 // --- 2. API Fetcher ---
+
 export const createCaseApi = async (data: CreateCaseRequest, token: string, API_URL: string = `http://localhost:3000/api`) => {
   const response = await fetch(`${API_URL}/cases`, {
     method: 'POST',
@@ -73,7 +80,7 @@ export const createCaseApi = async (data: CreateCaseRequest, token: string, API_
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     console.error("Case creation failed:", errorData);
-    return null; // Return null instead of throwing to allow registration chain to continue
+    return null; 
   }
   return response.json();
 };
@@ -82,8 +89,9 @@ const fetchCaseRecord = async (
   caseId: number,
   token: string,
   API_URL: string = `http://localhost:3000/api`
-): Promise<any> => {
-  const response = await fetch(`${API_URL}/cases/${caseId}`, {
+): Promise<CaseViewApiResponse> => {
+  // UPDATED ENDPOINT: /case-view/${caseId}
+  const response = await fetch(`${API_URL}/case-view/${caseId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -105,11 +113,26 @@ export const useCaseRecord = (caseId: number) => {
     queryKey: ['caseRecord', caseId],
     queryFn: () => fetchCaseRecord(caseId, token!),
     enabled: !!caseId && !!token,
-    placeholderData: keepPreviousData, 
-    select: (response): CaseRecordResult => ({
-      caseRecord: response.data,
-      message: response.message || 'Case record loaded successfully',
-    }),
+    placeholderData: keepPreviousData,
+    
+    // Transform the nested API response into the flat structure the View uses
+    select: (response): CaseRecordResult => {
+      const { data } = response;
+      
+      const flatRecord: CaseRecordData = {
+        ...data.case, // Spread the base case details (id, diagnosis, athlete, etc.)
+        appointments: data.appointments?.data || [],
+        treatments: data.treatments?.data || [],
+        exams: data.exams?.data || [],
+        labTests: data.labTests?.data || [],
+        physioPrograms: data.physioPrograms?.data || [],
+      };
+
+      return {
+        caseRecord: flatRecord,
+        message: response.message || 'Case record loaded successfully',
+      };
+    },
   });
 
   return {
