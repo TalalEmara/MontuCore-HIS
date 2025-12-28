@@ -14,7 +14,19 @@ export const generateShareLink = async (req: Request, res: Response) => {
     // TODO: Uncomment for production - Role Check
     // get the clinician ID from the authenticated user token
     // const clinicianId = (req as any).user.id;
-    const userRole = (req as any).user?.role;
+    const authHeader = req.headers['authorization'] || '';
+    const userToken = authHeader.startsWith('Bearer ')  
+      ? authHeader.substring(7) 
+      : authHeader;
+    const verified = authC.verifyToken(userToken);
+    if (!verified) {
+      return res.status(401).json({
+        error: "Unauthorized: Invalid token",
+        code: 'UNAUTHORIZED'
+      });
+    }
+
+    const userRole = (verified as any).role;
     if (userRole !== 'CLINICIAN' && userRole !== 'ADMIN') {
       return res.status(403).json({ 
         error: "Only clinicians can share medical records",
