@@ -2,10 +2,12 @@
 import { prisma } from "../../config/db.js"; // Prisma client
 import type { InputJsonValue } from "@prisma/client/runtime/library.js";
 
-interface InvoiceItem {
-  quantity: number;
-  unitPrice: number;
-  description?: string;
+interface InvoiceItems {
+  appointment?: { cost: number };
+  exams?: Array<{ id: number; cost: number }>;
+  labTests?: Array<{ id: number; cost: number }>;
+  treatments?: Array<{ id: number; cost: number }>;
+  physioPrograms?: Array<{ id: number; totalCost: number }>;
 }
 
 interface InvoiceData {
@@ -13,7 +15,7 @@ interface InvoiceData {
   clinicianId: number;
   caseId?: number;
   appointmentId?: number;
-  items: InvoiceItem[];
+  items: InvoiceItems;
   notes?: string;
   createdBy: number;
 }
@@ -22,7 +24,13 @@ interface InvoiceData {
  * Create a new invoice (automatically PAID since insurance covers it)
  */
 export const createInvoice = async (data: InvoiceData) => {
-  const subtotal = data.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  // Calculate subtotal from the structured items
+  const subtotal =
+    (data.items.appointment?.cost || 0) +
+    (data.items.exams?.reduce((sum, exam) => sum + (exam.cost || 0), 0) || 0) +
+    (data.items.labTests?.reduce((sum, test) => sum + (test.cost || 0), 0) || 0) +
+    (data.items.treatments?.reduce((sum, treatment) => sum + (treatment.cost || 0), 0) || 0) +
+    (data.items.physioPrograms?.reduce((sum, program) => sum + (program.totalCost || 0), 0) || 0);
 
   const invoiceData: any = {
     athleteId: data.athleteId,
@@ -37,7 +45,6 @@ export const createInvoice = async (data: InvoiceData) => {
     status: "PAID",
     notes: data.notes,
     createdBy: data.createdBy,
-    icd10Code: null,
   };
 
   // Only add optional fields if they exist
