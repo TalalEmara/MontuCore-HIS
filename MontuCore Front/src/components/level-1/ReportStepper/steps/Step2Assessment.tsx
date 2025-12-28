@@ -2,7 +2,8 @@ import type { UseFormReturn } from "react-hook-form";
 import TextInput from "../../../level-0/TextInput/TextInput";
 import ComboBox from "../../../level-0/ComboBox/ComboBox";
 import styles from "./Steps.module.css";
-import { Rehab_Programs, INJURY_TYPES, SEVERITY } from "../constants/symptoms";
+import { INJURY_TYPES, SEVERITY } from "../constants/symptoms";
+import { useAllClinicians } from "../../../../hooks/useUsers";
 
 interface Step2AssessmentProps {
   form: UseFormReturn<any>;
@@ -11,13 +12,26 @@ interface Step2AssessmentProps {
 export default function Step2Assessment({ form }: Step2AssessmentProps) {
   const { watch, setValue, formState: { errors } } = form;
   const severity = watch("severity") || "";
-  const rehabOptions = Rehab_Programs.map((prog) => ({ label: prog, value: prog }));
+  
+  const { data: clinicians, isLoading } = useAllClinicians();
+
+  const physiotherapistOptions = [
+    { 
+      label: isLoading ? "Loading Clinicians..." : "Select Physiotherapist", 
+      value: "" 
+    },
+    ...(clinicians
+      ?.filter((c) => c.clinicianProfile?.specialty === "Physiotherapist") 
+      ?.map((c) => ({ 
+        label: `Dr. ${c.fullName}`, 
+        value: String(c.id) 
+      })) || [])
+  ];
 
   const injuryTypeOptions = [
     { label: "Please choose an injury type", value: "" },
     ...INJURY_TYPES.map((type) => ({ label: type, value: type }))
   ];
-
 
   return (
     <div className={styles.stepContainer}>
@@ -45,12 +59,12 @@ export default function Step2Assessment({ form }: Step2AssessmentProps) {
 
       <div className={styles.formGroup}>
         <ComboBox
-          label="Rehabilitation Program (Optional)"
-          options={rehabOptions}
-          value={watch("rehabProgram") || ""}
-          onChange={(val) => setValue("rehabProgram", val, { shouldValidate: true })}
+          label="Physiotherapist"
+          options={physiotherapistOptions}
+          value={watch("physiotherapistProgram") || ""}
+          onChange={(val) => setValue("physiotherapistProgram", val, { shouldValidate: true })}
         />
-        {errors.rehabProgram && <span className={styles.error}>{errors.rehabProgram.message as string}</span>}
+        {errors.physiotherapistProgram && <span className={styles.error}>{errors.physiotherapistProgram.message as string}</span>}
       </div>
 
       <div className={styles.formGroup}>

@@ -43,7 +43,7 @@ const MedicalReport = forwardRef<HTMLDivElement, MedicalReportProps>(({ data }, 
         <div className={styles.row}><span>Additional Notes:</span> <span>{data.Notes || "-"}</span></div>
       </section>
 
-      <section className={styles.section}>
+     <section className={styles.section}>
         <h2>Assessment</h2>
         <div className={styles.row}><span>Diagnosis:</span> <span>{data.diagnosis || "-"}</span></div>
         <div className={styles.row}><span>Injury Type:</span> <span>{data.injuryType || "-"}</span></div>
@@ -52,6 +52,15 @@ const MedicalReport = forwardRef<HTMLDivElement, MedicalReportProps>(({ data }, 
           <span>
             {data.severity ? data.severity.charAt(0) + data.severity.slice(1).toLowerCase() : "-"}
           </span>
+        </div>
+
+        <div className={styles.row}>
+          <span>Physiotherapist:</span> 
+          <span>{data.physiotherapistProgram || "-"}</span>
+        </div>
+        <div className={styles.row}>
+          <span>Follow-up Date:</span> 
+          <span>{data.followUpDate || "-"}</span>
         </div>
       </section>
 

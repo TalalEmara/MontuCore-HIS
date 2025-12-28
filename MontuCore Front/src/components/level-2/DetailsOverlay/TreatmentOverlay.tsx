@@ -50,6 +50,7 @@ export default function TreatmentDetail({
   };
 
   const typeOptions = [
+    { label: "Select a treatment type", value: "Select a treatment type" },
     { label: "Surgery", value: "Surgery" },
     { label: "Medication", value: "Medication" },
   ];
