@@ -255,7 +255,7 @@ function CaseView() {
         caseId={caseId}
         clinicianId={user?.id || 1}
         athleteId={caseRecord?.athlete?.id || 0}
-        appointmentId={0} // Pass specific appointment if needed
+        appointmentId={caseRecord?.appointments?.at(-1)?.id}
       />
 
       <AppointmentOverlay 

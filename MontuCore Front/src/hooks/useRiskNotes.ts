@@ -31,7 +31,7 @@ export const useCreateRiskAppointment = () => {
     const formattedDiagnosis = `${authorTag}${obsTag}${startTag} ${data.notes}`;
 
     // 2. Calculate Date (1 minute from now)
-    const scheduledAt = new Date(Date.now() + 5*60 * 60 * 1000).toISOString();
+    const scheduledAt = new Date(Date.now() +  60 * 1000).toISOString();
 
     // 3. Payload Construction
     const payload = {
