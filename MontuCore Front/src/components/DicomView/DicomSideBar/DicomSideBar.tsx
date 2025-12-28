@@ -175,6 +175,7 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
                     <div className={styles.cdssDetails}>
                       {cdssResult.details}
                     </div>
+                    
                   </>
                 ) : (
                   <span className={styles.placeholderText}>

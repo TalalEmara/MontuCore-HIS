@@ -10,6 +10,7 @@ export interface CDSSDiagnosis {
     probability: number;
     confidence_level: string;
   };
+  heatmap?: string[];
 }
 
 interface CDSSResponse {
@@ -73,7 +74,10 @@ export const useCDSS = (apiUrl: string = 'http://localhost:3000') => {
         throw new Error(json.message || "AI Analysis failed");
       }
 
-      return json.diagnosis;
+    return {
+        ...json.diagnosis,
+        heatmap: json.heatmap // This passes the base64 array to the UI
+      };
     },
     onError: (err) => {
       console.error("CDSS Analysis Error:", err);
