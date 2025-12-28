@@ -3,6 +3,7 @@ import { validateRequired, validatePositiveInt } from '../../utils/validation.js
 import { NotFoundError, ValidationError } from '../../utils/AppError.js';
 
 interface TreatmentFilter {
+  id?: number;
   caseId?: number;
   athleteId?: number;
   type?: string;
@@ -28,7 +29,7 @@ export const getTreatments = async (filters: TreatmentFilter = {}) => {
     });
 
     const caseIds = cases.map(c => c.id);
-
+    
     if (!caseIds.length)
       return { treatments: [], pagination: { page, limit, total: 0, totalPages: 0 } };
 
@@ -75,6 +76,9 @@ export const getTreatments = async (filters: TreatmentFilter = {}) => {
 
 export const getTreatmentsByCaseId = (caseId: number, page = 1, limit = 10) =>
   getTreatments({ caseId, page, limit });
+
+export const getTreatmentById = (id: number) => 
+  getTreatments({id});
 
 export const getTreatmentsByAthleteId = (athleteId: number, page = 1, limit = 10) =>
   getTreatments({ athleteId, page, limit });
@@ -165,27 +169,7 @@ export const createTreatment = async (data: CreateTreatmentData) => {
   return treatment;
 };
 
-export const getTreatmentById = async (id: number) => {
-  validatePositiveInt(id, 'id');
 
-  const treatment = await prisma.treatment.findUnique({
-    where: { id },
-    include: {
-      medicalCase: {
-        select: {
-          id: true,
-          diagnosisName: true,
-          athlete: {
-            select: { id: true, fullName: true, email: true }
-          }
-        }
-      }
-    }
-  });
-
-  if (!treatment) throw new NotFoundError('Treatment not found');
-  return treatment;
-};
 
 export const updateTreatment = async (id: number, data: Partial<CreateTreatmentData>) => {
   validatePositiveInt(id, 'id');
@@ -213,34 +197,7 @@ export const updateTreatment = async (id: number, data: Partial<CreateTreatmentD
   });
 };
 
-/**
- * Create a new treatment
- */
-export const createTreatment = async (treatmentData: any) => {
-  try {
-    const treatment = await prisma.treatment.create({
-      data: treatmentData
-    });
-    return treatment;
-  } catch (error) {
-    throw error;
-  }
-};
 
-/**
- * Update an existing treatment
- */
-export const updateTreatment = async (treatmentId: number, updateData: any) => {
-  try {
-    const treatment = await prisma.treatment.update({
-      where: { id: treatmentId },
-      data: updateData
-    });
-    return treatment;
-  } catch (error) {
-    throw error;
-  }
-};
 
 /**
  * Delete a treatment

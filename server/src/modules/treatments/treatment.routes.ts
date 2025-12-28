@@ -5,7 +5,7 @@ const router: Router = express.Router();
 
 router.get('/', treatmentController.getTreatments);
 router.post('/', treatmentController.createTreatment);
-router.get('/:id', treatmentController.getTreatmentById);
+router.get('/:id', treatmentController.getTreatments);
 router.put('/:id', treatmentController.updateTreatment);
 
 /**

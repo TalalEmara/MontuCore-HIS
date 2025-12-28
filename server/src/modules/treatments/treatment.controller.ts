@@ -3,6 +3,7 @@ import * as TreatmentService from './treatment.service.js';
 import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
 
 export const getTreatments = asyncHandler(async (req: Request, res: Response) => {
+  try {
   const { athleteId, caseId, type, page = 1, limit = 10 } = req.query;
 
   const filters: any = {
@@ -14,7 +15,7 @@ export const getTreatments = asyncHandler(async (req: Request, res: Response) =>
   if (caseId) filters.caseId = parseInt(caseId as string);
   if (type) filters.type = type as string;
 
-    const result = await TreatmentService.getTreatments(filters);
+  const result = await TreatmentService.getTreatments(filters);
 
     res.status(200).json({
       success: true,
@@ -27,7 +28,7 @@ export const getTreatments = asyncHandler(async (req: Request, res: Response) =>
       error: error.message || 'Failed to fetch treatments'
     });
   }
-};
+});
 
 /**
  * Get treatments by athlete ID
