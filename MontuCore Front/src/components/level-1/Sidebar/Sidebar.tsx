@@ -22,24 +22,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
 
   const physicianTabs = [
     { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physician" },
-    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physician/schedule" },
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physician/Appointment" },
     { icon: <FaUserInjured />, label: "Cases", to: "/physician/cases" },
     { icon: <FaFileMedical />, label: "Lab Tests", to: "/physician/labs" }, 
-    { icon: <FaMicroscope />, label: "Imaging", to: "/physician/imaging" }, 
+    { icon: <FaMicroscope />, label: "Exams", to: "/physician/exams" }, 
   ];
 
-  const physioTabs = [
+ const physioTabs = [
     { icon: <FaTachometerAlt />, label: "Dashboard", to: "/physio" },
-    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physio/schedule" },
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/physio/Appointment" },
     { icon: <FaUserInjured />, label: "Cases", to: "/physio/cases" },
+    { icon: <FaFileMedical />, label: "Lab Tests", to: "/physio/labs" }, 
+    { icon: <FaMicroscope />, label: "Exams", to: "/physio/exams" }, 
     { icon: <FaRunning />, label: "Physio Progress", to: "/physio/progress" },
   ];
 
   const athleteTabs = [
     { icon: <FaTachometerAlt />, label: "Dashboard", to: "/athlete" },
-    { icon: <FaCalendarAlt />, label: "Appointments", to: "/athlete/schedule" },
-    { icon: <FaClipboardList />, label: "My Records", to: "/athlete/records" }, 
-  ];
+    { icon: <FaCalendarAlt />, label: "Appointments", to: "/athlete/Appointment" },
+{ icon: <FaClipboardList />, label: "Athlete Portal", to: "/athlete/portal?view=internal" },  ];
 
   let navTabs = athleteTabs; 
   if (currentRole === "physician") navTabs = physicianTabs;

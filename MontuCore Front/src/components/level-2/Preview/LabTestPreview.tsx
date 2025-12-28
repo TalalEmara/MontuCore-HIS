@@ -1,9 +1,8 @@
-// src/components/level-2/Preview/LabTestPreview.tsx
-import React from 'react';
 import { Preview } from './Preview';
 import styles from './Preview.module.css';
-import { StatusBadge, Status } from '../../level-0/Badge/badge';
+import { StatusBadge, Status } from '../../level-0/Badge/Badge';
 import List from '../../level-0/List/List';
+import Button from '../../level-0/Button/Bottom';
 
 interface LabData {
   testName: string;
@@ -11,7 +10,7 @@ interface LabData {
   status: Status;
   sampleDate: string;
   technician: string;
-  results: (string | number)[][]; // Mapped from Json resultValues
+  results: (string | number)[][]; 
 }
 
 const mockLab: LabData = {
@@ -28,11 +27,16 @@ const mockLab: LabData = {
   ]
 };
 
-export default function LabTestPreview({ onClose }: { onClose?: () => void }) {
+export default function LabTestPreview({ 
+  onClose, 
+  onSeeDetails 
+}: { 
+  onClose?: () => void; 
+  onSeeDetails?: () => void 
+}) {
   return (
     <Preview onClose={onClose}>
-      {/* Col 1: Test Identity */}
-      <div className={styles.headerSection}>
+      <div className={styles.headerSection} style={{ position: 'relative' }}>
         <div className={styles.titleRow}>
            <h2 style={{ fontSize: '1.5rem' }}>{mockLab.testName}</h2>
            <StatusBadge status={mockLab.status} />
@@ -40,9 +44,14 @@ export default function LabTestPreview({ onClose }: { onClose?: () => void }) {
         <div className={styles.subHeader}>
            <strong>Category:</strong> {mockLab.category}
         </div>
+
+        <div style={{ position: 'absolute', top: 0, right: 0 }}>
+          <Button variant="secondary" height="2rem" onClick={onSeeDetails}>
+            See Details
+          </Button>
+        </div>
       </div>
 
-      {/* Col 2: Meta Data */}
       <div className={styles.detailsSection}>
          <h3 className={styles.sectionTitle}>Sample Details</h3>
          <div className={styles.infoGrid}>
@@ -57,7 +66,6 @@ export default function LabTestPreview({ onClose }: { onClose?: () => void }) {
          </div>
       </div>
 
-      {/* Col 3: Results List */}
       <div className={styles.listSection}>
          <h3 className={styles.sectionTitle}>Results</h3>
          <div style={{ flex: 1, overflow: 'hidden' }}>

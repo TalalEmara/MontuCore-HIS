@@ -1,21 +1,20 @@
-
-
-import { StatusBadge, Status } from '../../level-0/Badge/badge';
+import { StatusBadge, Status } from '../../level-0/Badge/Badge';
 import List from '../../level-0/List/List';
-import styles from './Preview.module.css'
+import styles from './Preview.module.css';
 
 interface PreviewProps {
     children?: React.ReactNode;
     onClose?: () => void;
 }
+
 export function Preview({children , onClose}: PreviewProps) {
   return (
     <div className={styles.panel}>
       <button className={styles.closeButton} onClick={onClose}>×</button>
-   <div className={styles.panelContent} >
-            {children}
-        </div>
-        </div>
+      <div className={styles.panelContent} >
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -29,37 +28,36 @@ export interface CasePreviewData {
     date: string;
     severity: string;
   };
-  reports: (string | number)[][]; // Matches the List component's data structure
+  reports: (string | number)[][]; 
 }
+
 function PreviewCase({ onClose }: { onClose?: () => void }) {
-    const caseData: CasePreviewData = {
-  id: "22",
-  status: "Active" as Status,
-  athleteName: "John Doe",
-  doctorName: "Dr. Olivia Black",
-  injury: {
-    type: "Hamstring Strain",
-    date: "2024-05-10",
-    severity: "Moderate",
-  },
-  reports: [
-    [1, "22/4/2025"],
-    [2, "22/4/2025"],
-    [3, "22/4/2025"],
-    [4, "22/4/2025"],
-    [5, "22/4/2025"],
-    [6, "22/4/2025"],
-    [7, "22/4/2025"],
-    [8, "22/4/2025"],
-    [9, "22/4/2025"],
-    [10, "22/4/2025"],
-  ]
-};
+  const caseData: CasePreviewData = {
+    id: "22",
+    status: "Active" as Status,
+    athleteName: "John Doe",
+    doctorName: "Dr. Olivia Black",
+    injury: {
+      type: "Hamstring Strain",
+      date: "2024-05-10",
+      severity: "Moderate",
+    },
+    reports: [
+      [1, "22/4/2025"],
+      [2, "22/4/2025"],
+      [3, "22/4/2025"],
+      [4, "22/4/2025"],
+      [5, "22/4/2025"],
+      [6, "22/4/2025"],
+      [7, "22/4/2025"],
+      [8, "22/4/2025"],
+      [9, "22/4/2025"],
+      [10, "22/4/2025"],
+    ]
+  };
     
-   return (
+  return (
     <Preview onClose={onClose}>
-      
-      {/* 1. Overview Section: Compact & Clear */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
            <h2>Case #{caseData.id}</h2>
@@ -72,9 +70,6 @@ function PreviewCase({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
 
-      {/* <div className={styles.divider} /> */}
-
-      {/* 2. Details Section: Grid Layout for alignment */}
       <div className={styles.detailsSection}>
          <h3 className={styles.sectionTitle}>Injury Details</h3>
          <div className={styles.infoGrid}>
@@ -93,15 +88,11 @@ function PreviewCase({ onClose }: { onClose?: () => void }) {
          </div>
       </div>
 
-      {/* <div className={styles.divider} /> */}
-
-      {/* 3. List Section: Takes remaining space */}
       <div className={styles.listSection}>
-            <List header={["#","Report Date"]} data={caseData.reports} />
-        
+        <List header={["#","Report Date"]} data={caseData.reports} />
       </div>
-
     </Preview>
   );
 }
-export default PreviewCase
+
+export default PreviewCase;

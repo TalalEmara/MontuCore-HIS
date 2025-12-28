@@ -9,6 +9,7 @@ import BasicOverlay from "../../components/level-0/Overlay/BasicOverlay";
 import TextInput from "../../components/level-0/TextInput/TextInput";
 import { useGenerateShareLink, useExternalConsultation } from "../../hooks/useConsultation";
 import PasscodeOverlay from "../../components/level-2/PasscodeOverlay/PasscodeOverlay";
+import { useSearch } from "@tanstack/react-router";
 
 type Severity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
 type RecordTab = "cases" | "exams" | "labs" | "prescriptions"; // Renamed imaging to exams
@@ -27,10 +28,10 @@ function PatientPortalView() {
   
   const [shareNotes, setShareNotes] = useState("Please review the selected medical records and provide your expert opinion.");
   const [expiryHours, setExpiryHours] = useState("1");
-
-  const isConsulting = true; 
-  const isExternal = false; 
-  const Token = "e1d41086-a186-4494-901e-464cae06a276";
+  const search: any = useSearch({ strict: false });
+  const isConsulting = search.view === "consulting";
+  const isExternal = search.view === "external";
+  const Token = "f4e97d5d-dbc7-449f-9e62-13a772bc2b1a";
   
   const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(!isExternal);

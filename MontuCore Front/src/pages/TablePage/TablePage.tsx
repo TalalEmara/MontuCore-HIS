@@ -9,10 +9,12 @@ import ExamPreview from "../../components/level-2/Preview/ExamPreview";
 import ClinicianPreview from "../../components/level-2/Preview/ClinicianPreview";
 import LabTestPreview from "../../components/level-2/Preview/LabTestPreview";
 import TreatmentPreview from "../../components/level-2/Preview/TreatmentPreview";
+
 interface ColumnDefinition<T> {
   header: string;
   cell: (item: T) => React.ReactNode;
 }
+
 // Define a generic type for the props
 interface TablePageProps<T> {
   title: string;
@@ -32,6 +34,9 @@ interface TablePageProps<T> {
 
   // Optional: Custom Action/Filter bar component
   ActionHeader?: React.ReactNode;
+
+  // Added: Pass the specific Preview component for this page
+  PreviewComponent?: React.ComponentType<{ onClose: () => void }>;
 }
 
 function TablePage<T extends { id: string | number }>({
@@ -39,28 +44,29 @@ function TablePage<T extends { id: string | number }>({
   useDataHook,
   columns,
   ActionHeader,
+  PreviewComponent, // Destructured
 }: TablePageProps<T>) {
   const [doPreview, setDoPreview] = useState(false);
   
-    const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   // 1. Fetch Data
   const { data, isLoading, totalItems } = useDataHook(currentPage, pageSize);
 
   // 2. Transform Data for your specific <List /> component
-  // Your <List /> expects string[] or ReactNode[], so we map it here
   const tableHeaders = columns.map((c) => c.header);
 
   const tableData = data?.map((item) => {
     return columns.map((col) => col.cell(item));
   });
-    const handleRowClick = (index: number) => {
+
+  const handleRowClick = (index: number) => {
     if (data && data[index]) {
-    //   setSelectedItem(data[index]); // Save the actual data object
       setDoPreview(true); // Show the panel
     }
   };
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -76,17 +82,15 @@ function TablePage<T extends { id: string | number }>({
       </div>
       <div className={styles.contentArea}>
         <div className={styles.tableWrapper}>
-          {/* Reusing your existing Level-0 List */}
           <List
             header={tableHeaders}
             data={tableData}
             onRowClick={handleRowClick}
-            // Pass grid template if needed, or make it dynamic
           />
-
-          
         </div>
-        {doPreview && <TreatmentPreview onClose={() => setDoPreview(false)} />}
+        {doPreview && PreviewComponent && (
+          <PreviewComponent onClose={() => setDoPreview(false)} />
+        )}
       </div>
     </div>
   );
