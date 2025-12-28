@@ -3,42 +3,27 @@ import styles from "./DicomSidebar.module.css";
 import List from "../../level-0/List/List";
 import Button from "../../level-0/Button/Bottom";
 import TextInput from "../../level-0/TextInput/TextInput";
-import { Activity, BrainCircuit, Upload } from "lucide-react"; // Added icons for visual flair
-
-export interface AnalysisData {
-  heatmap: any;
-  primary: string;
-  severity: "normal" | "low" | "moderate" | "high";
-  details: string;
-}
+import { Activity, BrainCircuit, Upload } from "lucide-react";
+import { type AnalysisData } from "../../../hooks/DicomViewer/useCDSS";
+import { type Exam } from "../../../types/models"; // Import Exam type
 
 interface DicomSidebarProps {
   patientId: string | number;
   patientName: string;
+  // --- UPDATED: Pass real exams here ---
+  exams: Exam[]; 
   onExamClick: (examId: number) => void;
   radiologistNotes?: string | null;
-  // --- NEW: CDSS Props ---
   onAnalyzeClick?: () => void;
   isAnalyzing?: boolean;
   cdssResult?: AnalysisData | null;
-
   onLocalUpload: (files: FileList) => void;
 }
-
-// Mock Data
-const MOCK_EXAMS = [
-  { id: 101, name: "Knee MRI (Left)", date: "2024-10-23", status: "Completed" },
-  { id: 102, name: "Knee X-Ray", date: "2024-09-15", status: "Reviewed" },
-  { id: 103, name: "CT Scan", date: "2024-08-01", status: "Archived" },
-  { id: 104, name: "Shoulder MRI", date: "2024-07-10", status: "Completed" },
-  { id: 105, name: "Ankle X-Ray", date: "2024-06-20", status: "Reviewed" },
-  { id: 106, name: "Head CT", date: "2024-05-15", status: "Completed" },
-  { id: 107, name: "Spine MRI", date: "2024-04-10", status: "Completed" },
-];
 
 export const DicomSidebar: React.FC<DicomSidebarProps> = ({
   patientId,
   patientName,
+  exams, // <--- Receive real exams
   onExamClick,
   onAnalyzeClick,
   isAnalyzing = false,
@@ -49,6 +34,7 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
   const [activeTab, setActiveTab] = useState<"images" | "notes">("images");
   const [noteText, setNoteText] = useState("");
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [savedNotes, setSavedNotes] = useState([
     {
       id: 1,
@@ -56,16 +42,33 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
       text: "Patient reported mild discomfort during the scan.",
     },
   ]);
-  // Create Ref for the hidden input
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const handleUploadClick = () => fileInputRef.current?.click();
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      onLocalUpload(e.target.files);
-      e.target.value = ""; // Reset to allow re-uploading same file
+  // --- Helper to format date ---
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // --- Helper to map status color ---
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'IMAGING_COMPLETE': return '#4ade80'; // Green
+      case 'REPORT_AVAILABLE': return '#4ade80';
+      case 'SCHEDULED': return '#fbbf24'; // Yellow
+      default: return '#9ca3af'; // Grey
     }
   };
-  const handleSaveNote = () => {
+
+  // --- Transform Data for List Component ---
+  const listHeader = ["Exam", "Date", "Status"];
+  
+  const listData = exams.map((exam) => [
+    `${exam.bodyPart} ${exam.modality}`, // e.g. "Knee MRI"
+    formatDate(exam.performedAt || exam.scheduledAt),
+    <span style={{ color: getStatusColor(exam.status), fontSize: "0.8rem" }}>
+      {exam.status.replace('_', ' ')}
+    </span>,
+  ]);
+ const handleSaveNote = () => {
     if (!noteText.trim()) return;
     const newNote = {
       id: Date.now(),
@@ -75,25 +78,18 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
     setSavedNotes([newNote, ...savedNotes]);
     setNoteText("");
   };
-
   const handleRowClick = (index: number) => {
-    const selectedExam = MOCK_EXAMS[index];
+    const selectedExam = exams[index];
     if (selectedExam) onExamClick(selectedExam.id);
   };
 
-  const listHeader = ["Exam", "Date", "Status"];
-  const listData = MOCK_EXAMS.map((exam) => [
-    exam.name,
-    exam.date,
-    <span
-      style={{
-        color: exam.status === "Completed" ? "#4ade80" : "#fbbf24",
-        fontSize: "0.8rem",
-      }}
-    >
-      {exam.status}
-    </span>,
-  ]);
+  const handleUploadClick = () => fileInputRef.current?.click();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      onLocalUpload(e.target.files);
+      e.target.value = ""; 
+    }
+  };
 
   return (
     <div className={styles.sidebarContainer}>
@@ -106,17 +102,13 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
       {/* Tabs */}
       <div className={styles.tabGroup}>
         <button
-          className={`${styles.tabButton} ${
-            activeTab === "images" ? styles.activeTab : ""
-          }`}
+          className={`${styles.tabButton} ${activeTab === "images" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("images")}
         >
           Images
         </button>
         <button
-          className={`${styles.tabButton} ${
-            activeTab === "notes" ? styles.activeTab : ""
-          }`}
+          className={`${styles.tabButton} ${activeTab === "notes" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("notes")}
         >
           Notes
@@ -128,7 +120,6 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
         {activeTab === "images" ? (
           <>
             <div style={{ padding: "10px", borderBottom: "1px solid #3f3f46" }}>
-              {/* Hidden Input */}
               <input
                 type="file"
                 multiple
@@ -137,26 +128,27 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
                 style={{ display: "none" }}
                 onChange={handleFileChange}
               />
-
-              {/* Visible Button */}
-              <Button
-                onClick={handleUploadClick}
-                variant="secondary"
-                
-              >
+              <Button onClick={handleUploadClick} variant="secondary">
                 <Upload size={16} /> 
                 Compare Local File
               </Button>
             </div>
+            {/* RENDER THE LIST WITH REAL DATA */}
             <List
               header={listHeader}
               data={listData}
               onRowClick={handleRowClick}
               gridTemplateColumns="1.5fr 1fr 1fr"
             />
+            {exams.length === 0 && (
+              <div style={{padding: '20px', textAlign: 'center', color: '#666'}}>
+                No history found.
+              </div>
+            )}
           </>
         ) : (
-          <div className={styles.notesContainer}>
+            // ... (Notes section remains unchanged)
+                 <div className={styles.notesContainer}>
             {/* --- NEW: CDSS SECTION --- */}
             <div className={styles.cdssContainer}>
               <div className={styles.sectionTitle}>

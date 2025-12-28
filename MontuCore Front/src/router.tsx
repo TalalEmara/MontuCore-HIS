@@ -98,8 +98,8 @@ export const CaseRoute = createRoute({
 
 export const DicomRoute = createRoute({
   getParentRoute: () => rootRoute,
-  // path: "dicom/$dicomId", 
-  path: "dicom", 
+  path: "dicom/$patientId", 
+  // path: "dicom", 
   component: DicomViewPage,
 });
 

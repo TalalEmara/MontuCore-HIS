@@ -22,7 +22,7 @@ interface CDSSResponse {
   message?: string;
 }
 
-interface AnalyzeParams {
+export interface AnalyzeParams {
   imageIds: string[];
   examId?: number | string;
   patientId?: number | string;

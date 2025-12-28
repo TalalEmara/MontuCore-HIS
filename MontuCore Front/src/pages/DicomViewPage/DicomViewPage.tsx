@@ -6,7 +6,7 @@ import DicomTopBar, {
 import DicomViewer, {
   type VoiPreset,
 } from "../../components/level-1/DicomViewer/DicomViewer";
-import { Download } from "lucide-react";
+
 import styles from "./DicomViewPage.module.css";
 import MPRViewer from "../../components/level-1/MPRViewer/MPRViewer";
 import DicomViewer3D from "../../components/DicomViewer3D/DicomViewer3D"; // NEW IMPORT
@@ -14,6 +14,8 @@ import { useExamLoader } from "../../hooks/DicomViewer/useExamLoader";
 import { DicomSidebar } from "../../components/DicomView/DicomSideBar/DicomSideBar";
 import { useCDSS } from "../../hooks/DicomViewer/useCDSS";
 import { useDicomFileHandler } from "../../hooks/DicomViewer/useDicomFileHandler";
+import { usePatientExams } from "../../hooks/usePatientExam";
+import { useParams } from "@tanstack/react-router";
 
 interface ViewportData {
   id: string;
@@ -59,7 +61,12 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   const { handleFileChange: processLocalFiles } = useDicomFileHandler(handleNewDicomFiles);
   const { loadExam, isLoading , examMetadata} = useExamLoader(handleNewDicomFiles);
   const { analyzeImages, isAnalyzing, cdssResult } = useCDSS();
+   const params = useParams({ strict: false });
+  const loadedPatientId = Number(params.patientId || 0);
 
+  // 3. Fetch History for this Patient
+  const { data: patientHistory = [] } = usePatientExams(loadedPatientId);
+  
   const modality = examMetadata?.modality || "Unknown Modality";
   const bodyPart = examMetadata?.bodyPart || "Unknown Body Part";
   const dateStr = examMetadata?.performedAt 
@@ -123,6 +130,7 @@ const onLocalUpload = (files: FileList) => {
         // UPDATED PROPS
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+
       />
 
      
@@ -132,9 +140,10 @@ const onLocalUpload = (files: FileList) => {
           onAnalyzeClick={handleRunAI}
           isAnalyzing={isAnalyzing}
           cdssResult={cdssResult}
-          onExamClick={(examID) => {
-            console.log("Clicked exam ID:", examID);
-            loadExam(16);
+          exams={patientHistory}
+         onExamClick={(examID) => {
+            console.log("Switching to exam ID:", examID);
+            loadExam(examID); // Load the clicked exam
           }}
         patientId={patientId}
           patientName={patientName}

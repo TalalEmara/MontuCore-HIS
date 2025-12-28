@@ -142,7 +142,7 @@ function CaseView() {
         {activeTab === "images" && (
           <div className={styles.imagesList}>
             <List 
-              onRowClick={()=>navigate({ to: "/dicom" })}
+              onRowClick={()=>navigate({ to: `/dicom/${caseRecord?.athlete.id}` })}
               header={["#", "Modality", "Body Part", "Date", "Status"]} 
               data={caseRecord?.exams.map((exam) => [
                 `#${exam.id}`,
