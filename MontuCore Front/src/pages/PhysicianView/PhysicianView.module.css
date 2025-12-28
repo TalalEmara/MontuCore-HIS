@@ -249,6 +249,20 @@
   background: transparent;
 }
 
+.scheduleInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px; 
+}
+
+.appointmentTime {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
 
 @media (max-width: 75rem) {
   .physicianDashboardGrid { grid-template-columns: 1fr 1fr; gap: 1.25rem; }

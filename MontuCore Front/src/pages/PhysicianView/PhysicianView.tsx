@@ -139,7 +139,7 @@ const PhysicianView: React.FC = () => {
         </div>
       </BasicOverlay>
       <div className={styles.physicianMainContent}>
-        <TopBar Name={`Dr. ${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
+        <TopBar Name={`${user?.fullName || 'Physician'}`} Role={user?.role || 'Clinician'} />
 
         {/* 2. LOADING STATE */}
         {isLoading ? (
@@ -231,6 +231,12 @@ const PhysicianView: React.FC = () => {
                           <span className={styles.athleteName}>
                             {appointment.athlete.fullName}
                           </span>
+                          <span className={styles.appointmentTime}>
+                          {new Date(appointment.scheduledAt).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
                         </div>
                         
                         {/* New Actions Section */}
