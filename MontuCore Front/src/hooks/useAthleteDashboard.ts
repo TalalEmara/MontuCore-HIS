@@ -1,13 +1,19 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-
+import type { 
+  Appointment, 
+  MedicalCase, 
+  Treatment, 
+  Exam, 
+  LabTest 
+} from '../types/models';
 // --- 1. Interfaces ---
 
-export interface UserStub {
-  id: number;
-  fullName: string;
-  email: string;
-}
+// export interface UserStub {
+//   id: number;
+//   fullName: string;
+//   email: string;
+// }
 
 export interface PaginationMeta {
   page: number;
@@ -16,87 +22,87 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-// -- Sub-Entities --
+// // -- Sub-Entities --
 
-export interface AthleteCase {
-  id: number;
-  diagnosisName: string;
-  severity: 'MILD' | 'MODERATE' | 'SEVERE';
-  status: string;
-  injuryDate: string;
-  athlete: UserStub;
-  managingClinician: UserStub;
-}
+// export interface AthleteCase {
+//   id: number;
+//   diagnosisName: string;
+//   severity: 'MILD' | 'MODERATE' | 'SEVERE';
+//   status: string;
+//   injuryDate: string;
+//   athlete: UserStub;
+//   managingClinician: UserStub;
+// }
 
-export interface AthleteAppointment {
-  id: number;
-  scheduledAt: string;
-  status: string;
-  clinician?: UserStub;
-  // Added height and weight as optional properties since they might not exist on all appointments
-  height?: number; 
-  weight?: number;
-}
+// export interface AthleteAppointment {
+//   id: number;
+//   scheduledAt: string;
+//   status: string;
+//   clinician?: UserStub;
+//   // Added height and weight as optional properties since they might not exist on all appointments
+//   height?: number; 
+//   weight?: number;
+// }
 
-export interface Treatment {
-  id: number;
-  type: string;
-  description: string;
-  providerName: string;
-  date: string;
-  cost: number;
-  medicalCase: {
-    diagnosisName: string;
-  };
-}
+// export interface Treatment {
+//   id: number;
+//   type: string;
+//   description: string;
+//   providerName: string;
+//   date: string;
+//   cost: number;
+//   medicalCase: {
+//     diagnosisName: string;
+//   };
+// }
 
-export interface ImagingExam {
-  id: number;
-  modality: string;
-  bodyPart: string;
-  status: string;
-  scheduledAt: string;
-  performedAt?: string;
-  radiologistNotes?: string;
-  conclusion?: string;
-  medicalCase: {
-    diagnosisName: string;
-  };
-  images: string[];
-}
+// export interface ImagingExam {
+//   id: number;
+//   modality: string;
+//   bodyPart: string;
+//   status: string;
+//   scheduledAt: string;
+//   performedAt?: string;
+//   radiologistNotes?: string;
+//   conclusion?: string;
+//   medicalCase: {
+//     diagnosisName: string;
+//   };
+//   images: string[];
+// }
 
-export interface LabTest {
-  id: number;
-  testName: string;
-  category: string;
-  status: string;
-  resultPdfUrl?: string | null;
-  resultValues?: Record<string, number | string>;
-  labTechnicianNotes?: string | null;
-  sampleDate: string;
-  cost: number;
-  medicalCase: {
-    diagnosisName: string;
-  };
-}
+// export interface LabTest {
+//   id: number;
+//   testName: string;
+//   category: string;
+//   status: string;
+//   resultPdfUrl?: string | null;
+//   resultValues?: Record<string, number | string>;
+//   labTechnicianNotes?: string | null;
+//   sampleDate: string;
+//   cost: number;
+//   medicalCase: {
+//     diagnosisName: string;
+//   };
+// }
 
-// -- Main Data Structure --
+// // -- Main Data Structure --
 
 export interface AthleteDashboardData {
   upcomingAppointments: {
     count: number;
-    appointments: AthleteAppointment[];
+    appointments: Appointment[];
   };
   report: {
     count: number;
-    cases: AthleteCase[];
+    cases: MedicalCase[];
   };
   prescriptions: {
     treatments: Treatment[];
     pagination: PaginationMeta;
   };
   imaging: {
-    exams: ImagingExam[];
+    exams: Exam[];
     pagination: PaginationMeta;
   };
   tests: {

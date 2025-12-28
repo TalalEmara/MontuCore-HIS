@@ -2,13 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 // --- 1. Interfaces ---
 
-export interface User {
-  id: number;
-  email: string;
-  fullName: string;
-  role: 'ADMIN' | 'CLINICIAN' | 'ATHLETE';
-  createdAt: string;
-}
+import type { User } from '../types/models';
 
 // Response for getAllUsers
 export interface UsersResponse {
