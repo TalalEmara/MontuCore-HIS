@@ -2,6 +2,8 @@ import type { Request, Response, RequestHandler } from 'express';
 import multer from 'multer';
 import * as LabTestService from './labtest.service.js';
 import { asyncHandler, successResponse, createdResponse, paginatedResponse } from '../../utils/responseHandlers.js';
+import * as authC from '../auth/auth.controller.js';
+import { prisma } from '../../config/db.js';
 
 // Configure multer for PDF uploads
 const upload = multer({

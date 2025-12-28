@@ -101,7 +101,10 @@ export const login = async (loginData : LoginInput) => {
     }
   }
   catch(error){
-    throw error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Invalid credentials');
   }
 }
 
@@ -321,6 +324,7 @@ export const getUserById = async (userId: number) => {
     throw "Something went wrong during fetching user by ID";
   }
 };
+
 
 export const getAllAthletes = async () => {
   try{

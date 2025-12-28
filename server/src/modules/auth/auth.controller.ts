@@ -8,11 +8,8 @@ import { prisma } from '../../config/db.js';
 
 export const verifyToken =  (token: string) => {
   try{
-    const verified= jwt.verify(token, process.env.JWT_SECRET!)
-    if (verified){
-      return true;
-    }
-    return false;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    return decoded; // Return the decoded payload
   }
   catch(error){
     throw error;

@@ -319,9 +319,18 @@ export const deleteAppointment = async(appointmentID: number) => {
       throw new Error('Appointment not found');
     }
 
+    // Delete related invoices first
+    await prisma.invoice.deleteMany({
+      where: {
+      appointmentId: appointmentID
+      }
+    });
+
+    // Then delete the appointment
     await prisma.appointment.delete({
       where: {
-        id: appointmentID}
+      id: appointmentID
+      }
     });
 
     return 'Appointment deleted successfully';

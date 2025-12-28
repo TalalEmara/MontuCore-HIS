@@ -3,7 +3,7 @@ import { validateRequired, validatePositiveInt, validateEnum } from '../../utils
 import { NotFoundError, ValidationError } from '../../utils/AppError.js';
 import { ExamStatus } from '@prisma/client';
 import { supabase, getPublicUrl } from '../../storage/supabase.service.js';
-import dicomParser from 'dicom-parser';
+import * as dicomParser from 'dicom-parser';
 
 // Extend Express Request for file uploads
 interface MulterRequest extends Request {
@@ -26,11 +26,11 @@ const parseDicomMetadata = (buffer: Buffer) => {
   const dataSet = dicomParser.parseDicom(byteArray);
 
   return {
-    patientName: dataSet.string('x00100010'),
-    studyDate: dataSet.string('x00080020'),
-    modality: dataSet.string('x00080060'),
-    bodyPart: dataSet.string('x00180015'),
-    studyInstanceUid: dataSet.string('x0020000d')
+    patientName: dataSet.string('x00100010') || null,
+    studyDate: dataSet.string('x00080020') || null,
+    modality: dataSet.string('x00080060') || null,
+    bodyPart: dataSet.string('x00180015') || null,
+    studyInstanceUid: dataSet.string('x0020000d') || null
   };
 };
 
@@ -194,7 +194,7 @@ export const createExam = async (data: CreateExamData) => {
   }
 
   // Determine final status
-  let finalStatus = data.status || 'ORDERED';
+  let finalStatus: ExamStatus = data.status || 'ORDERED';
   if (data.dicomFile) {
     finalStatus = 'COMPLETED'; // DICOM upload auto-completes
   }
@@ -205,7 +205,7 @@ export const createExam = async (data: CreateExamData) => {
       caseId: data.caseId,
       modality: data.modality,
       bodyPart: data.bodyPart,
-      status: finalStatus,
+      status: finalStatus as ExamStatus,
       scheduledAt: data.scheduledAt || null,
       performedAt: data.performedAt || null,
       radiologistNotes: data.radiologistNotes || null,
@@ -539,7 +539,8 @@ export const updateExam = async (id: number, data: Partial<CreateExamData>) => {
 
   // Check exam exists and get current state
   const currentExam = await prisma.exam.findUnique({
-    where: { id }
+    where: { id },
+    include: { pacsImages: true }
   });
 
   if (!currentExam) {
@@ -553,8 +554,8 @@ export const updateExam = async (id: number, data: Partial<CreateExamData>) => {
   }
 
   // Validate status change: COMPLETED exams must have DICOMs
-  if (data.status === 'COMPLETED' && !currentExam.dicomPublicUrl) {
-    throw new ValidationError('Cannot mark exam as COMPLETED: exam must have a DICOM file');
+  if (data.status === 'COMPLETED' && currentExam.pacsImages.length === 0) {
+    throw new ValidationError('Cannot mark exam as COMPLETED: exam must have DICOM files');
   }
 
   const updatedExam = await prisma.exam.update({
@@ -610,7 +611,7 @@ export const createExamWithMultipleDicoms = async (data: {
   if (data.caseId) {
     // Create new exam
     // Determine final status
-    let finalStatus = data.status || 'ORDERED';
+    let finalStatus: ExamStatus = (data.status as ExamStatus) || 'ORDERED';
     if (data.dicomFiles && data.dicomFiles.length > 0) {
       finalStatus = 'COMPLETED'; // DICOM uploads auto-complete
     }
@@ -621,7 +622,7 @@ export const createExamWithMultipleDicoms = async (data: {
         caseId: data.caseId,
         modality: data.modality || 'UNKNOWN',
         bodyPart: data.bodyPart || 'UNKNOWN',
-        status: finalStatus,
+        status: finalStatus as ExamStatus,
         scheduledAt: data.scheduledAt || null,
         performedAt: data.performedAt || null,
         radiologistNotes: data.radiologistNotes || null,
@@ -648,7 +649,7 @@ export const createExamWithMultipleDicoms = async (data: {
     validatePositiveInt(data.examId!, 'examId');
 
     const existingExam = await prisma.exam.findUnique({
-      where: { id: data.examId },
+      where: { id: data.examId! },
       include: {
         medicalCase: {
           select: {
@@ -674,7 +675,7 @@ export const createExamWithMultipleDicoms = async (data: {
     // Update exam status to COMPLETED if DICOMs are being added
     if (data.dicomFiles && data.dicomFiles.length > 0) {
       await prisma.exam.update({
-        where: { id: data.examId },
+        where: { id: data.examId! },
         data: { status: 'COMPLETED' }
       });
       exam.status = 'COMPLETED';
@@ -685,33 +686,37 @@ export const createExamWithMultipleDicoms = async (data: {
   if (data.dicomFiles && data.dicomFiles.length > 0) {
     // Use metadata from the first file for the exam
     const firstFile = data.dicomFiles[0];
-    let examMetadata = { modality: 'MRI', bodyPart: 'UNKNOWN', studyDate: null };
+    if (!firstFile) {
+      console.warn('First DICOM file is undefined, skipping metadata parsing');
+    } else {
+      let examMetadata: { modality: string | null; bodyPart: string | null; studyDate: string | null } = { modality: null, bodyPart: null, studyDate: null };
 
-    try {
-      examMetadata = parseDicomMetadata(firstFile.buffer);
-    } catch (error) {
-      console.warn('Failed to parse DICOM metadata from first file, using defaults:', error);
-    }
+      try {
+        examMetadata = parseDicomMetadata(firstFile.buffer);
+      } catch (error) {
+        console.warn('Failed to parse DICOM metadata from first file, using defaults:', error);
+      }
 
-    // Update exam with metadata from first DICOM (only if not already set)
-    const updateData: any = {};
-    if (!exam.performedAt && parseDicomDate(examMetadata.studyDate)) {
-      updateData.performedAt = parseDicomDate(examMetadata.studyDate);
-    }
-    if ((!exam.modality || exam.modality === 'UNKNOWN') && examMetadata.modality) {
-      updateData.modality = examMetadata.modality;
-    }
-    if ((!exam.bodyPart || exam.bodyPart === 'UNKNOWN') && examMetadata.bodyPart) {
-      updateData.bodyPart = examMetadata.bodyPart;
-    }
+      // Update exam with metadata from first DICOM (only if not already set)
+      const updateData: any = {};
+      if (!exam.performedAt && parseDicomDate(examMetadata.studyDate)) {
+        updateData.performedAt = parseDicomDate(examMetadata.studyDate);
+      }
+      if ((!exam.modality || exam.modality === 'UNKNOWN') && examMetadata.modality) {
+        updateData.modality = examMetadata.modality;
+      }
+      if ((!exam.bodyPart || exam.bodyPart === 'UNKNOWN') && examMetadata.bodyPart) {
+        updateData.bodyPart = examMetadata.bodyPart;
+      }
 
-    if (Object.keys(updateData).length > 0) {
-      await prisma.exam.update({
-        where: { id: exam.id },
-        data: updateData
-      });
-      // Update the exam object with new data
-      Object.assign(exam, updateData);
+      if (Object.keys(updateData).length > 0) {
+        await prisma.exam.update({
+          where: { id: exam.id },
+          data: updateData
+        });
+        // Update the exam object with new data
+        Object.assign(exam, updateData);
+      }
     }
 
     // Process all DICOM files

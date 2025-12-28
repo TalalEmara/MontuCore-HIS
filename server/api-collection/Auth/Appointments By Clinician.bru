@@ -1,0 +1,19 @@
+meta {
+  name: Appointments By Clinician
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseURL}}/appointments/clinician/:clinicianId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  clinicianId: 
+}
+
+settings {
+  encodeUrl: true
+}
