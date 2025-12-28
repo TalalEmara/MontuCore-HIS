@@ -1,5 +1,6 @@
 import { StatusBadge, Status } from '../../level-0/Badge/Badge';
 import List from '../../level-0/List/List';
+import Button from '../../level-0/Button/Bottom'; 
 import styles from './Preview.module.css';
 
 interface PreviewProps {
@@ -11,49 +12,31 @@ export function Preview({children , onClose}: PreviewProps) {
   return (
     <div className={styles.panel}>
       <button className={styles.closeButton} onClick={onClose}>×</button>
-      <div className={styles.panelContent} >
-        {children}
-      </div>
+      <div className={styles.panelContent} >{children}</div>
     </div>
   )
 }
 
-export interface CasePreviewData {
-  id: string;
-  status: Status;
-  athleteName: string;
-  doctorName: string;
-  injury: {
-    type: string;
-    date: string;
-    severity: string;
-  };
-  reports: (string | number)[][]; 
+interface PreviewCaseProps {
+  onClose?: () => void;
+  onSeeDetails?: () => void;
+  data?: any; 
 }
 
-function PreviewCase({ onClose }: { onClose?: () => void }) {
-  const caseData: CasePreviewData = {
-    id: "22",
-    status: "Active" as Status,
-    athleteName: "John Doe",
-    doctorName: "Dr. Olivia Black",
+function PreviewCase({ onClose, onSeeDetails, data }: PreviewCaseProps) {
+  if (!data) return null;
+
+  const caseData = {
+    id: data.id,
+    status: (data.status || "Active") as Status,
+    athleteName: data.athlete?.fullName || "Unknown",
+    doctorName: data.managingClinician?.fullName || "System Admin",
     injury: {
-      type: "Hamstring Strain",
-      date: "2024-05-10",
-      severity: "Moderate",
+      type: data.diagnosisName || "Unknown",
+      date: data.injuryDate ? new Date(data.injuryDate).toLocaleDateString() : "N/A",
+      severity: data.severity || "Unknown",
     },
-    reports: [
-      [1, "22/4/2025"],
-      [2, "22/4/2025"],
-      [3, "22/4/2025"],
-      [4, "22/4/2025"],
-      [5, "22/4/2025"],
-      [6, "22/4/2025"],
-      [7, "22/4/2025"],
-      [8, "22/4/2025"],
-      [9, "22/4/2025"],
-      [10, "22/4/2025"],
-    ]
+    reports: [ ["1", "Initial Report"] ] // Placeholder or map from data
   };
     
   return (
@@ -88,9 +71,11 @@ function PreviewCase({ onClose }: { onClose?: () => void }) {
          </div>
       </div>
 
-      <div className={styles.listSection}>
-        <List header={["#","Report Date"]} data={caseData.reports} />
-      </div>
+      {onSeeDetails && (
+        <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+          <Button onClick={onSeeDetails} width="100%">See Full Case Record</Button>
+        </div>
+      )}
     </Preview>
   );
 }

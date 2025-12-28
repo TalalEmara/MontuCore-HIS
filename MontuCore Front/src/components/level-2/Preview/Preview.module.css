@@ -1,84 +1,108 @@
-/* src/components/level-2/Preview/Preview.module.css */
 
 .panel {
-  position: relative; /* Anchor for the absolute close button */
-  height: 100%;
+  position: fixed;
+  bottom: 0;       /* Align to the bottom */
+  left: 0;
+  right: 0;
+  z-index: 1000;   /* Ensure it stays above other elements */
+  
+  /* Height of the bottom drawer */
+  height: 35vh;    /* Takes up 35% of screen height */
+  min-height: 250px;
+  
   padding: 1.5rem;
   background-color: var(--primary-color);
-  box-sizing: border-box; /* Ensures padding stays within 100% height */
-  overflow: auto;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2); /* Shadow on top edge */
+  border-top: 2px solid var(--accent); /* Optional: visual separator */
+  
+  box-sizing: border-box;
+  overflow: hidden; /* Content inside panelContent will handle scrolling */
+  
+  /* Animation for sliding up from bottom */
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .closeButton {
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
+  top: 0.75rem;
+  right: 1rem;
   z-index: 10;
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 1rem;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.2rem;
   cursor: pointer;
   color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .panelContent {
   display: grid;
-  /* 3 Columns: Overview | Details | List */
-  grid-template-columns: repeat(3, minmax(200px, 1fr)); 
-  height: 100%; /* Fill the panel height */
-  gap: 1.5rem; /* Space between columns */
-  overflow: hidden; /* Prevent the grid itself from scrolling */
+  /* Maintain your 3-column horizontal layout */
+  grid-template-columns: 1fr 1.2fr 1.5fr; 
+  height: 100%;
+  gap: 2rem;
+  overflow: hidden;
 }
 
 /* --- Header Section (Column 1) --- */
 .headerSection {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically */
+  justify-content: center;
 }
 
 .titleRow {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column; /* Stack title and badge vertically for bottom layout */
+  align-items: flex-start;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
 .titleRow h2 {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   color: var(--text-color);
+  line-height: 1.2;
 }
 
 .subHeader {
   color: var(--text-color);
-  font-size: 0.95rem;
-  /* margin-bottom: auto; Removed to allow centering */
-}
-
-.separator {
-  margin: 0 0.5rem;
-  color: #ccc;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 /* --- Details Section (Column 2) --- */
 .detailsSection {
-  /* Removed margins that were for vertical layout */
-  border-left: 1px solid var(--text-color);
-  border-right: 1px solid var(--text-color);
-  padding: 0 1.5rem;
-  
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically */
+  justify-content: center;
 }
 
 .sectionTitle {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  color: var(--text-color);
-  letter-spacing: 0.5px;
-  margin: 0 0 0.8rem 0;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin: 0 0 1rem 0;
 }
 
 .infoGrid {
@@ -93,14 +117,15 @@
 }
 
 .label {
-  font-size: 0.75rem;
-  color: var(--accent);
+  font-size: 0.7rem;
+  color: var(--text-color);
+  opacity: 0.6;
   font-weight: 600;
   margin-bottom: 0.2rem;
 }
 
 .value {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-color);
 }
@@ -109,16 +134,16 @@
 .listSection {
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Allows the inner list to scroll */
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto; /* Allow list to scroll within the column */
+  padding-right: 0.5rem;
 }
 
-/* Divider is likely not needed in Column layout, 
-   but keeping the class just in case */
-.divider {
-  height: 1px;
-  background-color: #eee;
-  margin: 1rem 0;
-  flex-shrink: 0;
+/* Custom Scrollbar for the list section */
+.listSection::-webkit-scrollbar {
+  width: 4px;
+}
+.listSection::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
 }
