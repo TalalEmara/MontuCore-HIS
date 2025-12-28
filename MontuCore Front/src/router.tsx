@@ -16,7 +16,7 @@ import CaseView from "./pages/CaseView/CaseView";
 import AthleteView from "./pages/AthleteView/AthleteView";
 import Sidebar from "./components/level-1/Sidebar/Sidebar";
 import DicomViewPage from "./pages/DicomViewPage/DicomViewPage";
-// import DicomTestPage from "./components/DicomViewer/DicomTestPage";
+import DicomTestPage from "./components/DicomViewer/DicomTestPage";
 import RegisterView from "./pages/RegisterView/RegisterView";
 import TablePage from "./pages/TablePage/TablePage";
 import AppointmentsTable from "./pages/TablePage/AppointmentsTable";
@@ -164,12 +164,13 @@ const physioProgressRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
   path: '/physio/progress',
   component: PhysioProgressTable,
-})
-// export const DicomTestRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "dicom-test",
-//   component: DicomTestPage,
-// });
+});
+
+export const DicomTestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "dicom-test",
+  component: DicomTestPage,
+});
 
 const athletePortalRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
@@ -255,7 +256,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   CaseRoute,
   DicomRoute,
-  // DicomTestRoute,
+  DicomTestRoute,
   registerRoute,
   LoginRoute,
   ManagerRoute,

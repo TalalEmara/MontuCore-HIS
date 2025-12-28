@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DicomViewer } from './DicomViewer';
+// import { DicomViewer } from './DicomViewer';
 import { useDicomUpload } from '../../hooks/useDicomUpload';
 import axios from 'axios';
 
@@ -241,14 +241,14 @@ export const DicomTestPage: React.FC = () => {
       </div>
 
       {/* DICOM Viewer */}
-      {examData && examData.pacsImages.length > 0 && (
+      {/* {examData && examData.pacsImages.length > 0 && (
         <div style={{ flex: 1, border: '1px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
           <h3>DICOM Viewer - {examData.pacsImages.length} images</h3>
           <DicomViewer
             imageUrls={examData.pacsImages.map(img => img.publicUrl)}
           />
         </div>
-      )}
+      )} */}
 
       {/* Instructions */}
       <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e9ecef', borderRadius: '8px' }}>
