@@ -4,25 +4,27 @@ import List from "../../level-0/List/List";
 import Button from "../../level-0/Button/Bottom";
 import TextInput from "../../level-0/TextInput/TextInput";
 import { Activity, BrainCircuit, Upload } from "lucide-react";
-import { type AnalysisData } from "../../../hooks/DicomViewer/useCDSS";
+import { type CDSSDiagnosis } from "../../../hooks/DicomViewer/useCDSS";
 import { type Exam } from "../../../types/models"; // Import Exam type
 
 interface DicomSidebarProps {
   patientId: string | number;
   patientName: string;
+  caseId?: string | number | null;
   // --- UPDATED: Pass real exams here ---
   exams: Exam[]; 
   onExamClick: (examId: number) => void;
   radiologistNotes?: string | null;
   onAnalyzeClick?: () => void;
   isAnalyzing?: boolean;
-  cdssResult?: AnalysisData | null;
+  cdssResult?: CDSSDiagnosis | null;
   onLocalUpload: (files: FileList) => void;
 }
 
 export const DicomSidebar: React.FC<DicomSidebarProps> = ({
   patientId,
   patientName,
+  caseId,
   exams, // <--- Receive real exams
   onExamClick,
   onAnalyzeClick,
@@ -61,7 +63,14 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
   // --- Transform Data for List Component ---
   const listHeader = ["Exam", "Date", "Status"];
   
-  const listData = exams.map((exam) => [
+  // Sort exams by performedAt date (most recent first)
+  const sortedExams = [...exams].sort((a, b) => {
+    const dateA = new Date(a.performedAt || a.scheduledAt || 0);
+    const dateB = new Date(b.performedAt || b.scheduledAt || 0);
+    return dateB.getTime() - dateA.getTime(); // Descending order
+  });
+  
+  const listData = sortedExams.map((exam) => [
     `${exam.bodyPart} ${exam.modality}`, // e.g. "Knee MRI"
     formatDate(exam.performedAt || exam.scheduledAt),
     <span style={{ color: getStatusColor(exam.status), fontSize: "0.8rem" }}>
@@ -79,7 +88,7 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
     setNoteText("");
   };
   const handleRowClick = (index: number) => {
-    const selectedExam = exams[index];
+    const selectedExam = sortedExams[index];
     if (selectedExam) onExamClick(selectedExam.id);
   };
 
@@ -134,15 +143,18 @@ export const DicomSidebar: React.FC<DicomSidebarProps> = ({
               </Button>
             </div>
             {/* RENDER THE LIST WITH REAL DATA */}
+            <div style={{ padding: "10px", fontSize: "0.9rem", color: "#666", borderBottom: "1px solid #3f3f46" }}>
+              {sortedExams.length} exam{sortedExams.length !== 1 ? 's' : ''} found{caseId ? ` for Case #${caseId}` : ''}
+            </div>
             <List
               header={listHeader}
               data={listData}
               onRowClick={handleRowClick}
               gridTemplateColumns="1.5fr 1fr 1fr"
             />
-            {exams.length === 0 && (
+            {sortedExams.length === 0 && (
               <div style={{padding: '20px', textAlign: 'center', color: '#666'}}>
-                No history found.
+                No exams found{caseId ? ` for Case #${caseId}` : ' for this patient'}.
               </div>
             )}
           </>

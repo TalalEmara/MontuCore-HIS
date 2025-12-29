@@ -98,8 +98,7 @@ export const CaseRoute = createRoute({
 
 export const DicomRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "dicom/$patientId", 
-  // path: "dicom", 
+  path: "dicom/$patientId/$caseId?",
   component: DicomViewPage,
 });
 
@@ -181,14 +180,14 @@ validateSearch: (): PortalSearch => ({ view: 'internal' }),
 
 const physicianConsultRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
-  path: "physician/consult",
+  path: "physician/consult/$athleteId",
   component: PatientPortalView,
   validateSearch: (): PortalSearch => ({ view: 'consulting' }),
 });
 
 const physioConsultRoute = createRoute({
   getParentRoute: () => sidebarLayoutRoute,
-  path: "physio/consult/$athelteId",
+  path: "physio/consult/$athleteId",
   component: PatientPortalView,
   validateSearch: (): PortalSearch => ({ view: 'consulting' }),
 });

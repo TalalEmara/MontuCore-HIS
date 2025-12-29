@@ -29,7 +29,7 @@ function PatientPortalView() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const params = useParams({ strict: false });
   const Token = params.token || 0;
-  const athleteId = params.athelteId || 0;
+  const athleteId = params.athleteId || 0;
   const [shareNotes, setShareNotes] = useState("Please review the selected medical records and provide your expert opinion.");
   const [expiryHours, setExpiryHours] = useState("1");
   const search: any = useSearch({ strict: false });

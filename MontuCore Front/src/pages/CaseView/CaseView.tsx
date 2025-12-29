@@ -142,7 +142,7 @@ function CaseView() {
         {activeTab === "images" && (
           <div className={styles.imagesList}>
             <List 
-              onRowClick={()=>navigate({ to: `/dicom/${caseRecord?.athlete.id}` })}
+              onRowClick={()=>navigate({ to: `/dicom/${caseRecord?.athlete.id}/${caseId}` })}
               header={["#", "Modality", "Body Part", "Date", "Status"]} 
               data={caseRecord?.exams.map((exam) => [
                 `#${exam.id}`,
@@ -233,11 +233,19 @@ function CaseView() {
               >
                 Add report
               </Button>
-              <Button 
-                variant="secondary" 
-                width="20%" 
+              <Button
+                variant="secondary"
+                width="20%"
                 className={styles.addbutton}
-                onClick={() => navigate({ to: `/physician/consult/${caseRecord?.appointments.at(-1)?.athleteId}` })}
+                onClick={() => {
+                  const athleteId = caseRecord?.athlete?.id;
+                  if (athleteId && athleteId > 0) {
+                    navigate({ to: `/physician/consult/${athleteId}` });
+                  } else {
+                    console.error('Cannot navigate to consult: athleteId is invalid', athleteId);
+                  }
+                }}
+                disabled={!caseRecord || !caseRecord.athlete?.id}
               >
                 consult
               </Button>

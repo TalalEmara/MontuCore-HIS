@@ -63,9 +63,10 @@ const DicomViewPage = React.forwardRef<DicomViewPageRef, {}>((props, ref) => {
   const { analyzeImages, isAnalyzing, cdssResult } = useCDSS();
    const params = useParams({ strict: false });
   const loadedPatientId = Number(params.patientId || 0);
+  const loadedCaseId = params.caseId ? Number(params.caseId) : null;
 
-  // 3. Fetch History for this Patient
-  const { data: patientHistory = [] } = usePatientExams(loadedPatientId);
+  // 3. Fetch History for this Patient (filtered by case if caseId provided)
+  const { data: patientHistory = [] } = usePatientExams(loadedPatientId, loadedCaseId);
   
   const modality = examMetadata?.modality || "Unknown Modality";
   const bodyPart = examMetadata?.bodyPart || "Unknown Body Part";
@@ -147,6 +148,7 @@ const onLocalUpload = (files: FileList) => {
           }}
         patientId={patientId}
           patientName={patientName}
+          caseId={loadedCaseId}
           radiologistNotes={radiologistNotes}
           onLocalUpload={onLocalUpload}
         />

@@ -65,9 +65,15 @@ export default function CreateCase({ isOpen, onClose, initialAthlete, appointmen
 
       setIsCreating(true);
       try {
+        const clinicianId = profile?.userId || user?.id;
+        if (!clinicianId) {
+          alert("Clinician ID not available");
+          return;
+        }
+
         const caseData = {
           athleteId: Number(initialAthlete.id),
-          managingClinicianId: profile.id, // clinician profile ID
+          managingClinicianId: clinicianId,
           initialAppointmentId: appointmentId, // required appointment ID
           diagnosisName: "none",
           icd10Code: "S83.5",
@@ -91,6 +97,26 @@ export default function CreateCase({ isOpen, onClose, initialAthlete, appointmen
 
         const result = await response.json();
         const newCaseId = result.data?.id || result.id;
+
+        // Update the appointment status to COMPLETED since a case was created from it
+        try {
+          const appointmentUpdateResponse = await fetch(`http://localhost:3000/api/appointments/update-appointment-details/${appointmentId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              status: "COMPLETED"
+            }),
+          });
+
+          if (!appointmentUpdateResponse.ok) {
+            console.warn('Failed to update appointment status, but case was created successfully');
+          }
+        } catch (appointmentError) {
+          console.warn('Error updating appointment status:', appointmentError);
+          // Don't fail the whole operation if appointment update fails
+        }
 
         onClose();
         navigate({ 
