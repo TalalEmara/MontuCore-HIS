@@ -49,18 +49,56 @@ We follow established conventional commit formats: `type: brief description`
 ### 🏃 Athlete-Centered EHR
 * **Specialized Profiling:** Focuses on performance metrics, recurring injuries, and fatigue levels rather than just standard vitals.
 * **EMR Integration:** Consolidates records from external hospitals and specialized procedure centers into a unified view.
+  
+| Player Dashboard |
+|:---:|
+| ![Player Dashboard](MontuCore%20Front/src/assets/images/web%20screenshots/player%20dashboard.png)|
+
+| Patient Portal |
+|:---:|
+| ![Patient Portal](MontuCore%20Front/src/assets/images/web%20screenshots/patient%20portal.png)|
+
+---
 
 ### 👥 Multi-Disciplinary Team Management
 * **Role-Based Access:** Customized interfaces specifically for physicians, nutritionists, and physiotherapists.
 * **Administrative Oversight:** Dedicated views for coordination and team management.
 
+| Admin Dashboard | Physio Dashboard |
+|:---:|:---:|
+| ![Admin Dashboard](MontuCore%20Front/src/assets/images/web%20screenshots/admin.jpeg) | ![Physio Dashboard](MontuCore%20Front/src/assets/images/web%20screenshots/physio%20dashboard.jpeg) |
+| *Administrative insights & team coordination* | *Physiotherapist's dashboard* |
+
+---
+
 ### 📅 Advanced Scheduling
 * **Rapid Booking:** Efficient management for rehabilitation, physiotherapy, recovery sessions, and fitness evaluations to minimize athlete downtime.
+
+| Rehab Active Cases | Receipt |
+|:---:|:---:|
+| ![Rehab Active Cases](MontuCore%20Front/src/assets/images/web%20screenshots/rehab%20active%20cases%20for%20physio.jpeg) | ![Receipt](MontuCore%20Front/src/assets/images/web%20screenshots/recipt.png) |
+| *Active rehabilitation case tracking for physios* | *Appointment & session receipt* |
+
+---
 
 ### 📊 Analytics & Imaging
 * **Injury & Recovery Tracking:** Advanced reporting on injury trends and team health metrics.
 * **Integrated DICOM Viewer:** Seamless access to X-ray, CT, and MRI images using Cornerstone.js.
 * **CDSS Integration:** Clinical Decision Support System for evidence-based recommendations.
+
+| Report Filling — Step 1 | Report Filling — Step 2 | Report Filling — Step 3 |
+|:---:|:---:|:---:|
+| ![Report Filling Step 1](MontuCore%20Front/src/assets/images/web%20screenshots/report%20filling%201.png) | ![Report Filling Step 2](MontuCore%20Front/src/assets/images/web%20screenshots/report%20filling%203.png) | ![Report Filling Step 3](MontuCore%20Front/src/assets/images/web%20screenshots/report%20filling%202.png) |
+| *Step 1: case status and symptoms* | *Step 2: Assesment* | *Step 3: Imaging Exam* |
+
+---
+
+### 🔐 Registration & Onboarding
+
+| Register | Risk Entry Upon Register |
+|:---:|:---:|
+| ![Register](MontuCore%20Front/src/assets/images/web%20screenshots/register.jpeg) | ![Risk Entry](MontuCore%20Front/src/assets/images/web%20screenshots/risk%20entery%20upon%20register.jpeg) |
+| *New athlete registration flow* | *Risk assessment during onboarding* |
 
 ---
 
